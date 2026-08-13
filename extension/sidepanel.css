@@ -1,0 +1,220 @@
+:root {
+  --navy: #1b2a4a;
+  --navy-light: #2e4370;
+  --accent: #e8a13a;
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --text: #23293a;
+  --muted: #7a8299;
+  --done: #3a9e57;
+  --skip: #b0b6c6;
+  --danger: #c0392b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--navy);
+  color: #fff;
+}
+
+h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.version-badge {
+  font-size: 11px;
+  background: var(--navy-light);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+main { padding: 12px 14px 24px; }
+
+h2 {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 18px 0 8px;
+  font-weight: 600;
+}
+
+.list { display: flex; flex-direction: column; gap: 6px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid #e3e6ee;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card.now { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232, 161, 58, 0.25); }
+.card.disabled { opacity: 0.5; }
+
+.card .time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--navy);
+  min-width: 44px;
+}
+
+.card .label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card .days { font-size: 11px; color: var(--muted); }
+
+.status { font-size: 12px; font-weight: 600; }
+.status.done { color: var(--done); }
+.status.skip { color: var(--skip); }
+
+.streak {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 「実際は」行（カード内で改行して全幅を使う） */
+.note-row {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  border-top: 1px dashed #e3e6ee;
+}
+
+.note-label { font-size: 11px; color: var(--muted); }
+
+.chip {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid #cfd4e0;
+  background: #fff;
+}
+
+.chip.selected {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.note-view {
+  font-size: 11px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  padding: 0;
+  text-align: left;
+}
+
+.note-view:hover { background: none; text-decoration: underline; }
+
+.note-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 4px 6px;
+  border: 1px solid #cfd4e0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: -4px 0 10px;
+}
+
+.field.time-range { display: flex; gap: 8px; }
+.time-range label { flex: 1; }
+.time-range label > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.time-range input[type="time"] { width: 100%; padding: 6px 8px; border: 1px solid #cfd4e0; border-radius: 6px; font-size: 14px; font-family: inherit; }
+
+button {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #cfd4e0;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover { background: #f0f2f7; }
+
+button.primary {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+button.primary:hover { background: var(--navy-light); }
+
+button.mark-done { border-color: var(--done); color: var(--done); }
+button.mark-done:hover { background: #ecf7ef; }
+button.delete { border-color: transparent; color: var(--danger); }
+
+.empty-note { color: var(--muted); font-size: 12px; }
+
+form { background: var(--card); border: 1px solid #e3e6ee; border-radius: 8px; padding: 10px; }
+
+.field { display: block; margin-bottom: 10px; border: none; padding: 0; }
+.field > span, .field legend { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; padding: 0; }
+
+.field input[type="text"], .field input[type="time"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #cfd4e0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.day-boxes { display: flex; gap: 4px; }
+
+.day-boxes label {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  padding: 5px 0;
+  border: 1px solid #cfd4e0;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.day-boxes input { display: none; }
+
+.day-boxes label:has(input:checked) {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.form-buttons { display: flex; gap: 8px; }
+.form-buttons button[type="submit"] { flex: 1; }

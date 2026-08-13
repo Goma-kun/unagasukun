@@ -1,0 +1,92 @@
+{
+  "extName": { "message": "うながすくん" },
+  "extDesc": { "message": "時間が来たら「いまは○○の時間です」と教えてくれる、誘導型の習慣化支援ツールです。ブロックせず、責めず、次の行動をそっと促します。" },
+  "todayHeading": { "message": "今日のよてい" },
+  "todayEmpty": { "message": "予定はまだありません。下の「予定を追加」から登録してください。" },
+  "addHeading": { "message": "予定を追加" },
+  "editHeading": { "message": "予定を編集" },
+  "startLabel": { "message": "開始" },
+  "endLabel": { "message": "終了（任意）" },
+  "endHint": { "message": "終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。" },
+  "labelLabel": { "message": "やること" },
+  "labelPlaceholder": { "message": "例：note執筆" },
+  "daysLegend": { "message": "曜日（何も選ばなければ毎日）" },
+  "day0": { "message": "日" },
+  "day1": { "message": "月" },
+  "day2": { "message": "火" },
+  "day3": { "message": "水" },
+  "day4": { "message": "木" },
+  "day5": { "message": "金" },
+  "day6": { "message": "土" },
+  "addBtn": { "message": "追加する" },
+  "saveBtn": { "message": "保存する" },
+  "cancelBtn": { "message": "やめる" },
+  "listHeading": { "message": "登録済みの予定" },
+  "everyday": { "message": "毎日" },
+  "pauseBtn": { "message": "休む" },
+  "resumeBtn": { "message": "再開" },
+  "pauseTitle": { "message": "この予定の通知を止める" },
+  "resumeTitle": { "message": "この予定の通知を再開する" },
+  "editBtn": { "message": "編集" },
+  "deleteBtn": { "message": "削除" },
+  "deleteConfirm": {
+    "message": "「$LABEL$」（$TIME$）を削除しますか？",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "time": { "content": "$2" }
+    }
+  },
+  "doneBtn": { "message": "できた" },
+  "statusDone": { "message": "✓ できた" },
+  "statusSkip": { "message": "スキップ" },
+  "streakText": {
+    "message": "🔥$N$日",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "streakTitle": {
+    "message": "$N$日続いています",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "noteView": {
+    "message": "実際は：$TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "noteLabel": { "message": "実際は…" },
+  "noteViewTitle": { "message": "押すと変更できます" },
+  "chipOtherWork": { "message": "別の作業" },
+  "chipBreak": { "message": "休憩" },
+  "chipBrowsing": { "message": "ブラウジング" },
+  "chipNoMood": { "message": "気分が乗らず" },
+  "chipOther": { "message": "その他…" },
+  "noteInputPlaceholder": { "message": "なにをしていたか（短くでOK）" },
+  "noteSaveBtn": { "message": "記録" },
+  "endTimeInvalid": { "message": "終了は開始より後の時刻にしてください。" },
+  "notifStartMsg": {
+    "message": "いまから「$LABEL$」の時間です（$RANGE$）",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "range": { "content": "$2" }
+    }
+  },
+  "notifPointMsg": {
+    "message": "いまは「$LABEL$」の時間です（$TIME$）",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "time": { "content": "$2" }
+    }
+  },
+  "notifEndMsg": {
+    "message": "「$LABEL$」の時間が終わりました。できましたか？",
+    "placeholders": { "label": { "content": "$1" } }
+  },
+  "notifBtnDone": { "message": "できた" },
+  "notifBtnSkipToday": { "message": "今日はスキップ" },
+  "notifBtnNotDone": { "message": "できなかった" },
+  "badgeTitle": {
+    "message": "いまは「$LABEL$」の時間（あと$N$分）",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "n": { "content": "$2" }
+    }
+  }
+}

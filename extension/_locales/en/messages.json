@@ -1,0 +1,92 @@
+{
+  "extName": { "message": "Unagasukun" },
+  "extDesc": { "message": "A gentle habit helper that tells you \"it's time for ...\" when the moment comes. No blocking, no guilt — just a friendly nudge toward your next action." },
+  "todayHeading": { "message": "Today's plan" },
+  "todayEmpty": { "message": "No plans yet. Add one with \"Add a plan\" below." },
+  "addHeading": { "message": "Add a plan" },
+  "editHeading": { "message": "Edit plan" },
+  "startLabel": { "message": "Start" },
+  "endLabel": { "message": "End (optional)" },
+  "endHint": { "message": "With an end time, the icon shows minutes left during the block and asks \"Did you do it?\" at the end." },
+  "labelLabel": { "message": "What to do" },
+  "labelPlaceholder": { "message": "e.g. Write a blog post" },
+  "daysLegend": { "message": "Days (leave empty for every day)" },
+  "day0": { "message": "Sun" },
+  "day1": { "message": "Mon" },
+  "day2": { "message": "Tue" },
+  "day3": { "message": "Wed" },
+  "day4": { "message": "Thu" },
+  "day5": { "message": "Fri" },
+  "day6": { "message": "Sat" },
+  "addBtn": { "message": "Add" },
+  "saveBtn": { "message": "Save" },
+  "cancelBtn": { "message": "Cancel" },
+  "listHeading": { "message": "Registered plans" },
+  "everyday": { "message": "Every day" },
+  "pauseBtn": { "message": "Pause" },
+  "resumeBtn": { "message": "Resume" },
+  "pauseTitle": { "message": "Stop notifications for this plan" },
+  "resumeTitle": { "message": "Resume notifications for this plan" },
+  "editBtn": { "message": "Edit" },
+  "deleteBtn": { "message": "Delete" },
+  "deleteConfirm": {
+    "message": "Delete \"$LABEL$\" ($TIME$)?",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "time": { "content": "$2" }
+    }
+  },
+  "doneBtn": { "message": "Done" },
+  "statusDone": { "message": "✓ Done" },
+  "statusSkip": { "message": "Skipped" },
+  "streakText": {
+    "message": "🔥$N$d",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "streakTitle": {
+    "message": "$N$-day streak",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "noteView": {
+    "message": "Actually: $TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "noteLabel": { "message": "Actually…" },
+  "noteViewTitle": { "message": "Click to change" },
+  "chipOtherWork": { "message": "Other work" },
+  "chipBreak": { "message": "Taking a break" },
+  "chipBrowsing": { "message": "Browsing" },
+  "chipNoMood": { "message": "Not in the mood" },
+  "chipOther": { "message": "Other…" },
+  "noteInputPlaceholder": { "message": "What were you doing? (short is fine)" },
+  "noteSaveBtn": { "message": "Save" },
+  "endTimeInvalid": { "message": "End time must be after the start time." },
+  "notifStartMsg": {
+    "message": "Time for \"$LABEL$\" ($RANGE$)",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "range": { "content": "$2" }
+    }
+  },
+  "notifPointMsg": {
+    "message": "It's time for \"$LABEL$\" ($TIME$)",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "time": { "content": "$2" }
+    }
+  },
+  "notifEndMsg": {
+    "message": "\"$LABEL$\" time is over. Did you do it?",
+    "placeholders": { "label": { "content": "$1" } }
+  },
+  "notifBtnDone": { "message": "Done" },
+  "notifBtnSkipToday": { "message": "Skip today" },
+  "notifBtnNotDone": { "message": "Didn't get to it" },
+  "badgeTitle": {
+    "message": "Now: \"$LABEL$\" ($N$ min left)",
+    "placeholders": {
+      "label": { "content": "$1" },
+      "n": { "content": "$2" }
+    }
+  }
+}
