@@ -1,7 +1,12 @@
 {
   "extName": { "message": "うながすくん" },
   "extDesc": { "message": "時間が来たら「いまは○○の時間です」と教えてくれる、誘導型の習慣化支援ツールです。ブロックせず、責めず、次の行動をそっと促します。" },
-  "todayHeading": { "message": "今日のよてい" },
+  "todayHeading": { "message": "今日の予定" },
+  "btnPopoutTip": { "message": "別のウィンドウで開く" },
+  "btnDockTip": { "message": "サイドパネルに戻す" },
+  "toastWindowFailed": { "message": "別ウィンドウを開けませんでした" },
+  "toastNoBrowserWindow": { "message": "戻り先のブラウザウィンドウが見つかりません" },
+  "toastSidePanelFailed": { "message": "サイドパネルを開けませんでした" },
   "todayEmpty": { "message": "予定はまだありません。下の「予定を追加」から登録してください。" },
   "addHeading": { "message": "予定を追加" },
   "editHeading": { "message": "予定を編集" },

@@ -10,11 +10,15 @@
   <header>
     <h1 data-i18n="extName">うながすくん</h1>
     <span class="version-badge">v1.0.0</span>
+    <span class="header-spacer"></span>
+    <button id="btn-popout" class="header-btn" data-i18n-title="btnPopoutTip" hidden>⧉</button>
+    <button id="btn-dock" class="header-btn" data-i18n-title="btnDockTip" hidden>⇥</button>
   </header>
+  <div id="toast" class="toast" hidden></div>
 
   <main>
     <section id="today-section">
-      <h2 data-i18n="todayHeading">今日のよてい</h2>
+      <h2 data-i18n="todayHeading">今日の予定</h2>
       <div id="today-list" class="list"></div>
       <p id="today-empty" class="empty-note" data-i18n="todayEmpty" hidden>予定はまだありません。下の「予定を追加」から登録してください。</p>
     </section>
