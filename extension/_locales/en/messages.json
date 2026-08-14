@@ -65,6 +65,9 @@
   },
   "statusSkip": { "message": "Skipped" },
   "statusPending": { "message": "Pending" },
+  "undoBtn": { "message": "Undo" },
+  "undoTip": { "message": "Remove the record and move it back to today's plan" },
+  "notifDisabledWarning": { "message": "Chrome notifications are turned off, so nothing will appear when the time comes." },
   "nextUp": {
     "message": "Next · in $T$",
     "placeholders": { "t": { "content": "$1" } }

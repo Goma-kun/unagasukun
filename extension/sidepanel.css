@@ -60,6 +60,23 @@ h1 {
 
 .header-btn:hover { background: var(--navy-light); }
 
+.warn {
+  background: #fdf1dd;
+  color: #8a5a0a;
+  font-size: 12px;
+  padding: 8px 14px;
+}
+
+.undo-btn {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+.undo-btn:hover { background: none; text-decoration: underline; }
+
 .toast {
   position: fixed;
   left: 50%;

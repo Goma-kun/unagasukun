@@ -65,6 +65,9 @@
   },
   "statusSkip": { "message": "スキップ" },
   "statusPending": { "message": "未対応" },
+  "undoBtn": { "message": "取り消す" },
+  "undoTip": { "message": "記録を取り消して今日の予定に戻します" },
+  "notifDisabledWarning": { "message": "Chromeの通知がオフになっています。時間になっても通知が出ない状態です。" },
   "nextUp": {
     "message": "次の予定・あと$T$",
     "placeholders": { "t": { "content": "$1" } }

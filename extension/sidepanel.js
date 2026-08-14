@@ -491,16 +491,26 @@ function renderToday() {
       subBadges.push(badge);
     }
 
-    if (result === 'done') {
+    if (result === 'done' || result === 'skip') {
       const s = document.createElement('span');
-      s.className = 'status done';
-      s.textContent = T('statusDone');
+      s.className = result === 'done' ? 'status done' : 'status skip';
+      s.textContent = result === 'done' ? T('statusDone') : T('statusSkip');
       card.append(s);
-    } else if (result === 'skip') {
-      const s = document.createElement('span');
-      s.className = 'status skip';
-      s.textContent = T('statusSkip');
-      card.append(s);
+      // 誤タップの救済：記録を取り消して今日の予定に戻せる
+      const undo = document.createElement('button');
+      undo.className = 'undo-btn';
+      undo.textContent = T('undoBtn');
+      undo.title = T('undoTip');
+      undo.addEventListener('click', async () => {
+        const key = todayKey();
+        if (records[key]) {
+          delete records[key][item.id];
+          if (Object.keys(records[key]).length === 0) delete records[key];
+        }
+        await saveRecords();
+        renderToday();
+      });
+      card.append(undo);
     } else {
       if (!isActive && item.time <= nowHM) card.classList.add('now');
       // 時間が過ぎて未対応なら、枠色だけでなく文字でも分かるようにする
@@ -841,6 +851,14 @@ document.getElementById('done-title').addEventListener('click', () => {
   bindInputHint(['input-date'], 'date-hint');
   resetForm();
   await load();
+  // 予定がまだ1つも無い（初回起動など）ときは、最初の一歩が見えるようフォームを開いておく
+  if (schedule.length === 0) setFormOpen(true);
+  // 通知がオフだとこの拡張は仕事ができないので、その状態を隠さず見せる
+  if (typeof chrome !== 'undefined' && chrome.notifications && chrome.notifications.getPermissionLevel) {
+    chrome.notifications.getPermissionLevel((level) => {
+      document.getElementById('notif-warning').hidden = level === 'granted';
+    });
+  }
   renderAll();
   // 通知ボタンからの実績記録を画面に反映する
   if (hasChromeStorage) {
