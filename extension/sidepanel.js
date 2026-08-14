@@ -249,6 +249,20 @@ function timeText(item) {
   return item.endTime ? `${item.time}〜${item.endTime}` : item.time;
 }
 
+// 「あと45分」「あと1時間5分」のような残り時間の文言
+function durText(minutes) {
+  if (minutes < 60) return T('durMin', [minutes]);
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? T('durH', [h]) : T('durHM', [h, m]);
+}
+
+// 「予定を追加」フォームの開閉（既定は閉じて、予定の一覧を見やすくする）
+function setFormOpen(open) {
+  document.getElementById('item-form').hidden = !open;
+  document.getElementById('form-title').classList.toggle('open', open);
+}
+
 let schedule = [];
 let records = {};
 let notes = {}; // { 日付: { itemId: '実際にやっていたこと' } }
@@ -399,6 +413,9 @@ function renderToday() {
   const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
   const todayRec = records[todayKey()] || {};
 
+  // 「次の予定」＝まだ時間が来ていない未記録の予定のうち、いちばん早いもの
+  const nextItem = items.find((it) => todayRec[it.id] === undefined && it.time > nowHM);
+
   for (const item of items) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -425,6 +442,17 @@ function renderToday() {
     // 「時間が過ぎた」の判定。時間帯ブロックなら終了時刻を基準にする
     const dueHM = item.endTime || item.time;
     const pastDue = dueHM <= nowHM;
+
+    // 次に来る予定は「次の予定・あと◯分」で目立たせる
+    if (item === nextItem) {
+      const [hh, mm] = item.time.split(':').map(Number);
+      const startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm).getTime();
+      const rem = Math.max(1, Math.ceil((startMs - now.getTime()) / 60000));
+      const nx = document.createElement('span');
+      nx.className = 'status next';
+      nx.textContent = T('nextUp', [durText(rem)]);
+      card.append(nx);
+    }
 
     // いままさに進行中のブロックは、ひと目で分かるように強調して残り時間を出す
     const isActive = activeBlock && activeBlock.itemId === item.id && Date.now() < activeBlock.endMs;
@@ -587,6 +615,7 @@ function startEdit(id) {
   const item = schedule.find((it) => it.id === id);
   if (!item) return;
   editingId = id;
+  setFormOpen(true);
   document.getElementById('form-title').textContent = T('editHeading');
   document.getElementById('save-btn').textContent = T('saveBtn');
   document.getElementById('cancel-btn').hidden = false;
@@ -658,10 +687,21 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
   }
   await saveSchedule();
   resetForm();
+  setFormOpen(false);
   renderAll();
 });
 
-document.getElementById('cancel-btn').addEventListener('click', resetForm);
+document.getElementById('cancel-btn').addEventListener('click', () => {
+  resetForm();
+  setFormOpen(false);
+});
+
+// 見出しクリックでフォームを開閉する
+document.getElementById('form-title').addEventListener('click', () => {
+  const isOpen = !document.getElementById('item-form').hidden;
+  if (isOpen && editingId) resetForm(); // 編集を畳むときは編集状態も解除する
+  setFormOpen(!isOpen);
+});
 
 (async function init() {
   // 別ウィンドウが生きているならそちらに任せて閉じる。描画前に判定して画面のちらつきを避ける

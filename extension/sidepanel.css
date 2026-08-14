@@ -80,6 +80,22 @@ h2 {
   font-weight: 600;
 }
 
+/* 折りたたみ見出し（予定を追加） */
+h2.toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+h2.toggle::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 4px;
+  transition: transform 0.15s;
+}
+
+h2.toggle.open::before { transform: rotate(90deg); }
+h2.toggle:hover { color: var(--text); }
+
 .list { display: flex; flex-direction: column; gap: 6px; }
 
 .card {
@@ -106,6 +122,14 @@ h2 {
 .status.pending {
   color: #b06e0e;
   background: #fdf1dd;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.status.next {
+  color: var(--navy-light);
+  background: #e8ecf5;
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 11px;

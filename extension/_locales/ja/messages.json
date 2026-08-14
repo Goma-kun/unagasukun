@@ -59,6 +59,22 @@
   },
   "statusSkip": { "message": "スキップ" },
   "statusPending": { "message": "未対応" },
+  "nextUp": {
+    "message": "次の予定・あと$T$",
+    "placeholders": { "t": { "content": "$1" } }
+  },
+  "durMin": {
+    "message": "$N$分",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "durH": {
+    "message": "$H$時間",
+    "placeholders": { "h": { "content": "$1" } }
+  },
+  "durHM": {
+    "message": "$H$時間$M$分",
+    "placeholders": { "h": { "content": "$1" }, "m": { "content": "$2" } }
+  },
   "streakText": {
     "message": "🔥$N$日",
     "placeholders": { "n": { "content": "$1" } }

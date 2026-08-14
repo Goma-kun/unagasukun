@@ -59,6 +59,22 @@
   },
   "statusSkip": { "message": "Skipped" },
   "statusPending": { "message": "Pending" },
+  "nextUp": {
+    "message": "Next · in $T$",
+    "placeholders": { "t": { "content": "$1" } }
+  },
+  "durMin": {
+    "message": "$N$m",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "durH": {
+    "message": "$H$h",
+    "placeholders": { "h": { "content": "$1" } }
+  },
+  "durHM": {
+    "message": "$H$h $M$m",
+    "placeholders": { "h": { "content": "$1" }, "m": { "content": "$2" } }
+  },
   "streakText": {
     "message": "🔥$N$d",
     "placeholders": { "n": { "content": "$1" } }
