@@ -51,6 +51,10 @@
   },
   "doneBtn": { "message": "できた" },
   "statusDone": { "message": "✓ できた" },
+  "activeNow": {
+    "message": "いまの時間・あと$N$分",
+    "placeholders": { "n": { "content": "$1" } }
+  },
   "statusSkip": { "message": "スキップ" },
   "streakText": {
     "message": "🔥$N$日",

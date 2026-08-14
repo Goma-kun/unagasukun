@@ -94,6 +94,14 @@ h2 {
 }
 
 .card.now { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232, 161, 58, 0.25); }
+
+.card.active {
+  border-color: var(--accent);
+  background: #fff9ef;
+  box-shadow: 0 0 0 2px rgba(232, 161, 58, 0.35);
+}
+
+.status.active { color: var(--accent); }
 .card.disabled { opacity: 0.5; }
 
 .card .time {

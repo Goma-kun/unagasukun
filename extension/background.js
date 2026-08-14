@@ -18,6 +18,14 @@ async function getTodayRecord(itemId) {
   return day ? day[itemId] : undefined;
 }
 
+// 通知を出した事実を記録しておく（「通知が出ていたか」を後から確認できるように）
+async function logNotif(kind, itemId, label) {
+  const { notifLog = [] } = await chrome.storage.local.get('notifLog');
+  notifLog.push({ ts: Date.now(), kind, itemId, label });
+  while (notifLog.length > 30) notifLog.shift();
+  await chrome.storage.local.set({ notifLog });
+}
+
 async function recordResult(itemId, result) {
   const key = dateKey(new Date());
   const { records = {} } = await chrome.storage.local.get('records');
@@ -77,6 +85,7 @@ async function finishBlockIfDue() {
       ],
       priority: 2
     });
+    logNotif('end', activeBlock.itemId, activeBlock.label);
   }
   await endBlock();
 }
@@ -164,6 +173,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       message: chrome.i18n.getMessage('notifStartMsg', [item.label, `${item.time}〜${item.endTime}`]),
       priority: 2
     });
+    logNotif('start', itemId, item.label);
   } else {
     chrome.notifications.create(`notif|${itemId}|${Date.now()}`, {
       type: 'basic',
@@ -176,6 +186,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       ],
       priority: 2
     });
+    logNotif('point', itemId, item.label);
   }
 });
 

@@ -51,6 +51,10 @@
   },
   "doneBtn": { "message": "Done" },
   "statusDone": { "message": "✓ Done" },
+  "activeNow": {
+    "message": "Happening now · $N$ min left",
+    "placeholders": { "n": { "content": "$1" } }
+  },
   "statusSkip": { "message": "Skipped" },
   "streakText": {
     "message": "🔥$N$d",

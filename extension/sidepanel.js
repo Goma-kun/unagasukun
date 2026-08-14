@@ -252,15 +252,17 @@ function timeText(item) {
 let schedule = [];
 let records = {};
 let notes = {}; // { 日付: { itemId: '実際にやっていたこと' } }
+let activeBlock = null; // 進行中の時間帯ブロック（service worker が管理）
 let editingId = null; // null なら新規追加モード
 let expandedNoteFor = null; // 「実際は」を編集中の itemId
 let noteFreeTextFor = null; // 「その他…」の自由入力を開いている itemId
 
 async function load() {
-  const data = await store.get(['schedule', 'records', 'notes']);
+  const data = await store.get(['schedule', 'records', 'notes', 'activeBlock']);
   schedule = Array.isArray(data.schedule) ? data.schedule : [];
   records = data.records || {};
   notes = data.notes || {};
+  activeBlock = data.activeBlock || null;
 }
 
 async function saveSchedule() {
@@ -424,6 +426,17 @@ function renderToday() {
     const dueHM = item.endTime || item.time;
     const pastDue = dueHM <= nowHM;
 
+    // いままさに進行中のブロックは、ひと目で分かるように強調して残り時間を出す
+    const isActive = activeBlock && activeBlock.itemId === item.id && Date.now() < activeBlock.endMs;
+    if (isActive) {
+      card.classList.add('active');
+      const rem = Math.max(1, Math.ceil((activeBlock.endMs - Date.now()) / 60000));
+      const badge = document.createElement('span');
+      badge.className = 'status active';
+      badge.textContent = T('activeNow', [rem]);
+      card.append(badge);
+    }
+
     if (result === 'done') {
       const s = document.createElement('span');
       s.className = 'status done';
@@ -435,7 +448,7 @@ function renderToday() {
       s.textContent = T('statusSkip');
       card.append(s);
     } else {
-      if (item.time <= nowHM) card.classList.add('now');
+      if (!isActive && item.time <= nowHM) card.classList.add('now');
       const doneBtn = document.createElement('button');
       doneBtn.className = 'mark-done';
       doneBtn.textContent = T('doneBtn');
@@ -671,6 +684,7 @@ document.getElementById('cancel-btn').addEventListener('click', resetForm);
       if (changes.records) records = changes.records.newValue || {};
       if (changes.notes) notes = changes.notes.newValue || {};
       if (changes.schedule) schedule = changes.schedule.newValue || [];
+      if (changes.activeBlock) activeBlock = changes.activeBlock.newValue || null;
       renderAll();
     });
   }
