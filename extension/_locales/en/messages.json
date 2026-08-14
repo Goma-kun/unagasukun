@@ -1,6 +1,6 @@
 {
   "extName": { "message": "Unagasukun" },
-  "extDesc": { "message": "A gentle habit helper that tells you \"it's time for ...\" when the moment comes. No blocking, no guilt — just a friendly nudge toward your next action." },
+  "extDesc": { "message": "A gentle habit helper that tells you \"it's time for ...\" No blocking, no guilt — just a nudge toward your next action." },
   "todayHeading": { "message": "Today's plan" },
   "btnPopoutTip": { "message": "Open in a separate window" },
   "btnDockTip": { "message": "Return to the side panel" },
