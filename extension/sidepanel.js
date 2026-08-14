@@ -83,6 +83,9 @@ const POPUP_ID_KEY = 'popupWindowId';
 // サイドパネルに戻すとき、開いたときと同じウィンドウに戻すために覚えておく
 const ORIGIN_ID_KEY = 'popupOriginWindowId';
 const isPopupWindow = new URLSearchParams(location.search).get('view') === 'window';
+// まとめるくん（自作のハブ拡張）の iframe 内で動いているとき。
+// ハブ側の窓がすでに「切り離された1枚」なので、こちらの切り離し・移譲は全部黙らせる
+const isEmbedded = window.self !== window.top;
 const canOpenWindow = typeof chrome !== 'undefined' && !!chrome.windows && !!chrome.runtime;
 
 // 自分が属しているウィンドウを取る。getCurrent が使えない場合に備えて getLastFocused に落とす
@@ -211,7 +214,7 @@ async function returnToSidePanel() {
 // サイドパネルとして開かれたとき、すでに別ウィンドウが生きていればそちらへ寄せる。
 // ツールバーのアイコンから開いた場合も2つ並ばないようにするため
 async function handOverToExistingWindow() {
-  if (isPopupWindow || !canOpenWindow) return false;
+  if (isPopupWindow || isEmbedded || !canOpenWindow) return false;
   let id;
   try {
     const saved = await chrome.storage.local.get(POPUP_ID_KEY);
@@ -813,7 +816,7 @@ document.getElementById('done-title').addEventListener('click', () => {
   await loadPreviewMessages();
   applyI18n();
   // 切り離しボタンはサイドパネル側、戻すボタンは別ウィンドウ側でだけ出す
-  if (canOpenWindow && !isPopupWindow) {
+  if (canOpenWindow && !isPopupWindow && !isEmbedded) {
     const btn = document.getElementById('btn-popout');
     btn.hidden = false;
     btn.addEventListener('click', openInWindow);
