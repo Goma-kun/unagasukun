@@ -500,12 +500,23 @@ function renderItems() {
     days.className = 'days';
     days.textContent = repeatText(item);
 
-    // 今日の分が時間切れのまま未記録なら、こちらの一覧でも「未対応」を見せる
-    let pendingBadge = null;
-    if (isTodayItem(item) && (item.endTime || item.time) <= nowHM && todayRec[item.id] === undefined) {
-      pendingBadge = document.createElement('span');
-      pendingBadge.className = 'status pending';
-      pendingBadge.textContent = T('statusPending');
+    // 今日の分の状態（✓できた／スキップ／未対応）は、今日の予定側と同じ表示で連動させる
+    let statusBadge = null;
+    if (isTodayItem(item)) {
+      const rec = todayRec[item.id];
+      if (rec === 'done') {
+        statusBadge = document.createElement('span');
+        statusBadge.className = 'status done';
+        statusBadge.textContent = T('statusDone');
+      } else if (rec === 'skip') {
+        statusBadge = document.createElement('span');
+        statusBadge.className = 'status skip';
+        statusBadge.textContent = T('statusSkip');
+      } else if ((item.endTime || item.time) <= nowHM) {
+        statusBadge = document.createElement('span');
+        statusBadge.className = 'status pending';
+        statusBadge.textContent = T('statusPending');
+      }
     }
 
     const toggleBtn = document.createElement('button');
@@ -533,7 +544,7 @@ function renderItems() {
     });
 
     card.append(time, label, days);
-    if (pendingBadge) card.append(pendingBadge);
+    if (statusBadge) card.append(statusBadge);
     card.append(toggleBtn, editBtn, delBtn);
     listEl.append(card);
   }
