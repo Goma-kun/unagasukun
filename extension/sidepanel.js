@@ -483,6 +483,9 @@ function renderItems() {
   listEl.textContent = '';
   const items = schedule.slice().sort((a, b) => a.time.localeCompare(b.time));
   emptyEl.hidden = items.length > 0;
+  const now = new Date();
+  const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+  const todayRec = records[todayKey()] || {};
   for (const item of items) {
     const card = document.createElement('div');
     card.className = 'card' + (item.enabled ? '' : ' disabled');
@@ -496,6 +499,14 @@ function renderItems() {
     const days = document.createElement('span');
     days.className = 'days';
     days.textContent = repeatText(item);
+
+    // 今日の分が時間切れのまま未記録なら、こちらの一覧でも「未対応」を見せる
+    let pendingBadge = null;
+    if (isTodayItem(item) && (item.endTime || item.time) <= nowHM && todayRec[item.id] === undefined) {
+      pendingBadge = document.createElement('span');
+      pendingBadge.className = 'status pending';
+      pendingBadge.textContent = T('statusPending');
+    }
 
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = item.enabled ? T('pauseBtn') : T('resumeBtn');
@@ -521,7 +532,9 @@ function renderItems() {
       renderAll();
     });
 
-    card.append(time, label, days, toggleBtn, editBtn, delBtn);
+    card.append(time, label, days);
+    if (pendingBadge) card.append(pendingBadge);
+    card.append(toggleBtn, editBtn, delBtn);
     listEl.append(card);
   }
 }
