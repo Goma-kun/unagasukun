@@ -692,19 +692,9 @@ document.getElementById('cancel-btn').addEventListener('click', resetForm);
     boxes.forEach((b) => { b.checked = !allChecked; });
     syncDateDisabled();
   });
-  // 入力欄はクリックしただけでピッカーを開く（時計/カレンダーアイコンを狙わなくて済むように)
-  // 注意：クリック直後に開くと、サイドパネルの座標が定まる前に位置が計算されて
-  // 画面端に出ることがある（初回のみ）。1フレーム＋少し置いてから開く
-  for (const inputId of ['input-date', 'input-time', 'input-end-time']) {
-    const el = document.getElementById(inputId);
-    el.addEventListener('click', () => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          try { el.showPicker(); } catch { /* ジェスチャー扱いされない環境では無視 */ }
-        }, 50);
-      });
-    });
-  }
+  // クリックでの showPicker() は使わない。サイドパネルではピッカーの表示位置が
+  // 画面端に飛ぶ Chromium のバグがあり、遅延を入れても再発した（2026-08-14に実機で2回）。
+  // 時刻はクリック→数字を直接入力、ピッカーは時計/カレンダーアイコンから開く。
   resetForm();
   await load();
   renderAll();
