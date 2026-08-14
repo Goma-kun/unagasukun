@@ -16,6 +16,8 @@
   "labelLabel": { "message": "What to do" },
   "labelPlaceholder": { "message": "e.g. Write a blog post" },
   "dateLabel": { "message": "Date" },
+  "dateInputHint": { "message": "Type the date directly, or click the icon on the right to pick from a calendar." },
+  "timeInputHint": { "message": "Type the digits directly (e.g. 0930 for 9:30), or click the clock icon to pick from a list." },
   "daysLegend": { "message": "Repeat (pick days for weekly; leave empty for one-time on the date above)" },
   "everydayBtn": { "message": "Every day" },
   "itemsEmpty": { "message": "No plans registered yet." },

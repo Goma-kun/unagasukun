@@ -30,6 +30,7 @@
           <span data-i18n="dateLabel">日付</span>
           <input type="date" id="input-date" required>
         </label>
+        <p class="hint" id="date-hint" data-i18n="dateInputHint" hidden>数字でそのまま入力できます。カレンダーから選ぶには右のアイコンを押します。</p>
         <div class="field time-range">
           <label>
             <span data-i18n="startLabel">開始</span>
@@ -40,6 +41,7 @@
             <input type="time" id="input-end-time">
           </label>
         </div>
+        <p class="hint" id="time-hint" data-i18n="timeInputHint" hidden>数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。</p>
         <p class="hint" data-i18n="endHint">終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。</p>
         <label class="field">
           <span data-i18n="labelLabel">やること</span>

@@ -694,7 +694,18 @@ document.getElementById('cancel-btn').addEventListener('click', resetForm);
   });
   // クリックでの showPicker() は使わない。サイドパネルではピッカーの表示位置が
   // 画面端に飛ぶ Chromium のバグがあり、遅延を入れても再発した（2026-08-14に実機で2回）。
-  // 時刻はクリック→数字を直接入力、ピッカーは時計/カレンダーアイコンから開く。
+  // 代わりに、フォーカス中だけ「数字で直接入力／一覧はアイコンから」のガイドを出す。
+  const bindInputHint = (ids, hintId) => {
+    const hint = document.getElementById(hintId);
+    const els = ids.map((id) => document.getElementById(id));
+    const update = () => { hint.hidden = !els.includes(document.activeElement); };
+    for (const el of els) {
+      el.addEventListener('focus', update);
+      el.addEventListener('blur', () => setTimeout(update, 0));
+    }
+  };
+  bindInputHint(['input-time', 'input-end-time'], 'time-hint');
+  bindInputHint(['input-date'], 'date-hint');
   resetForm();
   await load();
   renderAll();

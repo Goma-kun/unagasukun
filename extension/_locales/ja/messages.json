@@ -16,6 +16,8 @@
   "labelLabel": { "message": "やること" },
   "labelPlaceholder": { "message": "例：note執筆" },
   "dateLabel": { "message": "日付" },
+  "dateInputHint": { "message": "数字でそのまま入力できます。カレンダーから選ぶには右のアイコンを押します。" },
+  "timeInputHint": { "message": "数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。" },
   "daysLegend": { "message": "繰り返し（曜日を選ぶと毎週。選ばなければ上の日付の1回だけ）" },
   "everydayBtn": { "message": "毎日" },
   "itemsEmpty": { "message": "登録済みの予定はまだありません。" },
