@@ -299,16 +299,43 @@ async function saveNotes() {
 // （予定していたことは流れた、という事実だけを残す）
 async function saveNote(item, text) {
   const key = todayKey();
+  // やりなおしコピー（origId付き）への記録・メモは元の予定に付ける
+  const targetId = item.origId || item.id;
   if (!notes[key]) notes[key] = {};
-  notes[key][item.id] = text;
+  notes[key][targetId] = text;
   await saveNotes();
-  if (!(records[key] && records[key][item.id])) {
+  if (!(records[key] && records[key][targetId])) {
     if (!records[key]) records[key] = {};
-    records[key][item.id] = 'skip';
+    records[key][targetId] = 'skip';
     await saveRecords();
+  }
+  if (item.origId) {
+    schedule = schedule.filter((it) => it.id !== item.id);
+    await saveSchedule();
   }
   expandedNoteFor = null;
   noteFreeTextFor = null;
+  renderToday();
+}
+
+// 記録を付ける。やりなおしコピー（origId付き）は元の予定に記録を付けて
+// ストリークを守り、役目を終えたコピーは一覧から消す。
+// 「済み」のときだけ応援のことばを出す（責めない設計：スキップには何も言わない）
+const PRAISE_KEYS = ['praise1', 'praise2', 'praise3', 'praise4', 'praise5'];
+
+async function recordFromPanel(item, result) {
+  const key = todayKey();
+  const targetId = item.origId || item.id;
+  if (!records[key]) records[key] = {};
+  records[key][targetId] = result;
+  await saveRecords();
+  if (item.origId) {
+    schedule = schedule.filter((it) => it.id !== item.id);
+    await saveSchedule();
+  }
+  if (result === 'done') {
+    showToast(T(PRAISE_KEYS[Math.floor(Math.random() * PRAISE_KEYS.length)]));
+  }
   renderToday();
 }
 
@@ -316,7 +343,7 @@ async function saveNote(item, text) {
 function buildNoteRow(item) {
   const row = document.createElement('div');
   row.className = 'note-row';
-  const note = (notes[todayKey()] || {})[item.id];
+  const note = (notes[todayKey()] || {})[item.origId || item.id];
 
   if (note && expandedNoteFor !== item.id) {
     const view = document.createElement('button');
@@ -411,6 +438,72 @@ let doneOpen = true; // 「今日対応済み」の開閉状態
 // 件名の全文を開いている予定のID。画面を閉じるまで覚えていれば足りるので保存はしない
 const expandedToday = new Set();
 
+// 「再設定」の入力行を開いているカードのID（同じく画面ごとの一時状態）
+const redoOpenFor = new Set();
+
+// 「再設定」の行。今日の別の時刻でもう一度通知させる。
+// 繰り返し予定は本体の時刻を動かさず、今日だけの「やりなおし」コピー（origId付き）を作る。
+// コピーへの記録は recordFromPanel / saveNote が元の予定に付け替える
+function buildRedoRow(item) {
+  const row = document.createElement('div');
+  row.className = 'redo-row';
+  const input = document.createElement('input');
+  input.type = 'time';
+  const def = new Date(Date.now() + 15 * 60000);
+  input.value = `${pad2(def.getHours())}:${pad2(def.getMinutes())}`;
+  const go = document.createElement('button');
+  go.className = 'redo-go';
+  go.textContent = T('redoGo');
+  go.addEventListener('click', async () => {
+    const t = input.value;
+    const now = new Date();
+    const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    if (!t || t <= nowHM) {
+      showToast(T('redoPastTime'));
+      return;
+    }
+    // 終了時刻つきの予定は、開始との間隔を保ったままずらす（日をまたぐなら外す）
+    let endTime;
+    if (item.endTime) {
+      const toMin = (hm) => Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3));
+      const end = toMin(t) + Math.max(0, toMin(item.endTime) - toMin(item.time));
+      if (end < 24 * 60) endTime = `${pad2(Math.floor(end / 60))}:${pad2(end % 60)}`;
+    }
+    if (isOneOff(item)) {
+      // 今日1回だけの予定（やりなおしコピー自身も含む）は、その場で時刻を差し替える
+      item.time = t;
+      if (item.endTime) {
+        if (endTime) item.endTime = endTime;
+        else delete item.endTime;
+      }
+    } else {
+      schedule.push({
+        id: 'it' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        label: item.label,
+        ...(item.detail ? { detail: item.detail } : {}),
+        time: t,
+        ...(endTime ? { endTime } : {}),
+        date: todayKey(),
+        days: [],
+        enabled: true,
+        origId: item.id,
+      });
+    }
+    redoOpenFor.delete(item.id);
+    await saveSchedule();
+    renderToday();
+  });
+  const cancel = document.createElement('button');
+  cancel.className = 'redo-cancel';
+  cancel.textContent = T('redoCancel');
+  cancel.addEventListener('click', () => {
+    redoOpenFor.delete(item.id);
+    renderToday();
+  });
+  row.append(input, go, cancel);
+  return row;
+}
+
 function renderToday() {
   const listEl = document.getElementById('today-list');
   const emptyEl = document.getElementById('today-empty');
@@ -445,7 +538,15 @@ function renderToday() {
   // 「次の予定」＝まだ時間が来ていない未記録の予定のうち、いちばん早いもの
   const nextItem = items.find((it) => todayRec[it.id] === undefined && it.time > nowHM);
 
+  // 有効な「やりなおし」コピー（元の予定ID→コピー）。元のカードとは二重に出さない
+  const redoOf = new Map();
+  for (const it of items) {
+    if (it.origId) redoOf.set(it.origId, it);
+  }
+
   for (const item of items) {
+    // やりなおし待ちの元予定は隠す（コピーのカードが「これから」に出ている）
+    if (redoOf.has(item.id) && todayRec[item.id] === undefined) continue;
     const card = document.createElement('div');
     card.className = 'card';
     // いまの時刻を過ぎた直近1件を強調（「今はこれの時間」の目印）
@@ -475,6 +576,14 @@ function renderToday() {
       st.textContent = T('streakText', [streak]);
       st.title = T('streakTitle', [streak]);
       card.append(st);
+    }
+
+    // やりなおしコピーには目印を付ける（元の時間ではなく再設定した時間だと分かるように）
+    if (item.origId) {
+      const tag = document.createElement('span');
+      tag.className = 'redo-tag';
+      tag.textContent = T('redoTag');
+      card.append(tag);
     }
 
     const result = todayRec[item.id];
@@ -539,13 +648,21 @@ function renderToday() {
       const doneBtn = document.createElement('button');
       doneBtn.className = 'mark-done';
       doneBtn.textContent = T('doneBtn');
-      doneBtn.addEventListener('click', async () => {
-        if (!records[todayKey()]) records[todayKey()] = {};
-        records[todayKey()][item.id] = 'done';
-        await saveRecords();
-        renderToday();
-      });
+      doneBtn.addEventListener('click', () => recordFromPanel(item, 'done'));
       card.append(doneBtn);
+      // 時間が過ぎた予定は、今日の別の時刻でやりなおせるようにする
+      if (!isActive && pastDue) {
+        const redoBtn = document.createElement('button');
+        redoBtn.className = 'redo-btn';
+        redoBtn.textContent = T('redoBtn');
+        redoBtn.title = T('redoTip');
+        redoBtn.addEventListener('click', () => {
+          if (redoOpenFor.has(item.id)) redoOpenFor.delete(item.id);
+          else redoOpenFor.add(item.id);
+          renderToday();
+        });
+        card.append(redoBtn);
+      }
     }
 
     if (subBadges.length > 0) {
@@ -567,6 +684,10 @@ function renderToday() {
     // 何をしていたかを後から見返すための自己申告（自動追跡はしない）
     if (result === 'skip' || (result === undefined && pastDue)) {
       card.append(buildNoteRow(item));
+    }
+    // 「再設定」の入力行（未対応カードで再設定ボタンを押したときだけ）
+    if (redoOpenFor.has(item.id) && result === undefined && pastDue && !isActive) {
+      card.append(buildRedoRow(item));
     }
     // 対応済みは「今日対応済み」欄へ、それ以外は「今日の予定」欄へ
     (groupOf(item) === 3 ? doneListEl : listEl).append(card);

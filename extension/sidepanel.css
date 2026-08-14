@@ -215,6 +215,57 @@ h2.toggle:hover { color: var(--text); }
   white-space: nowrap;
 }
 
+/* 「再設定」：時間を過ぎた予定を今日の別の時刻でやりなおす */
+.redo-btn {
+  border: 1px solid #d5dae6;
+  background: var(--card);
+  color: var(--muted);
+  border-radius: 8px;
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.redo-btn:hover { color: var(--navy); border-color: var(--navy); }
+.redo-tag {
+  font-size: 11px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0 5px;
+  white-space: nowrap;
+}
+.redo-row {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+.redo-row input[type="time"] {
+  border: 1px solid #d5dae6;
+  border-radius: 8px;
+  padding: 3px 6px;
+  font-size: 13px;
+}
+.redo-row .redo-go {
+  border: 1px solid var(--navy);
+  background: var(--navy);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 12px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.redo-row .redo-go:hover { background: var(--navy-light); }
+.redo-row .redo-cancel {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
 /* 「実際は」行（カード内で改行して全幅を使う） */
 .note-row {
   flex-basis: 100%;

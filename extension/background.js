@@ -28,10 +28,17 @@ async function logNotif(kind, itemId, label) {
 
 async function recordResult(itemId, result) {
   const key = dateKey(new Date());
-  const { records = {} } = await chrome.storage.local.get('records');
+  const { records = {}, schedule = [] } = await chrome.storage.local.get(['records', 'schedule']);
+  // 「やりなおし」コピー（origId付きの今日だけ予定）への記録は元の予定に付け替える。
+  // ストリークと一覧の表示を元の予定に集約し、役目を終えたコピーは消す
+  const item = Array.isArray(schedule) ? schedule.find((it) => it.id === itemId) : undefined;
+  const targetId = item && item.origId ? item.origId : itemId;
   if (!records[key]) records[key] = {};
-  records[key][itemId] = result; // 'done' | 'skip'
+  records[key][targetId] = result; // 'done' | 'skip'
   await chrome.storage.local.set({ records });
+  if (item && item.origId) {
+    await chrome.storage.local.set({ schedule: schedule.filter((it) => it.id !== itemId) });
+  }
 }
 
 // ---- 進行中ブロック（終了時刻つき予定の「いまは○○の時間」状態）----

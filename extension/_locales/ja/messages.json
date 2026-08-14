@@ -1,139 +1,365 @@
 {
-  "extName": { "message": "うながすくん" },
-  "extDesc": { "message": "時間が来たら「いまは○○の時間です」と教えてくれる、誘導型の習慣化支援ツールです。ブロックせず、責めず、次の行動をそっと促します。" },
-  "todayHeading": { "message": "今日の予定" },
-  "btnPopoutTip": { "message": "別のウィンドウで開く" },
-  "btnDockTip": { "message": "サイドパネルに戻す" },
-  "toastWindowFailed": { "message": "別ウィンドウを開けませんでした" },
-  "toastNoBrowserWindow": { "message": "戻り先のブラウザウィンドウが見つかりません" },
-  "toastSidePanelFailed": { "message": "サイドパネルを開けませんでした" },
-  "todayEmpty": { "message": "これからの予定はありません。「予定を追加」から登録できます。" },
+  "extName": {
+    "message": "うながすくん"
+  },
+  "extDesc": {
+    "message": "時間が来たら「いまは○○の時間です」と教えてくれる、誘導型の習慣化支援ツールです。ブロックせず、責めず、次の行動をそっと促します。"
+  },
+  "todayHeading": {
+    "message": "今日の予定"
+  },
+  "btnPopoutTip": {
+    "message": "別のウィンドウで開く"
+  },
+  "btnDockTip": {
+    "message": "サイドパネルに戻す"
+  },
+  "toastWindowFailed": {
+    "message": "別ウィンドウを開けませんでした"
+  },
+  "toastNoBrowserWindow": {
+    "message": "戻り先のブラウザウィンドウが見つかりません"
+  },
+  "toastSidePanelFailed": {
+    "message": "サイドパネルを開けませんでした"
+  },
+  "todayEmpty": {
+    "message": "これからの予定はありません。「予定を追加」から登録できます。"
+  },
   "doneHeading": {
     "message": "今日対応済み（$N$件）",
-    "placeholders": { "n": { "content": "$1" } }
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
-  "addHeading": { "message": "予定を追加" },
-  "editHeading": { "message": "予定を編集" },
-  "startLabel": { "message": "開始" },
-  "endLabel": { "message": "終了（任意）" },
-  "endHint": { "message": "終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。" },
-  "labelLabel": { "message": "やること" },
-  "labelPlaceholder": { "message": "例：note執筆" },
-  "detailLabel": { "message": "詳細（任意）" },
-  "detailPlaceholder": { "message": "メモや手順など。今日の予定と通知に表示されます" },
-  "dateLabel": { "message": "日付" },
-  "dateInputHint": { "message": "数字でそのまま入力できます。カレンダーから選ぶには右のアイコンを押します。" },
-  "timeInputHint": { "message": "数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。" },
-  "daysLegend": { "message": "繰り返し（曜日を選ぶと毎週。選ばなければ上の日付の1回だけ）" },
-  "everydayBtn": { "message": "毎日" },
-  "itemsEmpty": { "message": "登録済みの予定はまだありません。" },
+  "addHeading": {
+    "message": "予定を追加"
+  },
+  "editHeading": {
+    "message": "予定を編集"
+  },
+  "startLabel": {
+    "message": "開始"
+  },
+  "endLabel": {
+    "message": "終了（任意）"
+  },
+  "endHint": {
+    "message": "終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。"
+  },
+  "labelLabel": {
+    "message": "やること"
+  },
+  "labelPlaceholder": {
+    "message": "例：note執筆"
+  },
+  "detailLabel": {
+    "message": "詳細（任意）"
+  },
+  "detailPlaceholder": {
+    "message": "メモや手順など。今日の予定と通知に表示されます"
+  },
+  "dateLabel": {
+    "message": "日付"
+  },
+  "dateInputHint": {
+    "message": "数字でそのまま入力できます。カレンダーから選ぶには右のアイコンを押します。"
+  },
+  "timeInputHint": {
+    "message": "数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。"
+  },
+  "daysLegend": {
+    "message": "繰り返し（曜日を選ぶと毎週。選ばなければ上の日付の1回だけ）"
+  },
+  "everydayBtn": {
+    "message": "毎日"
+  },
+  "itemsEmpty": {
+    "message": "登録済みの予定はまだありません。"
+  },
   "onceOn": {
     "message": "$DATE$ のみ",
-    "placeholders": { "date": { "content": "$1" } }
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
   },
-  "pastDateTime": { "message": "過去の日時です。これからの日時を選んでください。" },
-  "day0": { "message": "日" },
-  "day1": { "message": "月" },
-  "day2": { "message": "火" },
-  "day3": { "message": "水" },
-  "day4": { "message": "木" },
-  "day5": { "message": "金" },
-  "day6": { "message": "土" },
-  "addBtn": { "message": "追加する" },
-  "saveBtn": { "message": "保存する" },
-  "cancelBtn": { "message": "やめる" },
-  "listHeading": { "message": "登録済みの予定" },
-  "everyday": { "message": "毎日" },
-  "pauseBtn": { "message": "休む" },
-  "resumeBtn": { "message": "再開" },
-  "pauseTitle": { "message": "この予定の通知を止める" },
-  "resumeTitle": { "message": "この予定の通知を再開する" },
-  "editBtn": { "message": "編集" },
-  "deleteBtn": { "message": "削除" },
+  "pastDateTime": {
+    "message": "過去の日時です。これからの日時を選んでください。"
+  },
+  "day0": {
+    "message": "日"
+  },
+  "day1": {
+    "message": "月"
+  },
+  "day2": {
+    "message": "火"
+  },
+  "day3": {
+    "message": "水"
+  },
+  "day4": {
+    "message": "木"
+  },
+  "day5": {
+    "message": "金"
+  },
+  "day6": {
+    "message": "土"
+  },
+  "addBtn": {
+    "message": "追加する"
+  },
+  "saveBtn": {
+    "message": "保存する"
+  },
+  "cancelBtn": {
+    "message": "やめる"
+  },
+  "listHeading": {
+    "message": "登録済みの予定"
+  },
+  "everyday": {
+    "message": "毎日"
+  },
+  "pauseBtn": {
+    "message": "休む"
+  },
+  "resumeBtn": {
+    "message": "再開"
+  },
+  "pauseTitle": {
+    "message": "この予定の通知を止める"
+  },
+  "resumeTitle": {
+    "message": "この予定の通知を再開する"
+  },
+  "editBtn": {
+    "message": "編集"
+  },
+  "deleteBtn": {
+    "message": "削除"
+  },
   "deleteConfirm": {
     "message": "「$LABEL$」（$TIME$）を削除しますか？",
     "placeholders": {
-      "label": { "content": "$1" },
-      "time": { "content": "$2" }
+      "label": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
     }
   },
-  "doneBtn": { "message": "済みにする" },
-  "statusDone": { "message": "✓ できた" },
+  "doneBtn": {
+    "message": "済みにする"
+  },
+  "statusDone": {
+    "message": "✓ できた"
+  },
   "activeNow": {
     "message": "いまの時間・あと$N$分",
-    "placeholders": { "n": { "content": "$1" } }
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
-  "statusSkip": { "message": "スキップ" },
-  "statusPending": { "message": "未対応" },
-  "undoBtn": { "message": "取り消す" },
-  "undoTip": { "message": "記録を取り消して今日の予定に戻します" },
-  "notifDisabledWarning": { "message": "Chromeの通知がオフになっています。時間になっても通知が出ない状態です。" },
+  "statusSkip": {
+    "message": "スキップ"
+  },
+  "statusPending": {
+    "message": "未対応"
+  },
+  "undoBtn": {
+    "message": "取り消す"
+  },
+  "undoTip": {
+    "message": "記録を取り消して今日の予定に戻します"
+  },
+  "notifDisabledWarning": {
+    "message": "Chromeの通知がオフになっています。時間になっても通知が出ない状態です。"
+  },
   "nextUp": {
     "message": "次の予定・あと$T$",
-    "placeholders": { "t": { "content": "$1" } }
+    "placeholders": {
+      "t": {
+        "content": "$1"
+      }
+    }
   },
   "durMin": {
     "message": "$N$分",
-    "placeholders": { "n": { "content": "$1" } }
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
   "durH": {
     "message": "$H$時間",
-    "placeholders": { "h": { "content": "$1" } }
+    "placeholders": {
+      "h": {
+        "content": "$1"
+      }
+    }
   },
   "durHM": {
     "message": "$H$時間$M$分",
-    "placeholders": { "h": { "content": "$1" }, "m": { "content": "$2" } }
+    "placeholders": {
+      "h": {
+        "content": "$1"
+      },
+      "m": {
+        "content": "$2"
+      }
+    }
   },
   "streakText": {
     "message": "🔥$N$日",
-    "placeholders": { "n": { "content": "$1" } }
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
   "streakTitle": {
     "message": "$N$日続いています",
-    "placeholders": { "n": { "content": "$1" } }
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
   "noteView": {
     "message": "実際は：$TEXT$",
-    "placeholders": { "text": { "content": "$1" } }
+    "placeholders": {
+      "text": {
+        "content": "$1"
+      }
+    }
   },
-  "noteLabel": { "message": "実際は…" },
-  "noteViewTitle": { "message": "押すと変更できます" },
-  "chipOtherWork": { "message": "別の作業" },
-  "chipBreak": { "message": "休憩" },
-  "chipBrowsing": { "message": "ブラウジング" },
-  "chipNoMood": { "message": "気分が乗らず" },
-  "chipOther": { "message": "その他…" },
-  "noteInputPlaceholder": { "message": "なにをしていたか（短くでOK）" },
-  "noteSaveBtn": { "message": "記録" },
-  "noteBackBtn": { "message": "戻る" },
-  "noteBackTip": { "message": "選択肢に戻る" },
-  "endTimeInvalid": { "message": "終了は開始より後の時刻にしてください。" },
+  "noteLabel": {
+    "message": "実際は…"
+  },
+  "noteViewTitle": {
+    "message": "押すと変更できます"
+  },
+  "chipOtherWork": {
+    "message": "別の作業"
+  },
+  "chipBreak": {
+    "message": "休憩"
+  },
+  "chipBrowsing": {
+    "message": "ブラウジング"
+  },
+  "chipNoMood": {
+    "message": "気分が乗らず"
+  },
+  "chipOther": {
+    "message": "その他…"
+  },
+  "noteInputPlaceholder": {
+    "message": "なにをしていたか（短くでOK）"
+  },
+  "noteSaveBtn": {
+    "message": "記録"
+  },
+  "noteBackBtn": {
+    "message": "戻る"
+  },
+  "noteBackTip": {
+    "message": "選択肢に戻る"
+  },
+  "endTimeInvalid": {
+    "message": "終了は開始より後の時刻にしてください。"
+  },
   "notifStartMsg": {
     "message": "いまから「$LABEL$」の時間です（$RANGE$）",
     "placeholders": {
-      "label": { "content": "$1" },
-      "range": { "content": "$2" }
+      "label": {
+        "content": "$1"
+      },
+      "range": {
+        "content": "$2"
+      }
     }
   },
   "notifPointMsg": {
     "message": "いまは「$LABEL$」の時間です（$TIME$）",
     "placeholders": {
-      "label": { "content": "$1" },
-      "time": { "content": "$2" }
+      "label": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
     }
   },
   "notifEndMsg": {
     "message": "「$LABEL$」の時間が終わりました。できましたか？",
-    "placeholders": { "label": { "content": "$1" } }
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      }
+    }
   },
-  "notifBtnDone": { "message": "できた" },
-  "notifBtnSkipToday": { "message": "今日はスキップ" },
-  "notifBtnNotDone": { "message": "できなかった" },
+  "notifBtnDone": {
+    "message": "できた"
+  },
+  "notifBtnSkipToday": {
+    "message": "今日はスキップ"
+  },
+  "notifBtnNotDone": {
+    "message": "できなかった"
+  },
   "badgeTitle": {
     "message": "いまは「$LABEL$」の時間（あと$N$分）",
     "placeholders": {
-      "label": { "content": "$1" },
-      "n": { "content": "$2" }
+      "label": {
+        "content": "$1"
+      },
+      "n": {
+        "content": "$2"
+      }
     }
+  },
+  "redoBtn": {
+    "message": "再設定"
+  },
+  "redoTip": {
+    "message": "今日の別の時刻でもう一度通知します"
+  },
+  "redoTag": {
+    "message": "やりなおし"
+  },
+  "redoGo": {
+    "message": "この時刻でやりなおす"
+  },
+  "redoCancel": {
+    "message": "やめる"
+  },
+  "redoPastTime": {
+    "message": "いまより後の時刻を入れてください"
+  },
+  "praise1": {
+    "message": "済みにしました。おつかれさま！"
+  },
+  "praise2": {
+    "message": "いいペースです。この調子！"
+  },
+  "praise3": {
+    "message": "またひとつ前に進みました"
+  },
+  "praise4": {
+    "message": "ちゃんと続いています。すばらしい！"
+  },
+  "praise5": {
+    "message": "今日の分、きちんと積み上がりました"
   }
 }
