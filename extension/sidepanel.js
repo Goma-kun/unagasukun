@@ -329,10 +329,21 @@ function buildNoteRow(item) {
       const v = input.value.trim();
       if (v) saveNote(item, v);
     });
+    // 「やっぱり選択肢から選ぶ」に戻れる道を残す（Escキーでも戻れる）
+    const backToChips = () => {
+      noteFreeTextFor = null;
+      expandedNoteFor = item.id;
+      renderToday();
+    };
+    const back = document.createElement('button');
+    back.textContent = T('noteBackBtn');
+    back.title = T('noteBackTip');
+    back.addEventListener('click', backToChips);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); ok.click(); }
+      if (e.key === 'Escape') { e.preventDefault(); backToChips(); }
     });
-    row.append(input, ok);
+    row.append(input, ok, back);
     setTimeout(() => input.focus(), 0);
     return row;
   }

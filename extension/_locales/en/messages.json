@@ -73,6 +73,8 @@
   "chipOther": { "message": "Other…" },
   "noteInputPlaceholder": { "message": "What were you doing? (short is fine)" },
   "noteSaveBtn": { "message": "Save" },
+  "noteBackBtn": { "message": "Back" },
+  "noteBackTip": { "message": "Back to the choices" },
   "endTimeInvalid": { "message": "End time must be after the start time." },
   "notifStartMsg": {
     "message": "Time for \"$LABEL$\" ($RANGE$)",
