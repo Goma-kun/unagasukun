@@ -85,8 +85,19 @@ async function finishBlockIfDue() {
 
 async function rescheduleAll() {
   await chrome.alarms.clearAll();
-  const schedule = await getSchedule();
+  let schedule = await getSchedule();
   const now = new Date();
+
+  // 日付が過ぎた「1回だけ」の予定は翌日以降に自動で片付ける（実績の記録は残る）
+  const today = dateKey(now);
+  const alive = schedule.filter((item) => !(isOneOff(item) && item.date < today));
+  if (alive.length !== schedule.length) {
+    schedule = alive;
+    await chrome.storage.local.set({ schedule });
+    // この set が storage.onChanged 経由で rescheduleAll をもう一度呼ぶが、
+    // 2回目は削除対象が無いのでここには戻らない（無限ループにならない）
+  }
+
   for (const item of schedule) {
     const next = nextOccurrence(item, now);
     if (next) {

@@ -19,12 +19,26 @@ function isScheduledOn(days, date) {
   return !Array.isArray(days) || days.length === 0 || days.includes(date.getDay());
 }
 
-// 予定 item が次に来る日時を返す。無効な予定や曜日が空振りなら null。
-// item: { time: "HH:MM", days: [0-6の配列。空なら毎日], enabled: true }
+// 1回だけの予定か（日付があり、曜日の繰り返しがない）
+function isOneOff(item) {
+  return !!(item && item.date) && (!Array.isArray(item.days) || item.days.length === 0);
+}
+
+// 予定 item が次に来る日時を返す。無効な予定や空振りなら null。
+// item: { time: "HH:MM", date?: "YYYY-MM-DD"（1回だけ）, days: [0-6]（毎週繰り返し）, enabled }
+// days が空で date も無い旧形式は「毎日」として扱う（後方互換）
 function nextOccurrence(item, now) {
   if (!item || !item.enabled || !/^\d{2}:\d{2}$/.test(item.time || '')) return null;
   const [hh, mm] = item.time.split(':').map(Number);
   if (hh > 23 || mm > 59) return null;
+
+  if (isOneOff(item)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(item.date)) return null;
+    const [y, mo, d] = item.date.split('-').map(Number);
+    const cand = new Date(y, mo - 1, d, hh, mm, 0, 0);
+    return cand.getTime() > now.getTime() ? cand : null;
+  }
+
   for (let add = 0; add < 8; add++) {
     const cand = new Date(now.getFullYear(), now.getMonth(), now.getDate() + add, hh, mm, 0, 0);
     if (cand.getTime() <= now.getTime()) continue;

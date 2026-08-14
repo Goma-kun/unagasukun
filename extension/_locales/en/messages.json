@@ -15,7 +15,15 @@
   "endHint": { "message": "With an end time, the icon shows minutes left during the block and asks \"Did you do it?\" at the end." },
   "labelLabel": { "message": "What to do" },
   "labelPlaceholder": { "message": "e.g. Write a blog post" },
-  "daysLegend": { "message": "Days (leave empty for every day)" },
+  "dateLabel": { "message": "Date" },
+  "daysLegend": { "message": "Repeat (pick days for weekly; leave empty for one-time on the date above)" },
+  "everydayBtn": { "message": "Every day" },
+  "itemsEmpty": { "message": "No plans registered yet." },
+  "onceOn": {
+    "message": "$DATE$ only",
+    "placeholders": { "date": { "content": "$1" } }
+  },
+  "pastDateTime": { "message": "That time is in the past. Please pick a future time." },
   "day0": { "message": "Sun" },
   "day1": { "message": "Mon" },
   "day2": { "message": "Tue" },

@@ -15,7 +15,15 @@
   "endHint": { "message": "終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。" },
   "labelLabel": { "message": "やること" },
   "labelPlaceholder": { "message": "例：note執筆" },
-  "daysLegend": { "message": "曜日（何も選ばなければ毎日）" },
+  "dateLabel": { "message": "日付" },
+  "daysLegend": { "message": "繰り返し（曜日を選ぶと毎週。選ばなければ上の日付の1回だけ）" },
+  "everydayBtn": { "message": "毎日" },
+  "itemsEmpty": { "message": "登録済みの予定はまだありません。" },
+  "onceOn": {
+    "message": "$DATE$ のみ",
+    "placeholders": { "date": { "content": "$1" } }
+  },
+  "pastDateTime": { "message": "過去の日時です。これからの日時を選んでください。" },
   "day0": { "message": "日" },
   "day1": { "message": "月" },
   "day2": { "message": "火" },

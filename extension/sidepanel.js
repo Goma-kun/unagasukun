@@ -356,14 +356,22 @@ function buildNoteRow(item) {
   return row;
 }
 
-function daysText(days) {
-  if (!Array.isArray(days) || days.length === 0) return T('everyday');
-  return days.slice().sort().map((d) => DAY_NAMES[d]).join('・');
+// 予定の繰り返し表示。1回だけなら「8/15（金）のみ」、毎週なら曜日、全曜日なら「毎日」
+function repeatText(item) {
+  if (isOneOff(item)) {
+    const [y, m, d] = item.date.split('-').map(Number);
+    const dayName = DAY_NAMES[new Date(y, m - 1, d).getDay()];
+    return T('onceOn', [`${m}/${d}(${dayName})`]);
+  }
+  if (!Array.isArray(item.days) || item.days.length === 0) return T('everydayBtn'); // 旧形式＝毎日
+  if (item.days.length === 7) return T('everydayBtn');
+  return item.days.slice().sort().map((d) => DAY_NAMES[d]).join('・');
 }
 
 function isTodayItem(item) {
   if (!item.enabled) return false;
-  if (!Array.isArray(item.days) || item.days.length === 0) return true;
+  if (isOneOff(item)) return item.date === todayKey();
+  if (!Array.isArray(item.days) || item.days.length === 0) return true; // 旧形式＝毎日
   return item.days.includes(new Date().getDay());
 }
 
@@ -390,8 +398,8 @@ function renderToday() {
     label.textContent = item.label;
     card.append(time, label);
 
-    // 連続記録（2日以上続いていたら見せる。スキップでは切れない）
-    const streak = streakFor(records, item.id, now, item.days);
+    // 連続記録（繰り返し予定のみ。2日以上続いていたら見せる。スキップでは切れない）
+    const streak = isOneOff(item) ? 0 : streakFor(records, item.id, now, item.days);
     if (streak >= 2) {
       const st = document.createElement('span');
       st.className = 'streak';
@@ -440,8 +448,10 @@ function renderToday() {
 
 function renderItems() {
   const listEl = document.getElementById('item-list');
+  const emptyEl = document.getElementById('items-empty');
   listEl.textContent = '';
   const items = schedule.slice().sort((a, b) => a.time.localeCompare(b.time));
+  emptyEl.hidden = items.length > 0;
   for (const item of items) {
     const card = document.createElement('div');
     card.className = 'card' + (item.enabled ? '' : ' disabled');
@@ -454,7 +464,7 @@ function renderItems() {
     label.textContent = item.label;
     const days = document.createElement('span');
     days.className = 'days';
-    days.textContent = daysText(item.days);
+    days.textContent = repeatText(item);
 
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = item.enabled ? T('pauseBtn') : T('resumeBtn');
@@ -513,6 +523,11 @@ function setSelectedDays(days) {
   });
 }
 
+// 曜日を選んでいる間は日付が使われないので、入力欄を無効化して意味を見せる
+function syncDateDisabled() {
+  document.getElementById('input-date').disabled = selectedDays().length > 0;
+}
+
 function startEdit(id) {
   const item = schedule.find((it) => it.id === id);
   if (!item) return;
@@ -520,10 +535,12 @@ function startEdit(id) {
   document.getElementById('form-title').textContent = T('editHeading');
   document.getElementById('save-btn').textContent = T('saveBtn');
   document.getElementById('cancel-btn').hidden = false;
+  document.getElementById('input-date').value = item.date || todayKey();
   document.getElementById('input-time').value = item.time;
   document.getElementById('input-end-time').value = item.endTime || '';
   document.getElementById('input-label').value = item.label;
   setSelectedDays(item.days);
+  syncDateDisabled();
   document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -533,7 +550,9 @@ function resetForm() {
   document.getElementById('save-btn').textContent = T('addBtn');
   document.getElementById('cancel-btn').hidden = true;
   document.getElementById('item-form').reset();
+  document.getElementById('input-date').value = todayKey();
   setSelectedDays([]);
+  syncDateDisabled();
 }
 
 document.getElementById('item-form').addEventListener('submit', async (e) => {
@@ -547,6 +566,17 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
     return;
   }
   const days = selectedDays();
+  // 曜日なし＝日付指定の1回だけ。過去の日時は受け付けない
+  const date = days.length === 0 ? document.getElementById('input-date').value : undefined;
+  if (date) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+    const [y, m, d] = date.split('-').map(Number);
+    const [hh, mm] = time.split(':').map(Number);
+    if (new Date(y, m - 1, d, hh, mm).getTime() <= Date.now()) {
+      alert(T('pastDateTime'));
+      return;
+    }
+  }
 
   if (editingId) {
     const item = schedule.find((it) => it.id === editingId);
@@ -555,6 +585,7 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       item.endTime = endTime || undefined;
       item.label = label;
       item.days = days;
+      item.date = date;
       item.updatedAt = Date.now();
     }
   } else {
@@ -564,6 +595,7 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       endTime: endTime || undefined,
       label,
       days,
+      date,
       enabled: true,
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -596,6 +628,23 @@ document.getElementById('cancel-btn').addEventListener('click', resetForm);
   DAY_NAMES = ['day0', 'day1', 'day2', 'day3', 'day4', 'day5', 'day6'].map((k) => T(k));
   NOTE_CHOICES = ['chipOtherWork', 'chipBreak', 'chipBrowsing', 'chipNoMood'].map((k) => T(k));
   buildDayBoxes();
+  // 曜日の選択状態で日付欄の有効/無効を切り替える
+  document.getElementById('day-boxes').addEventListener('change', syncDateDisabled);
+  // 「毎日」ボタン：全曜日を一括で付け外しする
+  document.getElementById('btn-everyday').addEventListener('click', () => {
+    const boxes = [...document.querySelectorAll('#day-boxes input')];
+    const allChecked = boxes.every((b) => b.checked);
+    boxes.forEach((b) => { b.checked = !allChecked; });
+    syncDateDisabled();
+  });
+  // 入力欄はクリックしただけでピッカーを開く（時計/カレンダーアイコンを狙わなくて済むように)
+  for (const inputId of ['input-date', 'input-time', 'input-end-time']) {
+    const el = document.getElementById(inputId);
+    el.addEventListener('click', () => {
+      try { el.showPicker(); } catch { /* ジェスチャー扱いされない環境では無視 */ }
+    });
+  }
+  resetForm();
   await load();
   renderAll();
   // 通知ボタンからの実績記録を画面に反映する

@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff };`
 )();
 
 let pass = 0;
@@ -93,6 +93,31 @@ eq(
   '月末またぎ',
   nextOccurrence({ time: '09:00', days: [], enabled: true }, new Date(2026, 7, 31, 23, 0))?.toISOString(),
   new Date(2026, 8, 1, 9, 0).toISOString()
+);
+
+// 1回だけの予定（日付指定）
+eq('isOneOff: 日付あり曜日なし', isOneOff({ date: '2026-08-15', days: [] }), true);
+eq('isOneOff: 曜日があれば繰り返し', isOneOff({ date: '2026-08-15', days: [1] }), false);
+eq('isOneOff: 日付なしは旧形式', isOneOff({ days: [] }), false);
+
+eq(
+  '1回だけ・今日の未来時刻',
+  nextOccurrence({ time: '14:00', date: '2026-08-13', days: [], enabled: true }, thu10)?.toISOString(),
+  new Date(2026, 7, 13, 14, 0).toISOString()
+);
+eq(
+  '1回だけ・別の日',
+  nextOccurrence({ time: '09:00', date: '2026-08-20', days: [], enabled: true }, thu10)?.toISOString(),
+  new Date(2026, 7, 20, 9, 0).toISOString()
+);
+eq('1回だけ・過ぎた日時は null（再発火しない）',
+  nextOccurrence({ time: '09:00', date: '2026-08-13', days: [], enabled: true }, thu10), null);
+eq('1回だけ・日付形式が壊れていたら null',
+  nextOccurrence({ time: '09:00', date: '2026/08/20', days: [], enabled: true }, thu10), null);
+eq(
+  '日付があっても曜日があれば毎週扱い',
+  nextOccurrence({ time: '08:00', date: '2026-08-13', days: [1], enabled: true }, thu10)?.toISOString(),
+  new Date(2026, 7, 17, 8, 0).toISOString()
 );
 
 // isTooLate

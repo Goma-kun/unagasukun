@@ -26,6 +26,10 @@
     <section id="edit-section">
       <h2 id="form-title" data-i18n="addHeading">予定を追加</h2>
       <form id="item-form">
+        <label class="field">
+          <span data-i18n="dateLabel">日付</span>
+          <input type="date" id="input-date" required>
+        </label>
         <div class="field time-range">
           <label>
             <span data-i18n="startLabel">開始</span>
@@ -42,8 +46,11 @@
           <input type="text" id="input-label" data-i18n-placeholder="labelPlaceholder" placeholder="例：note執筆" maxlength="50" required>
         </label>
         <fieldset class="field">
-          <legend data-i18n="daysLegend">曜日（何も選ばなければ毎日）</legend>
-          <div id="day-boxes" class="day-boxes"></div>
+          <legend data-i18n="daysLegend">繰り返し（曜日を選ぶと毎週。選ばなければ上の日付の1回だけ）</legend>
+          <div class="day-row">
+            <div id="day-boxes" class="day-boxes"></div>
+            <button type="button" id="btn-everyday" class="chip" data-i18n="everydayBtn">毎日</button>
+          </div>
         </fieldset>
         <div class="form-buttons">
           <button type="submit" id="save-btn" data-i18n="addBtn">追加する</button>
@@ -53,6 +60,7 @@
 
       <h2 data-i18n="listHeading">登録済みの予定</h2>
       <div id="item-list" class="list"></div>
+      <p id="items-empty" class="empty-note" data-i18n="itemsEmpty" hidden>登録済みの予定はまだありません。</p>
     </section>
   </main>
 
