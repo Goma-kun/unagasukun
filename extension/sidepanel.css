@@ -134,6 +134,29 @@ h2.toggle:hover { color: var(--text); }
   border-radius: 10px;
   font-size: 11px;
 }
+
+/* カード内の2行目（次の予定・いまの時間バッジ、操作ボタン列） */
+.badge-row {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+/* 予定の詳細（任意入力のメモ） */
+.detail-row {
+  flex-basis: 100%;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 登録済みの予定：1行表示＋クリックで操作ボタンを出す */
+#item-list .card { cursor: pointer; }
+#item-list .card .label { min-width: 0; }
+.item-more { color: var(--muted); font-size: 14px; }
 .card.disabled { opacity: 0.5; }
 
 .card .time {
@@ -254,7 +277,7 @@ form { background: var(--card); border: 1px solid #e3e6ee; border-radius: 8px; p
 .field { display: block; margin-bottom: 10px; border: none; padding: 0; }
 .field > span, .field legend { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; padding: 0; }
 
-.field input[type="text"], .field input[type="time"], .field input[type="date"] {
+.field input[type="text"], .field input[type="time"], .field input[type="date"], .field textarea {
   width: 100%;
   padding: 6px 8px;
   border: 1px solid #cfd4e0;
@@ -262,6 +285,8 @@ form { background: var(--card); border: 1px solid #e3e6ee; border-radius: 8px; p
   font-size: 14px;
   font-family: inherit;
 }
+
+.field textarea { resize: vertical; }
 
 .field input:disabled { background: #eef0f5; color: var(--muted); }
 

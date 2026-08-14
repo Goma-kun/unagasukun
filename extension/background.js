@@ -166,16 +166,18 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     // 時間帯ブロック：開始を知らせて、記録は終わりに聞く
     const endMs = blockEndMs(item.endTime, new Date(alarm.scheduledTime));
     if (Date.now() < endMs) await startBlock(item, endMs);
-    chrome.notifications.create(`notifstart|${itemId}|${Date.now()}`, {
+    const opts = {
       type: 'basic',
       iconUrl: 'icons/icon128.png',
       title: chrome.i18n.getMessage('extName'),
       message: chrome.i18n.getMessage('notifStartMsg', [item.label, `${item.time}〜${item.endTime}`]),
       priority: 2
-    });
+    };
+    if (item.detail) opts.contextMessage = String(item.detail).slice(0, 120);
+    chrome.notifications.create(`notifstart|${itemId}|${Date.now()}`, opts);
     logNotif('start', itemId, item.label);
   } else {
-    chrome.notifications.create(`notif|${itemId}|${Date.now()}`, {
+    const opts = {
       type: 'basic',
       iconUrl: 'icons/icon128.png',
       title: chrome.i18n.getMessage('extName'),
@@ -185,7 +187,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         { title: chrome.i18n.getMessage('notifBtnSkipToday') }
       ],
       priority: 2
-    });
+    };
+    if (item.detail) opts.contextMessage = String(item.detail).slice(0, 120);
+    chrome.notifications.create(`notif|${itemId}|${Date.now()}`, opts);
     logNotif('point', itemId, item.label);
   }
 });

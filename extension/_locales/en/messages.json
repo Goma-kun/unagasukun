@@ -15,6 +15,8 @@
   "endHint": { "message": "With an end time, the icon shows minutes left during the block and asks \"Did you do it?\" at the end." },
   "labelLabel": { "message": "What to do" },
   "labelPlaceholder": { "message": "e.g. Write a blog post" },
+  "detailLabel": { "message": "Detail (optional)" },
+  "detailPlaceholder": { "message": "Notes or steps. Shown in today's plan and in notifications." },
   "dateLabel": { "message": "Date" },
   "dateInputHint": { "message": "Type the date directly, or click the icon on the right to pick from a calendar." },
   "timeInputHint": { "message": "Type the digits directly (e.g. 0930 for 9:30), or click the clock icon to pick from a list." },

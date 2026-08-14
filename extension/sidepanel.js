@@ -270,6 +270,7 @@ let activeBlock = null; // 進行中の時間帯ブロック（service worker �
 let editingId = null; // null なら新規追加モード
 let expandedNoteFor = null; // 「実際は」を編集中の itemId
 let noteFreeTextFor = null; // 「その他…」の自由入力を開いている itemId
+let expandedActionsFor = null; // 登録済み一覧で操作ボタンを開いている itemId
 
 async function load() {
   const data = await store.get(['schedule', 'records', 'notes', 'activeBlock']);
@@ -443,6 +444,9 @@ function renderToday() {
     const dueHM = item.endTime || item.time;
     const pastDue = dueHM <= nowHM;
 
+    // 長いバッジ（次の予定・いまの時間）はタイトルを潰さないよう2行目に出す
+    const subBadges = [];
+
     // 次に来る予定は「次の予定・あと◯分」で目立たせる
     if (item === nextItem) {
       const [hh, mm] = item.time.split(':').map(Number);
@@ -451,7 +455,7 @@ function renderToday() {
       const nx = document.createElement('span');
       nx.className = 'status next';
       nx.textContent = T('nextUp', [durText(rem)]);
-      card.append(nx);
+      subBadges.push(nx);
     }
 
     // いままさに進行中のブロックは、ひと目で分かるように強調して残り時間を出す
@@ -462,7 +466,7 @@ function renderToday() {
       const badge = document.createElement('span');
       badge.className = 'status active';
       badge.textContent = T('activeNow', [rem]);
-      card.append(badge);
+      subBadges.push(badge);
     }
 
     if (result === 'done') {
@@ -494,6 +498,21 @@ function renderToday() {
         renderToday();
       });
       card.append(doneBtn);
+    }
+
+    if (subBadges.length > 0) {
+      const row = document.createElement('div');
+      row.className = 'badge-row';
+      row.append(...subBadges);
+      card.append(row);
+    }
+
+    // 詳細（任意メモ）があれば小さく添える
+    if (item.detail) {
+      const dt = document.createElement('div');
+      dt.className = 'detail-row';
+      dt.textContent = item.detail;
+      card.append(dt);
     }
 
     // 「実際は」行：スキップ済み、または時間が過ぎて未記録のとき。
@@ -547,33 +566,52 @@ function renderItems() {
       }
     }
 
-    const toggleBtn = document.createElement('button');
-    toggleBtn.textContent = item.enabled ? T('pauseBtn') : T('resumeBtn');
-    toggleBtn.title = item.enabled ? T('pauseTitle') : T('resumeTitle');
-    toggleBtn.addEventListener('click', async () => {
-      item.enabled = !item.enabled;
-      await saveSchedule();
-      renderAll();
-    });
-
-    const editBtn = document.createElement('button');
-    editBtn.textContent = T('editBtn');
-    editBtn.addEventListener('click', () => startEdit(item.id));
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'delete';
-    delBtn.textContent = T('deleteBtn');
-    delBtn.addEventListener('click', async () => {
-      if (!confirm(T('deleteConfirm', [item.label, timeText(item)]))) return;
-      schedule = schedule.filter((it) => it.id !== item.id);
-      await saveSchedule();
-      if (editingId === item.id) resetForm();
-      renderAll();
-    });
+    // 1行に収める：普段は 時刻・名前・繰り返し・状態 だけ。
+    // カードをクリックすると操作ボタン（休む・編集・削除）が2行目に開く
+    const more = document.createElement('span');
+    more.className = 'item-more';
+    more.textContent = expandedActionsFor === item.id ? '▾' : '▸';
 
     card.append(time, label, days);
     if (statusBadge) card.append(statusBadge);
-    card.append(toggleBtn, editBtn, delBtn);
+    card.append(more);
+
+    if (expandedActionsFor === item.id) {
+      const toggleBtn = document.createElement('button');
+      toggleBtn.textContent = item.enabled ? T('pauseBtn') : T('resumeBtn');
+      toggleBtn.title = item.enabled ? T('pauseTitle') : T('resumeTitle');
+      toggleBtn.addEventListener('click', async () => {
+        item.enabled = !item.enabled;
+        await saveSchedule();
+        renderAll();
+      });
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = T('editBtn');
+      editBtn.addEventListener('click', () => startEdit(item.id));
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete';
+      delBtn.textContent = T('deleteBtn');
+      delBtn.addEventListener('click', async () => {
+        if (!confirm(T('deleteConfirm', [item.label, timeText(item)]))) return;
+        schedule = schedule.filter((it) => it.id !== item.id);
+        await saveSchedule();
+        if (editingId === item.id) resetForm();
+        renderAll();
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'badge-row';
+      actions.append(toggleBtn, editBtn, delBtn);
+      card.append(actions);
+    }
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return; // ボタン操作はそのまま通す
+      expandedActionsFor = expandedActionsFor === item.id ? null : item.id;
+      renderItems();
+    });
     listEl.append(card);
   }
 }
@@ -623,6 +661,7 @@ function startEdit(id) {
   document.getElementById('input-time').value = item.time;
   document.getElementById('input-end-time').value = item.endTime || '';
   document.getElementById('input-label').value = item.label;
+  document.getElementById('input-detail').value = item.detail || '';
   setSelectedDays(item.days);
   syncDateDisabled();
   document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
@@ -644,6 +683,7 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
   const time = document.getElementById('input-time').value;
   const endTime = document.getElementById('input-end-time').value;
   const label = document.getElementById('input-label').value.trim();
+  const detail = document.getElementById('input-detail').value.trim();
   if (!time || !label) return;
   if (endTime && !isValidEndTime(time, endTime)) {
     alert(T('endTimeInvalid'));
@@ -668,6 +708,7 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       item.time = time;
       item.endTime = endTime || undefined;
       item.label = label;
+      item.detail = detail || undefined;
       item.days = days;
       item.date = date;
       item.updatedAt = Date.now();
@@ -678,6 +719,7 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       time,
       endTime: endTime || undefined,
       label,
+      detail: detail || undefined,
       days,
       date,
       enabled: true,

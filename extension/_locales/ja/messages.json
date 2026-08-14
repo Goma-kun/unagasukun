@@ -15,6 +15,8 @@
   "endHint": { "message": "終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。" },
   "labelLabel": { "message": "やること" },
   "labelPlaceholder": { "message": "例：note執筆" },
+  "detailLabel": { "message": "詳細（任意）" },
+  "detailPlaceholder": { "message": "メモや手順など。今日の予定と通知に表示されます" },
   "dateLabel": { "message": "日付" },
   "dateInputHint": { "message": "数字でそのまま入力できます。カレンダーから選ぶには右のアイコンを押します。" },
   "timeInputHint": { "message": "数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。" },
