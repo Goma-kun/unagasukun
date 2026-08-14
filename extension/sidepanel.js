@@ -408,6 +408,9 @@ function isTodayItem(item) {
 
 let doneOpen = true; // 「今日対応済み」の開閉状態
 
+// 件名の全文を開いている予定のID。画面を閉じるまで覚えていれば足りるので保存はしない
+const expandedToday = new Set();
+
 function renderToday() {
   const listEl = document.getElementById('today-list');
   const emptyEl = document.getElementById('today-empty');
@@ -452,6 +455,16 @@ function renderToday() {
     const label = document.createElement('span');
     label.className = 'label';
     label.textContent = item.label;
+    // 長い件名は1行に切り詰めるので、カードのクリックで全文を開けるようにする。
+    // 毎分の再描画で閉じてしまわないよう、開いた予定は expandedToday に覚えておく
+    label.title = item.detail ? `${item.label}\n${item.detail}` : item.label;
+    if (expandedToday.has(item.id)) card.classList.add('expanded');
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('button, input, textarea, select, a')) return;
+      const opened = card.classList.toggle('expanded');
+      if (opened) expandedToday.add(item.id);
+      else expandedToday.delete(item.id);
+    });
     card.append(time, label);
 
     // 連続記録（繰り返し予定のみ。2日以上続いていたら見せる。スキップでは切れない）
