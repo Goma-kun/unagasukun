@@ -414,6 +414,17 @@ function renderToday() {
   const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
   const todayRec = records[todayKey()] || {};
 
+  // 並び順：進行中 → これから → 未対応 → 済み（各グループ内は時刻順）。
+  // 「次に何をするか」が常に一番上に来るようにする
+  const groupOf = (it) => {
+    if (activeBlock && activeBlock.itemId === it.id && Date.now() < activeBlock.endMs) return 0;
+    const result = todayRec[it.id];
+    if (result === undefined && it.time > nowHM) return 1;
+    if (result === undefined) return 2; // 時間が過ぎて未対応
+    return 3; // できた・スキップ
+  };
+  items.sort((a, b) => groupOf(a) - groupOf(b) || a.time.localeCompare(b.time));
+
   // 「次の予定」＝まだ時間が来ていない未記録の予定のうち、いちばん早いもの
   const nextItem = items.find((it) => todayRec[it.id] === undefined && it.time > nowHM);
 
@@ -524,12 +535,22 @@ function renderToday() {
   }
 }
 
+let registeredOpen = true; // 「登録済みの予定」の開閉状態
+
 function renderItems() {
   const listEl = document.getElementById('item-list');
   const emptyEl = document.getElementById('items-empty');
   listEl.textContent = '';
-  const items = schedule.slice().sort((a, b) => a.time.localeCompare(b.time));
-  emptyEl.hidden = items.length > 0;
+  const sortNow = new Date();
+  // 次に実行される順に並べる（これからの予定が上から順に見える）。
+  // 実行予定のないもの（休止中・終わった1回だけ）は一番下
+  const items = schedule.slice().sort((a, b) => {
+    const na = nextOccurrence(a, sortNow)?.getTime() ?? Infinity;
+    const nb = nextOccurrence(b, sortNow)?.getTime() ?? Infinity;
+    return na - nb || a.time.localeCompare(b.time);
+  });
+  listEl.hidden = !registeredOpen;
+  emptyEl.hidden = !registeredOpen || items.length > 0;
   const now = new Date();
   const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
   const todayRec = records[todayKey()] || {};
@@ -743,6 +764,13 @@ document.getElementById('form-title').addEventListener('click', () => {
   const isOpen = !document.getElementById('item-form').hidden;
   if (isOpen && editingId) resetForm(); // 編集を畳むときは編集状態も解除する
   setFormOpen(!isOpen);
+});
+
+// 「登録済みの予定」も見出しクリックで開閉する
+document.getElementById('list-title').addEventListener('click', () => {
+  registeredOpen = !registeredOpen;
+  document.getElementById('list-title').classList.toggle('open', registeredOpen);
+  renderItems();
 });
 
 (async function init() {
