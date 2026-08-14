@@ -57,7 +57,7 @@
       "time": { "content": "$2" }
     }
   },
-  "doneBtn": { "message": "Done" },
+  "doneBtn": { "message": "Mark done" },
   "statusDone": { "message": "✓ Done" },
   "activeNow": {
     "message": "Happening now · $N$ min left",

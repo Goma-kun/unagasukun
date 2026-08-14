@@ -57,7 +57,7 @@
       "time": { "content": "$2" }
     }
   },
-  "doneBtn": { "message": "できた" },
+  "doneBtn": { "message": "済みにする" },
   "statusDone": { "message": "✓ できた" },
   "activeNow": {
     "message": "いまの時間・あと$N$分",

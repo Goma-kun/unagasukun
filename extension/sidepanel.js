@@ -554,13 +554,18 @@ function renderItems() {
   const emptyEl = document.getElementById('items-empty');
   listEl.textContent = '';
   const sortNow = new Date();
-  // 次に実行される順に並べる（これからの予定が上から順に見える）。
-  // 実行予定のないもの（休止中・終わった1回だけ）は一番下
-  const items = schedule.slice().sort((a, b) => {
-    const na = nextOccurrence(a, sortNow)?.getTime() ?? Infinity;
-    const nb = nextOccurrence(b, sortNow)?.getTime() ?? Infinity;
-    return na - nb || a.time.localeCompare(b.time);
-  });
+  const recToday = records[todayKey()] || {};
+  // 今日だけの予定で今日すでに対応済みのものは「今日対応済み」欄に出ているので、
+  // ここには重複して出さない（繰り返し予定は明日以降があるので残す）
+  const items = schedule
+    .filter((it) => !(isOneOff(it) && it.date === todayKey() && recToday[it.id] !== undefined))
+    // 次に実行される順に並べる（これからの予定が上から順に見える）。
+    // 実行予定のないもの（休止中・終わった1回だけ）は一番下
+    .sort((a, b) => {
+      const na = nextOccurrence(a, sortNow)?.getTime() ?? Infinity;
+      const nb = nextOccurrence(b, sortNow)?.getTime() ?? Infinity;
+      return na - nb || a.time.localeCompare(b.time);
+    });
   listEl.hidden = !registeredOpen;
   emptyEl.hidden = !registeredOpen || items.length > 0;
   const now = new Date();
