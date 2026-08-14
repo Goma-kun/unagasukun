@@ -102,6 +102,14 @@ h2 {
 }
 
 .status.active { color: var(--accent); }
+
+.status.pending {
+  color: #b06e0e;
+  background: #fdf1dd;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
 .card.disabled { opacity: 0.5; }
 
 .card .time {

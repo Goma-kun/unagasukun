@@ -56,6 +56,7 @@
     "placeholders": { "n": { "content": "$1" } }
   },
   "statusSkip": { "message": "スキップ" },
+  "statusPending": { "message": "未対応" },
   "streakText": {
     "message": "🔥$N$日",
     "placeholders": { "n": { "content": "$1" } }

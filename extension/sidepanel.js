@@ -449,6 +449,13 @@ function renderToday() {
       card.append(s);
     } else {
       if (!isActive && item.time <= nowHM) card.classList.add('now');
+      // 時間が過ぎて未対応なら、枠色だけでなく文字でも分かるようにする
+      if (!isActive && pastDue) {
+        const p = document.createElement('span');
+        p.className = 'status pending';
+        p.textContent = T('statusPending');
+        card.append(p);
+      }
       const doneBtn = document.createElement('button');
       doneBtn.className = 'mark-done';
       doneBtn.textContent = T('doneBtn');
