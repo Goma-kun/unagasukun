@@ -7,7 +7,11 @@
   "toastWindowFailed": { "message": "別ウィンドウを開けませんでした" },
   "toastNoBrowserWindow": { "message": "戻り先のブラウザウィンドウが見つかりません" },
   "toastSidePanelFailed": { "message": "サイドパネルを開けませんでした" },
-  "todayEmpty": { "message": "予定はまだありません。下の「予定を追加」から登録してください。" },
+  "todayEmpty": { "message": "これからの予定はありません。「予定を追加」から登録できます。" },
+  "doneHeading": {
+    "message": "今日対応済み（$N$件）",
+    "placeholders": { "n": { "content": "$1" } }
+  },
   "addHeading": { "message": "予定を追加" },
   "editHeading": { "message": "予定を編集" },
   "startLabel": { "message": "開始" },

@@ -403,19 +403,23 @@ function isTodayItem(item) {
   return item.days.includes(new Date().getDay());
 }
 
+let doneOpen = true; // 「今日対応済み」の開閉状態
+
 function renderToday() {
   const listEl = document.getElementById('today-list');
   const emptyEl = document.getElementById('today-empty');
+  const doneListEl = document.getElementById('done-list');
+  const doneTitleEl = document.getElementById('done-title');
   listEl.textContent = '';
+  doneListEl.textContent = '';
   const items = schedule.filter(isTodayItem).sort((a, b) => a.time.localeCompare(b.time));
-  emptyEl.hidden = items.length > 0;
 
   const now = new Date();
   const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
   const todayRec = records[todayKey()] || {};
 
-  // 並び順：進行中 → これから → 未対応 → 済み（各グループ内は時刻順）。
-  // 「次に何をするか」が常に一番上に来るようにする
+  // 上の欄は「今日のこれから」だけ：進行中 → これから → 未対応（各グループ内は時刻順）。
+  // 対応済み（できた・スキップ）は下の「今日対応済み」に移す
   const groupOf = (it) => {
     if (activeBlock && activeBlock.itemId === it.id && Date.now() < activeBlock.endMs) return 0;
     const result = todayRec[it.id];
@@ -424,6 +428,13 @@ function renderToday() {
     return 3; // できた・スキップ
   };
   items.sort((a, b) => groupOf(a) - groupOf(b) || a.time.localeCompare(b.time));
+
+  const resolvedCount = items.filter((it) => groupOf(it) === 3).length;
+  emptyEl.hidden = items.length - resolvedCount > 0;
+  doneTitleEl.hidden = resolvedCount === 0;
+  doneTitleEl.textContent = T('doneHeading', [resolvedCount]);
+  doneTitleEl.classList.toggle('open', doneOpen);
+  doneListEl.hidden = !doneOpen || resolvedCount === 0;
 
   // 「次の予定」＝まだ時間が来ていない未記録の予定のうち、いちばん早いもの
   const nextItem = items.find((it) => todayRec[it.id] === undefined && it.time > nowHM);
@@ -531,11 +542,12 @@ function renderToday() {
     if (result === 'skip' || (result === undefined && pastDue)) {
       card.append(buildNoteRow(item));
     }
-    listEl.append(card);
+    // 対応済みは「今日対応済み」欄へ、それ以外は「今日の予定」欄へ
+    (groupOf(item) === 3 ? doneListEl : listEl).append(card);
   }
 }
 
-let registeredOpen = true; // 「登録済みの予定」の開閉状態
+let registeredOpen = false; // 「登録済みの予定」の開閉状態（既定は畳む。開くと明日以降も見える）
 
 function renderItems() {
   const listEl = document.getElementById('item-list');
@@ -771,6 +783,12 @@ document.getElementById('list-title').addEventListener('click', () => {
   registeredOpen = !registeredOpen;
   document.getElementById('list-title').classList.toggle('open', registeredOpen);
   renderItems();
+});
+
+// 「今日対応済み」も見出しクリックで開閉する
+document.getElementById('done-title').addEventListener('click', () => {
+  doneOpen = !doneOpen;
+  renderToday();
 });
 
 (async function init() {

@@ -13,6 +13,9 @@
 
 * { box-sizing: border-box; }
 
+/* hidden属性を display 指定（.listのflex等）より必ず優先させる */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;

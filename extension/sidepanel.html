@@ -20,7 +20,7 @@
     <section id="today-section">
       <h2 data-i18n="todayHeading">今日の予定</h2>
       <div id="today-list" class="list"></div>
-      <p id="today-empty" class="empty-note" data-i18n="todayEmpty" hidden>予定はまだありません。下の「予定を追加」から登録してください。</p>
+      <p id="today-empty" class="empty-note" data-i18n="todayEmpty" hidden>これからの予定はありません。「予定を追加」から登録できます。</p>
     </section>
 
     <section id="edit-section">
@@ -64,8 +64,11 @@
         </div>
       </form>
 
-      <h2 id="list-title" class="toggle open" data-i18n="listHeading">登録済みの予定</h2>
-      <div id="item-list" class="list"></div>
+      <h2 id="done-title" class="toggle open" hidden>今日対応済み</h2>
+      <div id="done-list" class="list"></div>
+
+      <h2 id="list-title" class="toggle" data-i18n="listHeading">登録済みの予定</h2>
+      <div id="item-list" class="list" hidden></div>
       <p id="items-empty" class="empty-note" data-i18n="itemsEmpty" hidden>登録済みの予定はまだありません。</p>
     </section>
   </main>

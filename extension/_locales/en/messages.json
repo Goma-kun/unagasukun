@@ -7,7 +7,11 @@
   "toastWindowFailed": { "message": "Couldn't open a separate window" },
   "toastNoBrowserWindow": { "message": "No browser window to return to" },
   "toastSidePanelFailed": { "message": "Couldn't open the side panel" },
-  "todayEmpty": { "message": "No plans yet. Add one with \"Add a plan\" below." },
+  "todayEmpty": { "message": "No upcoming plans. Add one with \"Add a plan\" below." },
+  "doneHeading": {
+    "message": "Done today ($N$)",
+    "placeholders": { "n": { "content": "$1" } }
+  },
   "addHeading": { "message": "Add a plan" },
   "editHeading": { "message": "Edit plan" },
   "startLabel": { "message": "Start" },
