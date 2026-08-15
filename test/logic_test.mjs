@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs };`
 )();
 
 let pass = 0;
@@ -187,6 +187,67 @@ eq(
 
 // 記録ゼロなら0
 eq('記録ゼロは0', streakFor(rec({}), 'a', thu10, []), 0);
+
+// ---- 時刻を固定しない予定（anytime） ----
+
+// isAnytime
+eq('isAnytime: anytime予定', isAnytime({ anytime: true, targetMin: 10 }), true);
+eq('isAnytime: 時刻つき予定', isAnytime({ time: '09:00' }), false);
+eq('isAnytime: null', isAnytime(null), false);
+
+// nextOccurrence: anytime はアラームを張らない（time があっても null）
+eq('anytime は nextOccurrence null',
+  nextOccurrence({ anytime: true, days: [], enabled: true }, thu10), null);
+eq('anytime は time が残っていても null',
+  nextOccurrence({ anytime: true, time: '09:00', days: [], enabled: true }, thu10), null);
+
+// listSortMs: 時刻つきは次回発火時刻と同じ
+eq(
+  'listSortMs: 時刻つきは nextOccurrence と一致',
+  listSortMs({ time: '14:30', days: [], enabled: true }, thu10),
+  new Date(2026, 7, 13, 14, 30).getTime()
+);
+eq('listSortMs: 休止中は Infinity',
+  listSortMs({ time: '14:30', days: [], enabled: false }, thu10), Infinity);
+
+// listSortMs: anytime 毎日は「今日の終わり」→ 今日の時刻つき予定の後ろ・明日の予定の前
+const anytimeDaily = listSortMs(
+  { anytime: true, days: [0, 1, 2, 3, 4, 5, 6], enabled: true }, thu10
+);
+eq('listSortMs: anytime毎日は今日の終わり',
+  anytimeDaily, new Date(2026, 7, 13, 23, 59, 59, 999).getTime());
+eq('listSortMs: 今日の時刻つき予定より後ろ',
+  anytimeDaily > listSortMs({ time: '23:00', days: [], enabled: true }, thu10), true);
+eq('listSortMs: 明日朝の予定より前',
+  anytimeDaily < listSortMs({ time: '06:00', days: [5], enabled: true }, thu10), true);
+
+// listSortMs: anytime 曜日指定（月=1）は次の月曜の終わり
+eq(
+  'listSortMs: anytime曜日指定は次の該当日の終わり',
+  listSortMs({ anytime: true, days: [1], enabled: true }, thu10),
+  new Date(2026, 7, 17, 23, 59, 59, 999).getTime()
+);
+
+// listSortMs: anytime 1回だけ（今日）は今日の終わり。日付が過ぎたら Infinity
+eq(
+  'listSortMs: anytime今日1回だけは今日の終わり',
+  listSortMs({ anytime: true, date: '2026-08-13', days: [], enabled: true }, thu10),
+  new Date(2026, 7, 13, 23, 59, 59, 999).getTime()
+);
+eq('listSortMs: anytime過ぎた1回だけは Infinity',
+  listSortMs({ anytime: true, date: '2026-08-12', days: [], enabled: true }, thu10), Infinity);
+eq('listSortMs: anytime休止中は Infinity',
+  listSortMs({ anytime: true, days: [], enabled: false }, thu10), Infinity);
+
+// isOneOff は anytime でも同じ判定（日付が過ぎたSWの自動片付けが効く）
+eq('isOneOff: anytime＋日付あり', isOneOff({ anytime: true, date: '2026-08-13', days: [] }), true);
+
+// streakFor は anytime 毎日でもそのまま数えられる（days全曜日）
+eq(
+  'streakFor: anytime毎日でも数える',
+  streakFor(rec({ '2026-08-12': { a: 'done' }, '2026-08-11': { a: 'done' } }), 'a', thu10, [0, 1, 2, 3, 4, 5, 6]),
+  2
+);
 
 console.log(`テスト完了: ${pass} 件成功 / ${fail} 件失敗`);
 process.exit(fail === 0 ? 0 : 1);

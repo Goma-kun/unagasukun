@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1 data-i18n="extName">うながすくん</h1>
-    <span class="version-badge">v1.0.3</span>
+    <span class="version-badge">v1.0.4</span>
     <span class="header-spacer"></span>
     <button id="btn-popout" class="header-btn" data-i18n-title="btnPopoutTip" hidden>⧉</button>
     <button id="btn-dock" class="header-btn" data-i18n-title="btnDockTip" hidden>⇥</button>
@@ -32,7 +32,11 @@
           <input type="date" id="input-date" required>
         </label>
         <p class="hint" id="date-hint" data-i18n="dateInputHint" hidden>数字でそのまま入力できます。カレンダーから選ぶには右のアイコンを押します。</p>
-        <div class="field time-range">
+        <label class="field anytime-toggle">
+          <input type="checkbox" id="input-anytime">
+          <span data-i18n="anytimeToggle">時刻を決めない（空いた時間にやる）</span>
+        </label>
+        <div class="field time-range" id="time-range-field">
           <label>
             <span data-i18n="startLabel">開始</span>
             <input type="time" id="input-time" required>
@@ -43,7 +47,14 @@
           </label>
         </div>
         <p class="hint" id="time-hint" data-i18n="timeInputHint" hidden>数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。</p>
-        <p class="hint" data-i18n="endHint">終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。</p>
+        <p class="hint" id="end-hint" data-i18n="endHint">終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。</p>
+        <label class="field" id="target-field" hidden>
+          <span data-i18n="targetMinLabel">1日の目安（分）</span>
+          <!-- step は 1 にする。min=1 で step=5 にすると有効値が 1,6,11… に限られ、
+               既定の 10 が「無効な値」になって、追加ボタンを押しても何も起きなくなる -->
+          <input type="number" id="input-target-min" min="1" max="480" step="1" value="10">
+        </label>
+        <p class="hint" id="anytime-hint" data-i18n="anytimeHint" hidden>通知は出ません。済みにするまで「今日の予定」に残ります。</p>
         <label class="field">
           <span data-i18n="labelLabel">やること</span>
           <input type="text" id="input-label" data-i18n-placeholder="labelPlaceholder" placeholder="例：note執筆" maxlength="50" required>

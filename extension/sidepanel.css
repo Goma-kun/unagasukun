@@ -397,3 +397,55 @@ form { background: var(--card); border: 1px solid #e3e6ee; border-radius: 8px; p
 
 .form-buttons { display: flex; gap: 8px; }
 .form-buttons button[type="submit"] { flex: 1; }
+
+/* 時刻を固定しない予定：「いつでも」バッジと目安時間 */
+.card .time.anytime {
+  min-width: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2f6f77;
+  background: #e2f1ef;
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+
+.card .target {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* 2行目でボタンを右へ寄せるための伸びる隙間 */
+.row-spacer { flex: 1; }
+
+/* タイトルがバッジやボタンに潰されて読めなくならないよう、最低幅を確保して折り返す */
+#today-list .card .label,
+#done-list .card .label {
+  min-width: 5em;
+}
+
+button.mark-skip { color: var(--muted); }
+
+/* 「時刻を決めない」チェック（.field > span の block 指定を打ち消してチェックの隣に置く） */
+.anytime-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.anytime-toggle > span {
+  display: inline;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.field input[type="number"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #cfd4e0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}

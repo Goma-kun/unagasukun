@@ -361,5 +361,31 @@
   },
   "praise5": {
     "message": "Another one in the books today."
+  },
+  "anytimeToggle": {
+    "message": "No fixed time (do it in a free moment)"
+  },
+  "targetMinLabel": {
+    "message": "Daily target (minutes)"
+  },
+  "anytimeHint": {
+    "message": "No notifications. It stays in today's plans until you mark it done."
+  },
+  "anytimeBadge": {
+    "message": "Anytime"
+  },
+  "targetText": {
+    "message": "~$MIN$ min",
+    "placeholders": {
+      "min": {
+        "content": "$1"
+      }
+    }
+  },
+  "targetMinInvalid": {
+    "message": "Enter a daily target between 1 and 480 minutes."
+  },
+  "pastDate": {
+    "message": "That date is in the past. Please pick today or later."
   }
 }

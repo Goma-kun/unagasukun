@@ -361,5 +361,31 @@
   },
   "praise5": {
     "message": "今日の分、きちんと積み上がりました"
+  },
+  "anytimeToggle": {
+    "message": "時刻を決めない（空いた時間にやる）"
+  },
+  "targetMinLabel": {
+    "message": "1日の目安（分）"
+  },
+  "anytimeHint": {
+    "message": "通知は出ません。済みにするまで「今日の予定」に残ります。"
+  },
+  "anytimeBadge": {
+    "message": "いつでも"
+  },
+  "targetText": {
+    "message": "目安$MIN$分",
+    "placeholders": {
+      "min": {
+        "content": "$1"
+      }
+    }
+  },
+  "targetMinInvalid": {
+    "message": "目安は1〜480分で入力してください。"
+  },
+  "pastDate": {
+    "message": "過去の日付です。今日以降を選んでください。"
   }
 }

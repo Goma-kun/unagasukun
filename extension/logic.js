@@ -24,10 +24,17 @@ function isOneOff(item) {
   return !!(item && item.date) && (!Array.isArray(item.days) || item.days.length === 0);
 }
 
+// 時刻を固定しない予定か（1日の目安時間だけ決めて、空いた時間にやる）
+function isAnytime(item) {
+  return !!(item && item.anytime);
+}
+
 // 予定 item が次に来る日時を返す。無効な予定や空振りなら null。
 // item: { time: "HH:MM", date?: "YYYY-MM-DD"（1回だけ）, days: [0-6]（毎週繰り返し）, enabled }
 // days が空で date も無い旧形式は「毎日」として扱う（後方互換）
 function nextOccurrence(item, now) {
+  // 時刻を固定しない予定は発火時刻を持たない（アラームを張らない）
+  if (isAnytime(item)) return null;
   if (!item || !item.enabled || !/^\d{2}:\d{2}$/.test(item.time || '')) return null;
   const [hh, mm] = item.time.split(':').map(Number);
   if (hh > 23 || mm > 59) return null;
@@ -62,6 +69,29 @@ function isValidEndTime(time, endTime) {
 function blockEndMs(endTime, startDate) {
   const [hh, mm] = endTime.split(':').map(Number);
   return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), hh, mm, 0, 0).getTime();
+}
+
+// 登録済み一覧の並び順キー（ミリ秒）。時刻つきの予定は次回の発火時刻。
+// 時刻を固定しない予定は「次に該当する日ならいつでも」なので、その日の終わりを使う
+// （同じ日の時刻つき予定より後ろ、翌日以降の予定より前に並ぶ）。
+// 実行予定のないもの（休止中・日付が過ぎた1回だけ）は Infinity で一番下。
+function listSortMs(item, now) {
+  if (!isAnytime(item)) {
+    const next = nextOccurrence(item, now);
+    return next ? next.getTime() : Infinity;
+  }
+  if (!item.enabled) return Infinity;
+  if (isOneOff(item)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(item.date)) return Infinity;
+    const [y, mo, d] = item.date.split('-').map(Number);
+    const endOfDay = new Date(y, mo - 1, d, 23, 59, 59, 999).getTime();
+    return endOfDay > now.getTime() ? endOfDay : Infinity;
+  }
+  for (let add = 0; add < 8; add++) {
+    const cand = new Date(now.getFullYear(), now.getMonth(), now.getDate() + add, 23, 59, 59, 999);
+    if (isScheduledOn(item.days, cand)) return cand.getTime();
+  }
+  return Infinity;
 }
 
 // 連続記録（ストリーク）。今日から遡って「できた」が続いた日数を数える。
