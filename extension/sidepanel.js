@@ -1056,6 +1056,13 @@ document.getElementById('done-title').addEventListener('click', () => {
   // 文言の確定 → 画面組み立ての順を守る（逆にすると文言が出ない）
   await loadPreviewMessages();
   applyI18n();
+  // バージョンバッジはmanifestから入れる（手書きだと更新漏れでズレる）
+  try {
+    document.getElementById('versionBadge').textContent =
+      'v' + chrome.runtime.getManifest().version;
+  } catch {
+    // プレビュー（chrome.* なし）ではバッジを空のままにする
+  }
   // 切り離しボタンはサイドパネル側、戻すボタンは別ウィンドウ側でだけ出す
   if (canOpenWindow && !isPopupWindow && !isEmbedded) {
     const btn = document.getElementById('btn-popout');
