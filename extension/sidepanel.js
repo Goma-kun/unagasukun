@@ -908,6 +908,40 @@ function syncAnytime() {
   document.getElementById('input-time').required = !on;
 }
 
+// 目安時間の選択肢。よく使う短時間は5分刻み、長くなるほど間隔を広げる
+const TARGET_MIN_CHOICES = [
+  5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
+  75, 90, 105, 120, 150, 180, 210, 240, 300, 360, 420, 480
+];
+
+function buildTargetMinOptions() {
+  const sel = document.getElementById('input-target-min');
+  sel.innerHTML = '';
+  for (const v of TARGET_MIN_CHOICES) {
+    const opt = document.createElement('option');
+    opt.value = String(v);
+    opt.textContent = T('minuteOption', v);
+    sel.appendChild(opt);
+  }
+  sel.value = '10';
+}
+
+// 旧バージョンの直接入力で保存した端数値（例: 7分）も、
+// 編集時にそのまま表示して値を壊さないよう、選択肢に無ければその場で足す
+function setTargetMinValue(v) {
+  const sel = document.getElementById('input-target-min');
+  sel.querySelectorAll('option[data-custom]').forEach((o) => o.remove());
+  if (![...sel.options].some((o) => Number(o.value) === v)) {
+    const opt = document.createElement('option');
+    opt.value = String(v);
+    opt.textContent = T('minuteOption', v);
+    opt.dataset.custom = '1';
+    const next = [...sel.options].find((o) => Number(o.value) > v);
+    sel.insertBefore(opt, next || null);
+  }
+  sel.value = String(v);
+}
+
 function startEdit(id) {
   const item = schedule.find((it) => it.id === id);
   if (!item) return;
@@ -918,7 +952,7 @@ function startEdit(id) {
   document.getElementById('cancel-btn').hidden = false;
   document.getElementById('input-date').value = item.date || todayKey();
   document.getElementById('input-anytime').checked = isAnytime(item);
-  document.getElementById('input-target-min').value = item.targetMin || 10;
+  setTargetMinValue(item.targetMin || 10);
   document.getElementById('input-time').value = item.time || '';
   document.getElementById('input-end-time').value = item.endTime || '';
   document.getElementById('input-label').value = item.label;
@@ -936,7 +970,7 @@ function resetForm() {
   document.getElementById('cancel-btn').hidden = true;
   document.getElementById('item-form').reset();
   document.getElementById('input-date').value = todayKey();
-  document.getElementById('input-target-min').value = 10;
+  setTargetMinValue(10);
   setSelectedDays([]);
   syncDateDisabled();
   syncAnytime();
@@ -1076,6 +1110,7 @@ document.getElementById('done-title').addEventListener('click', () => {
   }
   DAY_NAMES = ['day0', 'day1', 'day2', 'day3', 'day4', 'day5', 'day6'].map((k) => T(k));
   NOTE_CHOICES = ['chipOtherWork', 'chipBreak', 'chipBrowsing', 'chipNoMood'].map((k) => T(k));
+  buildTargetMinOptions();
   buildDayBoxes();
   // 曜日の選択状態で日付欄の有効/無効を切り替える
   document.getElementById('day-boxes').addEventListener('change', syncDateDisabled);

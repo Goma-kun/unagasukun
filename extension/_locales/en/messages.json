@@ -385,6 +385,14 @@
   "targetMinInvalid": {
     "message": "Enter a daily target between 1 and 480 minutes."
   },
+  "minuteOption": {
+    "message": "$MIN$ min",
+    "placeholders": {
+      "min": {
+        "content": "$1"
+      }
+    }
+  },
   "pastDate": {
     "message": "That date is in the past. Please pick today or later."
   }

@@ -385,6 +385,14 @@
   "targetMinInvalid": {
     "message": "目安は1〜480分で入力してください。"
   },
+  "minuteOption": {
+    "message": "$MIN$分",
+    "placeholders": {
+      "min": {
+        "content": "$1"
+      }
+    }
+  },
   "pastDate": {
     "message": "過去の日付です。今日以降を選んでください。"
   }
