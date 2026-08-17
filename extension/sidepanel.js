@@ -908,38 +908,32 @@ function syncAnytime() {
   document.getElementById('input-time').required = !on;
 }
 
-// 目安時間の選択肢。よく使う短時間は5分刻み、長くなるほど間隔を広げる
-const TARGET_MIN_CHOICES = [
-  5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
-  75, 90, 105, 120, 150, 180, 210, 240, 300, 360, 420, 480
-];
+// 目安時間の選択肢。よく使う短時間は5分刻み、長くなるほど間隔を広げる。
+// 全部を一度に見せるチップ方式なので、数は1画面に収まる範囲に絞る
+const TARGET_MIN_CHOICES = [5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180, 240, 360, 480];
 
-function buildTargetMinOptions() {
-  const sel = document.getElementById('input-target-min');
-  sel.innerHTML = '';
-  for (const v of TARGET_MIN_CHOICES) {
-    const opt = document.createElement('option');
-    opt.value = String(v);
-    opt.textContent = T('minuteOption', v);
-    sel.appendChild(opt);
+function renderTargetMinChips() {
+  const box = document.getElementById('target-min-chips');
+  const cur = Number(document.getElementById('input-target-min').value);
+  box.textContent = '';
+  // 旧バージョンの直接入力で保存した端数値（例: 7分）も、
+  // 編集時にそのまま表示して値を壊さないよう、選択肢に無ければ並び順の位置に足す
+  const values = [...TARGET_MIN_CHOICES];
+  if (!values.includes(cur)) values.push(cur);
+  values.sort((a, b) => a - b);
+  for (const v of values) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip' + (v === cur ? ' selected' : '');
+    btn.textContent = T('minuteOption', v);
+    btn.addEventListener('click', () => setTargetMinValue(v));
+    box.append(btn);
   }
-  sel.value = '10';
 }
 
-// 旧バージョンの直接入力で保存した端数値（例: 7分）も、
-// 編集時にそのまま表示して値を壊さないよう、選択肢に無ければその場で足す
 function setTargetMinValue(v) {
-  const sel = document.getElementById('input-target-min');
-  sel.querySelectorAll('option[data-custom]').forEach((o) => o.remove());
-  if (![...sel.options].some((o) => Number(o.value) === v)) {
-    const opt = document.createElement('option');
-    opt.value = String(v);
-    opt.textContent = T('minuteOption', v);
-    opt.dataset.custom = '1';
-    const next = [...sel.options].find((o) => Number(o.value) > v);
-    sel.insertBefore(opt, next || null);
-  }
-  sel.value = String(v);
+  document.getElementById('input-target-min').value = String(v);
+  renderTargetMinChips();
 }
 
 function startEdit(id) {
@@ -1110,7 +1104,7 @@ document.getElementById('done-title').addEventListener('click', () => {
   }
   DAY_NAMES = ['day0', 'day1', 'day2', 'day3', 'day4', 'day5', 'day6'].map((k) => T(k));
   NOTE_CHOICES = ['chipOtherWork', 'chipBreak', 'chipBrowsing', 'chipNoMood'].map((k) => T(k));
-  buildTargetMinOptions();
+  renderTargetMinChips();
   buildDayBoxes();
   // 曜日の選択状態で日付欄の有効/無効を切り替える
   document.getElementById('day-boxes').addEventListener('change', syncDateDisabled);

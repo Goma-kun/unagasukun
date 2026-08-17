@@ -49,11 +49,13 @@
         </div>
         <p class="hint" id="time-hint" data-i18n="timeInputHint" hidden>数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。</p>
         <p class="hint" id="end-hint" data-i18n="endHint">終了を入れると、その間はアイコンに残り時間が出て、終わりに「できましたか？」と聞きます。</p>
-        <label class="field" id="target-field" hidden>
+        <div class="field" id="target-field" hidden>
           <span data-i18n="targetMinLabel">1日の目安（分）</span>
-          <!-- 選択肢はJS（buildTargetMinOptions）で組み立てる。文言のi18nが要るため -->
-          <select id="input-target-min"></select>
-        </label>
+          <!-- select のネイティブポップアップはサイドパネル内でスクロールが引っかかるため、
+               全部が見えるチップ方式にする。値はこの hidden が持ち、チップはJSで組み立てる -->
+          <input type="hidden" id="input-target-min" value="10">
+          <div id="target-min-chips" class="target-chips"></div>
+        </div>
         <p class="hint" id="anytime-hint" data-i18n="anytimeHint" hidden>通知は出ません。済みにするまで「今日の予定」に残ります。</p>
         <label class="field">
           <span data-i18n="labelLabel">やること</span>

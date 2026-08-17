@@ -441,13 +441,13 @@ button.mark-skip { color: var(--muted); }
   color: var(--text);
 }
 
-.field select {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #cfd4e0;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  background: var(--card);
-  color: var(--text);
+.target-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.target-chips .chip {
+  font-size: 13px;
+  padding: 5px 10px;
 }
