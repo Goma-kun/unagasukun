@@ -44,6 +44,12 @@ function T(key, subs) {
   return out;
 }
 
+// 英語の複数形（1 day / 2 days）を正しく出すための引き分け。
+// n=1 のときだけ「◯◯1」という単数形キーを使う（ja は両方同じ文言）
+function Tn(key, n) {
+  return n === 1 ? T(key + '1') : T(key, [n]);
+}
+
 async function loadPreviewMessages() {
   if (hasChromeI18n) return;
   const lang = new URLSearchParams(location.search).get('lang') || 'ja';
@@ -455,6 +461,7 @@ function buildNoteRow(item) {
 
 // 予定の繰り返し表示。1回だけなら「8/15（金）のみ」、毎週なら曜日、全曜日なら「毎日」
 function repeatText(item) {
+  if (isInterval(item)) return T('intervalText', [item.intervalDays]);
   if (isOneOff(item)) {
     const [y, m, d] = item.date.split('-').map(Number);
     const dayName = DAY_NAMES[new Date(y, m - 1, d).getDay()];
@@ -467,9 +474,40 @@ function repeatText(item) {
 
 function isTodayItem(item) {
   if (!item.enabled) return false;
+  // 済んでから◯日後：目安日の noticeDays 日前から「今日の予定」に出す。
+  // 今日「できた」を押すと次の目安日は先になるが、カードが消えると押した結果が
+  // 見えなくなるので、今日の記録がある間は「今日対応済み」に残す
+  if (isInterval(item)) {
+    if ((records[todayKey()] || {})[item.id] !== undefined) return true;
+    const info = intervalDueInfo(item, records, new Date());
+    return info.daysUntil <= intervalNoticeDays(item);
+  }
   if (isOneOff(item)) return item.date === todayKey();
   if (!Array.isArray(item.days) || item.days.length === 0) return true; // 旧形式＝毎日
   return item.days.includes(new Date().getDay());
+}
+
+// 済んでから◯日後の状態バッジ（そろそろ／今日が目安／最後にやってから◯日）。
+// 今日の予定と登録済み一覧の両方で同じ表示を使う（状態表示は全箇所で連動させる）
+function buildIntervalBadge(item, now) {
+  const info = intervalDueInfo(item, records, now);
+  const s = document.createElement('span');
+  if (info.daysUntil > intervalNoticeDays(item)) {
+    // まだ先（お知らせ期間の外）は「そろそろ」と言わず、日数だけ淡く出す
+    s.className = 'status since';
+    s.textContent = Tn('inDays', info.daysUntil);
+  } else if (info.daysUntil > 0) {
+    s.className = 'status soon';
+    s.textContent = Tn('dueSoon', info.daysUntil);
+  } else if (info.daysUntil === 0) {
+    s.className = 'status soon';
+    s.textContent = T('dueToday');
+  } else {
+    // 過ぎても責めない：事実（最後にやってからの日数）だけを淡々と出す
+    s.className = 'status since';
+    s.textContent = Tn('sinceDone', info.sinceDone);
+  }
+  return s;
 }
 
 let doneOpen = true; // 「今日対応済み」の開閉状態
@@ -562,14 +600,17 @@ function renderToday() {
   const groupOf = (it) => {
     if (activeBlock && activeBlock.itemId === it.id && Date.now() < activeBlock.endMs) return 0;
     const result = todayRec[it.id];
-    if (result !== undefined) return 4; // できた・スキップ
+    if (result !== undefined) return 5; // できた・スキップ
+    // 済んでから◯日後：目安日以降は「いつでも」と同じ扱い。
+    // まだ先（そろそろ予告中）は今日の本来の予定を邪魔しないよう一番下に置く
+    if (isInterval(it)) return intervalDueInfo(it, records, now).daysUntil > 0 ? 4 : 1;
     if (isAnytime(it)) return 1; // いつでも（時間切れの概念がなく、未対応にもならない）
     if (it.time > nowHM) return 2; // これから
     return 3; // 時間が過ぎて未対応
   };
   items.sort((a, b) => groupOf(a) - groupOf(b) || (a.time || '').localeCompare(b.time || ''));
 
-  const resolvedCount = items.filter((it) => groupOf(it) === 4).length;
+  const resolvedCount = items.filter((it) => groupOf(it) === 5).length;
   emptyEl.hidden = items.length - resolvedCount > 0;
   doneTitleEl.hidden = resolvedCount === 0;
   doneTitleEl.textContent = T('doneHeading', [resolvedCount]);
@@ -577,8 +618,8 @@ function renderToday() {
   doneListEl.hidden = !doneOpen || resolvedCount === 0;
 
   // 「次の予定」＝まだ時間が来ていない未記録の予定のうち、いちばん早いもの
-  // （時刻を固定しない予定は「次」の対象にしない）
-  const nextItem = items.find((it) => !isAnytime(it) && todayRec[it.id] === undefined && it.time > nowHM);
+  // （時刻を固定しない予定と済んでから◯日後は「次」の対象にしない）
+  const nextItem = items.find((it) => !isAnytime(it) && !isInterval(it) && todayRec[it.id] === undefined && it.time > nowHM);
 
   // 有効な「やりなおし」コピー（元の予定ID→コピー）。元のカードとは二重に出さない
   const redoOf = new Map();
@@ -613,7 +654,8 @@ function renderToday() {
     if (target && result !== undefined) card.append(target);
 
     // 連続記録（繰り返し予定のみ。2日以上続いていたら見せる。スキップでは切れない）
-    const streak = isOneOff(item) ? 0 : streakFor(records, item.id, now, item.days);
+    // 済んでから◯日後は毎日やるものではないので連続の概念を持たない
+    const streak = isOneOff(item) || isInterval(item) ? 0 : streakFor(records, item.id, now, item.days);
     if (streak >= 2) {
       const st = document.createElement('span');
       st.className = 'streak';
@@ -631,12 +673,18 @@ function renderToday() {
     }
 
     // 「時間が過ぎた」の判定。時間帯ブロックなら終了時刻を基準にする。
-    // 時刻を固定しない予定は一日中「時間が過ぎた」にならない（未対応バッジも出さない）
+    // 時刻を固定しない予定と済んでから◯日後は「時間が過ぎた」にならない
+    // （未対応バッジも出さない。済んでから◯日後は日数の事実だけを別バッジで見せる）
     const dueHM = item.endTime || item.time;
-    const pastDue = !isAnytime(item) && dueHM <= nowHM;
+    const pastDue = !isAnytime(item) && !isInterval(item) && dueHM <= nowHM;
 
     // 長いバッジ（次の予定・いまの時間）はタイトルを潰さないよう2行目に出す
     const subBadges = [];
+
+    // 済んでから◯日後の状態（そろそろ／今日が目安／最後にやってから◯日）
+    if (isInterval(item) && result === undefined) {
+      subBadges.push(buildIntervalBadge(item, now));
+    }
 
     // 次に来る予定は「次の予定・あと◯分」で目立たせる
     if (item === nextItem) {
@@ -681,7 +729,7 @@ function renderToday() {
       });
       card.append(undo);
     } else {
-      if (!isActive && !isAnytime(item) && item.time <= nowHM) card.classList.add('now');
+      if (!isActive && !isAnytime(item) && !isInterval(item) && item.time <= nowHM) card.classList.add('now');
       // 時間が過ぎて未対応なら、枠色だけでなく文字でも分かるようにする
       if (!isActive && pastDue) {
         const p = document.createElement('span');
@@ -693,9 +741,10 @@ function renderToday() {
       doneBtn.className = 'mark-done';
       doneBtn.textContent = T('doneBtn');
       doneBtn.addEventListener('click', () => recordFromPanel(item, 'done'));
-      if (isAnytime(item)) {
+      if (isAnytime(item) || isInterval(item)) {
         // 時刻を固定しない予定は通知が無く、通知ボタンからスキップできないので、
         // パネル側に「今日はスキップ」を置く（スキップはストリークを切らない）。
+        // 済んでから◯日後も「その日のどこかでやる」ものなので同じ形にする。
         // 目安時間とボタン2つは1行目に収まらないため、まとめて2行目に出す
         const skipBtn = document.createElement('button');
         skipBtn.className = 'mark-skip';
@@ -751,7 +800,7 @@ function renderToday() {
       card.append(buildRedoRow(item));
     }
     // 対応済みは「今日対応済み」欄へ、それ以外は「今日の予定」欄へ
-    (groupOf(item) === 4 ? doneListEl : listEl).append(card);
+    (groupOf(item) === 5 ? doneListEl : listEl).append(card);
   }
 }
 
@@ -771,8 +820,8 @@ function renderItems() {
     // 時刻を固定しない予定は「その日の終わり」扱いで同じ日の時刻つき予定の後ろ。
     // 実行予定のないもの（休止中・終わった1回だけ）は一番下
     .sort((a, b) => {
-      const na = listSortMs(a, sortNow);
-      const nb = listSortMs(b, sortNow);
+      const na = listSortMs(a, sortNow, records);
+      const nb = listSortMs(b, sortNow, records);
       return na - nb || (a.time || '').localeCompare(b.time || '');
     });
   listEl.hidden = !registeredOpen;
@@ -796,21 +845,18 @@ function renderItems() {
     // 今日の分の状態（✓できた／スキップ／未対応）は、今日の予定側と同じ表示で連動させる。
     // 時刻を固定しない予定は「未対応」にならない点も今日の予定側と揃える
     let statusBadge = null;
-    if (isTodayItem(item)) {
-      const rec = todayRec[item.id];
-      if (rec === 'done') {
-        statusBadge = document.createElement('span');
-        statusBadge.className = 'status done';
-        statusBadge.textContent = T('statusDone');
-      } else if (rec === 'skip') {
-        statusBadge = document.createElement('span');
-        statusBadge.className = 'status skip';
-        statusBadge.textContent = T('statusSkip');
-      } else if (!isAnytime(item) && (item.endTime || item.time) <= nowHM) {
-        statusBadge = document.createElement('span');
-        statusBadge.className = 'status pending';
-        statusBadge.textContent = T('statusPending');
-      }
+    const rec = todayRec[item.id];
+    if ((isTodayItem(item) || isInterval(item)) && (rec === 'done' || rec === 'skip')) {
+      statusBadge = document.createElement('span');
+      statusBadge.className = rec === 'done' ? 'status done' : 'status skip';
+      statusBadge.textContent = rec === 'done' ? T('statusDone') : T('statusSkip');
+    } else if (isInterval(item)) {
+      // 済んでから◯日後は「あと何日か」を常に見せる（今日の予定側と同じバッジ）
+      if (item.enabled) statusBadge = buildIntervalBadge(item, now);
+    } else if (isTodayItem(item) && !isAnytime(item) && (item.endTime || item.time) <= nowHM) {
+      statusBadge = document.createElement('span');
+      statusBadge.className = 'status pending';
+      statusBadge.textContent = T('statusPending');
     }
 
     // 1行に収める：普段は 時刻・名前・繰り返し・状態 だけ。
@@ -913,27 +959,78 @@ function syncAnytime() {
 const TARGET_MIN_CHOICES = [5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180, 240, 360, 480];
 
 function renderTargetMinChips() {
-  const box = document.getElementById('target-min-chips');
-  const cur = Number(document.getElementById('input-target-min').value);
+  renderValueChips('target-min-chips', 'input-target-min', TARGET_MIN_CHOICES, (v) => T('minuteOption', v));
+}
+
+function setTargetMinValue(v) {
+  document.getElementById('input-target-min').value = String(v);
+  renderTargetMinChips();
+}
+
+// ---- 済んでから◯日後（間隔と、何日前から知らせるかのチップ）----
+
+// 間隔の選択肢。週次〜月次〜四半期あたりの実用域に絞る
+const INTERVAL_DAY_CHOICES = [3, 5, 7, 10, 14, 21, 30, 45, 60, 90];
+// お知らせ開始の選択肢（0=目安日の当日から）
+const NOTICE_DAY_CHOICES = [0, 1, 2, 3, 5, 7];
+
+// hidden input が値を持ち、チップで選ぶ（目安時間と同じ方式）。
+// 選択肢に無い保存済みの値も編集時に壊さないよう、並び順の位置に足す
+function renderValueChips(boxId, inputId, choices, labelOf) {
+  const box = document.getElementById(boxId);
+  const cur = Number(document.getElementById(inputId).value);
   box.textContent = '';
-  // 旧バージョンの直接入力で保存した端数値（例: 7分）も、
-  // 編集時にそのまま表示して値を壊さないよう、選択肢に無ければ並び順の位置に足す
-  const values = [...TARGET_MIN_CHOICES];
+  const values = [...choices];
   if (!values.includes(cur)) values.push(cur);
   values.sort((a, b) => a - b);
   for (const v of values) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'chip' + (v === cur ? ' selected' : '');
-    btn.textContent = T('minuteOption', v);
-    btn.addEventListener('click', () => setTargetMinValue(v));
+    btn.textContent = labelOf(v);
+    btn.addEventListener('click', () => {
+      document.getElementById(inputId).value = String(v);
+      renderValueChips(boxId, inputId, choices, labelOf);
+    });
     box.append(btn);
   }
 }
 
-function setTargetMinValue(v) {
-  document.getElementById('input-target-min').value = String(v);
-  renderTargetMinChips();
+function renderIntervalChips() {
+  renderValueChips('interval-chips', 'input-interval-days', INTERVAL_DAY_CHOICES, (v) => T('dayOption', v));
+}
+
+function renderNoticeChips() {
+  renderValueChips('notice-chips', 'input-notice-days', NOTICE_DAY_CHOICES,
+    (v) => (v === 0 ? T('noticeToday') : Tn('noticeBefore', v)));
+}
+
+function setIntervalDaysValue(v) {
+  document.getElementById('input-interval-days').value = String(v);
+  renderIntervalChips();
+}
+
+function setNoticeDaysValue(v) {
+  document.getElementById('input-notice-days').value = String(v);
+  renderNoticeChips();
+}
+
+function isIntervalMode() {
+  return document.getElementById('btn-interval').classList.contains('selected');
+}
+
+// 「済んでから◯日後」モードの切り替え。曜日（毎週）とは両立しないので、
+// オンにしたら曜日を外して触れなくする。日付欄は「最後にやった日」に読み替える
+function setIntervalMode(on) {
+  document.getElementById('btn-interval').classList.toggle('selected', on);
+  document.getElementById('interval-fields').hidden = !on;
+  document.querySelectorAll('#day-boxes input').forEach((el) => {
+    if (on) el.checked = false;
+    el.disabled = on;
+  });
+  document.getElementById('btn-everyday').disabled = on;
+  document.getElementById('date-label').textContent = on ? T('lastDoneLabel') : T('dateLabel');
+  syncDateDisabled();
 }
 
 function startEdit(id) {
@@ -944,15 +1041,17 @@ function startEdit(id) {
   document.getElementById('form-title').textContent = T('editHeading');
   document.getElementById('save-btn').textContent = T('saveBtn');
   document.getElementById('cancel-btn').hidden = false;
-  document.getElementById('input-date').value = item.date || todayKey();
+  document.getElementById('input-date').value = item.date || item.anchorDate || todayKey();
   document.getElementById('input-anytime').checked = isAnytime(item);
   setTargetMinValue(item.targetMin || 10);
+  setIntervalDaysValue(isInterval(item) ? item.intervalDays : 30);
+  setNoticeDaysValue(isInterval(item) ? intervalNoticeDays(item) : 3);
   document.getElementById('input-time').value = item.time || '';
   document.getElementById('input-end-time').value = item.endTime || '';
   document.getElementById('input-label').value = item.label;
   document.getElementById('input-detail').value = item.detail || '';
   setSelectedDays(item.days);
-  syncDateDisabled();
+  setIntervalMode(isInterval(item));
   syncAnytime();
   document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
 }
@@ -965,8 +1064,10 @@ function resetForm() {
   document.getElementById('item-form').reset();
   document.getElementById('input-date').value = todayKey();
   setTargetMinValue(10);
+  setIntervalDaysValue(30);
+  setNoticeDaysValue(3);
   setSelectedDays([]);
-  syncDateDisabled();
+  setIntervalMode(false);
   syncAnytime();
 }
 
@@ -993,23 +1094,43 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       return;
     }
   }
-  const days = selectedDays();
-  // 曜日なし＝日付指定の1回だけ。過去の日時は受け付けない
-  // （時刻を固定しない予定は日付だけで判定し、今日はその日のうちなので受け付ける）
-  const date = days.length === 0 ? document.getElementById('input-date').value : undefined;
-  if (date) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
-    if (anytime) {
-      if (date < todayKey()) {
-        alert(T('pastDate'));
-        return;
-      }
-    } else {
-      const [y, m, d] = date.split('-').map(Number);
-      const [hh, mm] = time.split(':').map(Number);
-      if (new Date(y, m - 1, d, hh, mm).getTime() <= Date.now()) {
-        alert(T('pastDateTime'));
-        return;
+  const intervalOn = isIntervalMode();
+  const days = intervalOn ? [] : selectedDays();
+  let date;
+  let intervalDays;
+  let noticeDays;
+  let anchorDate;
+  if (intervalOn) {
+    // 済んでから◯日後：日付欄は「最後にやった日」（次の目安日の基準）。
+    // 過去の日付でよいが、未来はまだ「済んで」いないので受け付けない
+    intervalDays = Number(document.getElementById('input-interval-days').value);
+    noticeDays = Number(document.getElementById('input-notice-days').value);
+    if (!Number.isInteger(intervalDays) || intervalDays < 1 || intervalDays > 365) return;
+    if (!Number.isInteger(noticeDays) || noticeDays < 0 || noticeDays > 30) noticeDays = 3;
+    anchorDate = document.getElementById('input-date').value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(anchorDate)) return;
+    if (anchorDate > todayKey()) {
+      alert(T('anchorFuture'));
+      return;
+    }
+  } else {
+    // 曜日なし＝日付指定の1回だけ。過去の日時は受け付けない
+    // （時刻を固定しない予定は日付だけで判定し、今日はその日のうちなので受け付ける）
+    date = days.length === 0 ? document.getElementById('input-date').value : undefined;
+    if (date) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+      if (anytime) {
+        if (date < todayKey()) {
+          alert(T('pastDate'));
+          return;
+        }
+      } else {
+        const [y, m, d] = date.split('-').map(Number);
+        const [hh, mm] = time.split(':').map(Number);
+        if (new Date(y, m - 1, d, hh, mm).getTime() <= Date.now()) {
+          alert(T('pastDateTime'));
+          return;
+        }
       }
     }
   }
@@ -1027,6 +1148,9 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       item.detail = detail || undefined;
       item.days = days;
       item.date = date;
+      item.intervalDays = intervalOn ? intervalDays : undefined;
+      item.noticeDays = intervalOn ? noticeDays : undefined;
+      item.anchorDate = intervalOn ? anchorDate : undefined;
       item.updatedAt = Date.now();
     }
   } else {
@@ -1040,6 +1164,9 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       detail: detail || undefined,
       days,
       date,
+      intervalDays: intervalOn ? intervalDays : undefined,
+      noticeDays: intervalOn ? noticeDays : undefined,
+      anchorDate: intervalOn ? anchorDate : undefined,
       enabled: true,
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -1105,9 +1232,13 @@ document.getElementById('done-title').addEventListener('click', () => {
   DAY_NAMES = ['day0', 'day1', 'day2', 'day3', 'day4', 'day5', 'day6'].map((k) => T(k));
   NOTE_CHOICES = ['chipOtherWork', 'chipBreak', 'chipBrowsing', 'chipNoMood'].map((k) => T(k));
   renderTargetMinChips();
+  renderIntervalChips();
+  renderNoticeChips();
   buildDayBoxes();
   // 曜日の選択状態で日付欄の有効/無効を切り替える
   document.getElementById('day-boxes').addEventListener('change', syncDateDisabled);
+  // 「済んでから◯日後」の切り替え
+  document.getElementById('btn-interval').addEventListener('click', () => setIntervalMode(!isIntervalMode()));
   // 「時刻を決めない」の切り替えで時刻欄⇔目安欄を入れ替える
   document.getElementById('input-anytime').addEventListener('change', syncAnytime);
   // 「毎日」ボタン：全曜日を一括で付け外しする

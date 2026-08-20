@@ -395,5 +395,89 @@
   },
   "pastDate": {
     "message": "That date is in the past. Please pick today or later."
+  },
+  "intervalBtn": {
+    "message": "Repeat after done"
+  },
+  "intervalDaysLabel": {
+    "message": "Days until it comes up again"
+  },
+  "noticeDaysLabel": {
+    "message": "Show in Today's plan from"
+  },
+  "noticeToday": {
+    "message": "On the day"
+  },
+  "noticeBefore": {
+    "message": "$N$ days before",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "dayOption": {
+    "message": "$N$ days",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "intervalHint": {
+    "message": "The count restarts from the day you tap “Done”. No nagging if you're late."
+  },
+  "lastDoneLabel": {
+    "message": "Last done on"
+  },
+  "intervalText": {
+    "message": "$N$d after done",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "dueSoon": {
+    "message": "Coming up (in $N$ days)",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "dueToday": {
+    "message": "About time today"
+  },
+  "sinceDone": {
+    "message": "$N$ days since last done",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "anchorFuture": {
+    "message": "“Last done on” must be today or earlier"
+  },
+  "inDays": {
+    "message": "in $N$ days",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "noticeBefore1": {
+    "message": "1 day before"
+  },
+  "dueSoon1": {
+    "message": "Coming up (in 1 day)"
+  },
+  "inDays1": {
+    "message": "in 1 day"
+  },
+  "sinceDone1": {
+    "message": "1 day since last done"
   }
 }

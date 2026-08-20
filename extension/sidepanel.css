@@ -155,6 +155,26 @@ h2.toggle:hover { color: var(--text); }
   font-size: 11px;
 }
 
+/* 済んでから◯日後：そろそろ（目安日が近い・当日） */
+.status.soon {
+  color: var(--navy-light);
+  background: #e8ecf5;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 済んでから◯日後：目安日を過ぎたら日数の事実だけ淡く出す（責めない） */
+.status.since {
+  color: var(--muted);
+  background: #f0f0ee;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
 /* カード内の2行目（次の予定・いまの時間バッジ、操作ボタン列） */
 .badge-row {
   flex-basis: 100%;
@@ -373,6 +393,21 @@ form { background: var(--card); border: 1px solid #e3e6ee; border-radius: 8px; p
 .day-row { display: flex; align-items: center; gap: 6px; }
 .day-row .day-boxes { flex: 1; }
 .day-row .chip { white-space: nowrap; }
+.day-row + .day-row { margin-top: 6px; }
+
+/* 済んでから◯日後の設定欄（間隔・お知らせ開始のチップ） */
+#interval-fields { margin-top: 8px; }
+#interval-fields .sub-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 4px;
+}
+/* 曜日と排他なことを、押せない見た目でも伝える */
+.day-boxes label:has(input:disabled) {
+  opacity: 0.45;
+  cursor: default;
+}
 
 .day-boxes { display: flex; gap: 4px; }
 

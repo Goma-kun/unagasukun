@@ -102,6 +102,7 @@ async function finishBlockIfDue() {
 async function rescheduleAll() {
   await chrome.alarms.clearAll();
   let schedule = await getSchedule();
+  const { records = {} } = await chrome.storage.local.get('records');
   const now = new Date();
 
   // 日付が過ぎた「1回だけ」の予定は翌日以降に自動で片付ける（実績の記録は残る）
@@ -115,7 +116,7 @@ async function rescheduleAll() {
   }
 
   for (const item of schedule) {
-    const next = nextOccurrence(item, now);
+    const next = nextOccurrence(item, now, records);
     if (next) {
       chrome.alarms.create(ALARM_PREFIX + item.id, { when: next.getTime() });
     }
@@ -142,8 +143,12 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== 'local') return;
   if (changes.schedule) rescheduleAll();
-  // ブロック進行中に（通知ボタンでもパネルからでも）記録されたら、バッジを畳む
   if (changes.records) {
+    // 「済んでから◯日後」の予定は「できた」の日で次の目安日が動くので、
+    // 記録が変わったらアラームを組み直す（できた・取り消しの両方に効く）
+    const schedule = await getSchedule();
+    if (schedule.some((it) => isInterval(it) && !isAnytime(it))) rescheduleAll();
+    // ブロック進行中に（通知ボタンでもパネルからでも）記録されたら、バッジを畳む
     const { activeBlock } = await chrome.storage.local.get('activeBlock');
     if (activeBlock && (await getTodayRecord(activeBlock.itemId)) !== undefined) {
       await endBlock();
@@ -162,7 +167,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   const item = schedule.find((it) => it.id === itemId);
   // 次回分を先に組み直す(通知の成否に関わらず予定は続く)
   if (item) {
-    const next = nextOccurrence(item, new Date());
+    const { records = {} } = await chrome.storage.local.get('records');
+    const next = nextOccurrence(item, new Date(), records);
     if (next) chrome.alarms.create(alarm.name, { when: next.getTime() });
   }
   if (!item || !item.enabled) return;

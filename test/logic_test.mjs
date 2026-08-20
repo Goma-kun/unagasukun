@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo };`
 )();
 
 let pass = 0;
@@ -248,6 +248,91 @@ eq(
   streakFor(rec({ '2026-08-12': { a: 'done' }, '2026-08-11': { a: 'done' } }), 'a', thu10, [0, 1, 2, 3, 4, 5, 6]),
   2
 );
+
+// ---- 済んでから◯日後（interval） ----
+
+// isInterval
+eq('isInterval: intervalDaysあり', isInterval({ intervalDays: 30 }), true);
+eq('isInterval: 0以下は無効', isInterval({ intervalDays: 0 }), false);
+eq('isInterval: 小数は無効', isInterval({ intervalDays: 7.5 }), false);
+eq('isInterval: なし', isInterval({ time: '09:00' }), false);
+eq('isInterval: null', isInterval(null), false);
+
+// intervalNoticeDays: 未設定は3、0も有効
+eq('noticeDays 未設定は3', intervalNoticeDays({ intervalDays: 30 }), 3);
+eq('noticeDays 0は当日から', intervalNoticeDays({ intervalDays: 30, noticeDays: 0 }), 0);
+eq('noticeDays 7', intervalNoticeDays({ intervalDays: 30, noticeDays: 7 }), 7);
+
+// intervalAnchorKey: recordsの最新done / anchorDate / 新しいほう優先
+const iv = { id: 'a', intervalDays: 30 };
+eq('anchor: recordsの最新done',
+  intervalAnchorKey(iv, { '2026-08-01': { a: 'done' }, '2026-07-20': { a: 'done' } }, thu10),
+  '2026-08-01');
+eq('anchor: skipは基準にしない',
+  intervalAnchorKey(iv, { '2026-08-10': { a: 'skip' }, '2026-08-01': { a: 'done' } }, thu10),
+  '2026-08-01');
+eq('anchor: 記録なしはanchorDate',
+  intervalAnchorKey({ ...iv, anchorDate: '2026-08-05' }, {}, thu10), '2026-08-05');
+eq('anchor: anchorDateのほうが新しければそちら',
+  intervalAnchorKey({ ...iv, anchorDate: '2026-08-10' }, { '2026-08-01': { a: 'done' } }, thu10),
+  '2026-08-10');
+eq('anchor: doneのほうが新しければそちら',
+  intervalAnchorKey({ ...iv, anchorDate: '2026-07-01' }, { '2026-08-01': { a: 'done' } }, thu10),
+  '2026-08-01');
+eq('anchor: どちらも無ければnull', intervalAnchorKey(iv, {}, thu10), null);
+
+// intervalDueInfo: 8/1にやった30日周期 → 目安日8/31、8/13時点であと18日・経過12日
+eq('dueInfo: あと18日',
+  intervalDueInfo(iv, { '2026-08-01': { a: 'done' } }, thu10),
+  { daysUntil: 18, sinceDone: 12 });
+// 7/1にやった30日周期 → 目安日7/31、8/13時点で13日過ぎ・経過43日
+eq('dueInfo: 過ぎたら負の日数',
+  intervalDueInfo(iv, { '2026-07-01': { a: 'done' } }, thu10),
+  { daysUntil: -13, sinceDone: 43 });
+// 今日やった → あとちょうど30日
+eq('dueInfo: 今日やったらあと30日',
+  intervalDueInfo(iv, { '2026-08-13': { a: 'done' } }, thu10),
+  { daysUntil: 30, sinceDone: 0 });
+// 基準なし → 「そろそろ」扱い（daysUntil 0）
+eq('dueInfo: 基準なしは今日そろそろ',
+  intervalDueInfo(iv, {}, thu10), { daysUntil: 0, sinceDone: null });
+// 月またぎ: 8/20にやった30日周期 → 9/19
+eq('dueInfo: 月またぎ',
+  intervalDueInfo(iv, { '2026-08-20': { a: 'done' } }, new Date(2026, 8, 1, 10, 0)),
+  { daysUntil: 18, sinceDone: 12 });
+
+// nextOccurrence: 時刻つきintervalは目安日の時刻に1回だけ
+const ivTimed = { id: 'a', intervalDays: 30, time: '09:00', enabled: true, days: [] };
+eq('interval: 目安日の時刻に発火',
+  nextOccurrence(ivTimed, thu10, { '2026-08-01': { a: 'done' } })?.toISOString(),
+  new Date(2026, 7, 31, 9, 0).toISOString());
+eq('interval: 目安日当日・時刻が未来なら今日',
+  nextOccurrence({ ...ivTimed, time: '14:00' }, thu10, { '2026-07-14': { a: 'done' } })?.toISOString(),
+  new Date(2026, 7, 13, 14, 0).toISOString());
+eq('interval: 目安日当日・時刻が過ぎたらnull（翌日は鳴らさない）',
+  nextOccurrence(ivTimed, thu10, { '2026-07-14': { a: 'done' } }), null);
+eq('interval: 目安日を過ぎたらnull（催促しない）',
+  nextOccurrence(ivTimed, thu10, { '2026-07-01': { a: 'done' } }), null);
+eq('interval: anytimeなら常にnull',
+  nextOccurrence({ id: 'a', intervalDays: 30, anytime: true, enabled: true, days: [] }, thu10,
+    { '2026-08-01': { a: 'done' } }), null);
+eq('interval: 休止中はnull',
+  nextOccurrence({ ...ivTimed, enabled: false }, thu10, { '2026-08-01': { a: 'done' } }), null);
+
+// listSortMs: intervalは目安日の終わり。過ぎていたら今日の終わり
+eq('listSortMs: intervalは目安日の終わり',
+  listSortMs({ id: 'a', intervalDays: 30, anytime: true, enabled: true }, thu10,
+    { '2026-08-01': { a: 'done' } }),
+  new Date(2026, 7, 31, 23, 59, 59, 999).getTime());
+eq('listSortMs: 過ぎたintervalは今日の終わり',
+  listSortMs({ id: 'a', intervalDays: 30, anytime: true, enabled: true }, thu10,
+    { '2026-07-01': { a: 'done' } }),
+  new Date(2026, 7, 13, 23, 59, 59, 999).getTime());
+eq('listSortMs: 休止中intervalはInfinity',
+  listSortMs({ id: 'a', intervalDays: 30, anytime: true, enabled: false }, thu10, {}), Infinity);
+
+// intervalはisOneOffに該当しない（dateを持たないのでSWの自動片付け対象にならない）
+eq('isOneOff: intervalはfalse', isOneOff({ id: 'a', intervalDays: 30, anchorDate: '2026-08-01' }), false);
 
 console.log(`テスト完了: ${pass} 件成功 / ${fail} 件失敗`);
 process.exit(fail === 0 ? 0 : 1);

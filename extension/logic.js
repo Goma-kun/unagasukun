@@ -29,15 +29,67 @@ function isAnytime(item) {
   return !!(item && item.anytime);
 }
 
+// 「済んでから◯日後」の予定か（靴の手入れ等。日付でなく、済ませた日を基準に数え直す）
+function isInterval(item) {
+  return !!item && Number.isInteger(item.intervalDays) && item.intervalDays > 0;
+}
+
+// 何日前から「今日の予定」に出すか（未設定は3日前から）
+function intervalNoticeDays(item) {
+  return Number.isInteger(item.noticeDays) && item.noticeDays >= 0 ? item.noticeDays : 3;
+}
+
+// 「済んでから◯日後」の基準日（YYYY-MM-DD）。records の最新の「できた」と
+// 登録時の「最後にやった日」（anchorDate）の新しいほうを使う。どちらも無ければ null
+function intervalAnchorKey(item, records, now) {
+  const anchor = /^\d{4}-\d{2}-\d{2}$/.test(item.anchorDate || '') ? item.anchorDate : null;
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (let i = 0; i < 366; i++) {
+    const k = dateKey(d);
+    // anchorDate のほうが新しいと分かった時点で records を遡っても勝てない
+    if (anchor && anchor >= k) return anchor;
+    if (records[k] && records[k][item.id] === 'done') return k;
+    d.setDate(d.getDate() - 1);
+  }
+  return anchor;
+}
+
+// 「済んでから◯日後」の状態。daysUntil: 目安日まであと何日（0=今日、負=過ぎている）。
+// sinceDone: 最後にやってから何日（基準が無ければ null → 「そろそろ」扱いで daysUntil 0）
+function intervalDueInfo(item, records, now) {
+  if (!isInterval(item)) return null;
+  const anchor = intervalAnchorKey(item, records || {}, now);
+  if (!anchor) return { daysUntil: 0, sinceDone: null };
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const [y, m, d] = anchor.split('-').map(Number);
+  const anchorDay = new Date(y, m - 1, d);
+  const due = new Date(y, m - 1, d + item.intervalDays);
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  return {
+    daysUntil: Math.round((due.getTime() - today.getTime()) / DAY_MS),
+    sinceDone: Math.round((today.getTime() - anchorDay.getTime()) / DAY_MS)
+  };
+}
+
 // 予定 item が次に来る日時を返す。無効な予定や空振りなら null。
 // item: { time: "HH:MM", date?: "YYYY-MM-DD"（1回だけ）, days: [0-6]（毎週繰り返し）, enabled }
 // days が空で date も無い旧形式は「毎日」として扱う（後方互換）
-function nextOccurrence(item, now) {
+// records は「済んでから◯日後」の予定だけが使う（基準日の計算に要る）
+function nextOccurrence(item, now, records) {
   // 時刻を固定しない予定は発火時刻を持たない（アラームを張らない）
   if (isAnytime(item)) return null;
   if (!item || !item.enabled || !/^\d{2}:\d{2}$/.test(item.time || '')) return null;
   const [hh, mm] = item.time.split(':').map(Number);
   if (hh > 23 || mm > 59) return null;
+
+  // 済んでから◯日後：目安日の指定時刻に1回だけ知らせる。
+  // 目安日を過ぎても翌日以降は鳴らさない（催促を重ねない＝責めない設計）
+  if (isInterval(item)) {
+    const info = intervalDueInfo(item, records || {}, now);
+    if (info.daysUntil < 0) return null;
+    const cand = new Date(now.getFullYear(), now.getMonth(), now.getDate() + info.daysUntil, hh, mm, 0, 0);
+    return cand.getTime() > now.getTime() ? cand : null;
+  }
 
   if (isOneOff(item)) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(item.date)) return null;
@@ -75,9 +127,17 @@ function blockEndMs(endTime, startDate) {
 // 時刻を固定しない予定は「次に該当する日ならいつでも」なので、その日の終わりを使う
 // （同じ日の時刻つき予定より後ろ、翌日以降の予定より前に並ぶ）。
 // 実行予定のないもの（休止中・日付が過ぎた1回だけ）は Infinity で一番下。
-function listSortMs(item, now) {
+function listSortMs(item, now, records) {
+  // 済んでから◯日後は「目安日ならいつでも」なので目安日の終わりを使う。
+  // 目安日を過ぎていたら「今日やれる」ので今日の終わり
+  if (isInterval(item)) {
+    if (!item.enabled) return Infinity;
+    const info = intervalDueInfo(item, records || {}, now);
+    const add = Math.max(0, info.daysUntil);
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + add, 23, 59, 59, 999).getTime();
+  }
   if (!isAnytime(item)) {
-    const next = nextOccurrence(item, now);
+    const next = nextOccurrence(item, now, records);
     return next ? next.getTime() : Infinity;
   }
   if (!item.enabled) return Infinity;

@@ -395,5 +395,89 @@
   },
   "pastDate": {
     "message": "過去の日付です。今日以降を選んでください。"
+  },
+  "intervalBtn": {
+    "message": "済んでから◯日後"
+  },
+  "intervalDaysLabel": {
+    "message": "済んでから何日後にまた出すか"
+  },
+  "noticeDaysLabel": {
+    "message": "何日前から「今日の予定」に出すか"
+  },
+  "noticeToday": {
+    "message": "当日"
+  },
+  "noticeBefore": {
+    "message": "$N$日前",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "dayOption": {
+    "message": "$N$日",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "intervalHint": {
+    "message": "「できた」を押した日から数え直します。遅れても催促はしません。"
+  },
+  "lastDoneLabel": {
+    "message": "最後にやった日"
+  },
+  "intervalText": {
+    "message": "済んで$N$日後",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "dueSoon": {
+    "message": "そろそろ（あと$N$日）",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "dueToday": {
+    "message": "今日が目安"
+  },
+  "sinceDone": {
+    "message": "最後にやってから$N$日",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "anchorFuture": {
+    "message": "「最後にやった日」は今日までの日付を選んでください"
+  },
+  "inDays": {
+    "message": "あと$N$日",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "noticeBefore1": {
+    "message": "1日前"
+  },
+  "dueSoon1": {
+    "message": "そろそろ（あと1日）"
+  },
+  "inDays1": {
+    "message": "あと1日"
+  },
+  "sinceDone1": {
+    "message": "最後にやってから1日"
   }
 }

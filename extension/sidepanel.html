@@ -29,7 +29,7 @@
       <h2 id="form-title" class="toggle" data-i18n="addHeading">予定を追加</h2>
       <form id="item-form" hidden>
         <label class="field">
-          <span data-i18n="dateLabel">日付</span>
+          <span id="date-label" data-i18n="dateLabel">日付</span>
           <input type="date" id="input-date" required>
         </label>
         <p class="hint" id="date-hint" data-i18n="dateInputHint" hidden>数字でそのまま入力できます。カレンダーから選ぶには右のアイコンを押します。</p>
@@ -70,6 +70,19 @@
           <div class="day-row">
             <div id="day-boxes" class="day-boxes"></div>
             <button type="button" id="btn-everyday" class="chip" data-i18n="everydayBtn">毎日</button>
+          </div>
+          <div class="day-row">
+            <button type="button" id="btn-interval" class="chip" data-i18n="intervalBtn">済んでから◯日後</button>
+          </div>
+          <div id="interval-fields" hidden>
+            <span class="sub-label" data-i18n="intervalDaysLabel">済んでから何日後にまた出すか</span>
+            <!-- 値は hidden が持ち、チップはJSで組み立てる（目安時間と同じ方式） -->
+            <input type="hidden" id="input-interval-days" value="30">
+            <div id="interval-chips" class="target-chips"></div>
+            <span class="sub-label" data-i18n="noticeDaysLabel">何日前から「今日の予定」に出すか</span>
+            <input type="hidden" id="input-notice-days" value="3">
+            <div id="notice-chips" class="target-chips"></div>
+            <p class="hint" data-i18n="intervalHint">「できた」を押した日から数え直します。遅れても催促はしません。</p>
           </div>
         </fieldset>
         <div class="form-buttons">
