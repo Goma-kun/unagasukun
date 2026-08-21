@@ -479,5 +479,45 @@
   },
   "sinceDone1": {
     "message": "1 day since last done"
+  },
+  "reviewHeading": {
+    "message": "History"
+  },
+  "reviewEmpty": {
+    "message": "Add plans to see their history here."
+  },
+  "doneCount30": {
+    "message": "Done $N$ times in the last 30 days",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "doneCount301": {
+    "message": "Done once in the last 30 days"
+  },
+  "avgInterval": {
+    "message": "about every $N$ days",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "avgInterval1": {
+    "message": "about every day"
+  },
+  "recNone": {
+    "message": "No record"
+  },
+  "reviewMarkDone": {
+    "message": "Done"
+  },
+  "reviewMarkSkip": {
+    "message": "Skip"
+  },
+  "reviewClear": {
+    "message": "Clear record"
   }
 }

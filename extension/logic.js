@@ -174,4 +174,31 @@ function streakFor(records, itemId, now, days) {
   }
   return streak;
 }
+// 直近 windowDays 日（今日を含む）の「できた」回数。
+// ふりかえりの集計は事実の回数だけを出す（達成率は出さない＝責めない設計）
+function doneCountRecent(records, itemId, now, windowDays) {
+  let count = 0;
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (let i = 0; i < windowDays; i++) {
+    const rec = records[dateKey(d)] && records[dateKey(d)][itemId];
+    if (rec === 'done') count++;
+    d.setDate(d.getDate() - 1);
+  }
+  return count;
+}
+
+// 直近 windowDays 日の「できた」日どうしの平均間隔（日）。2回未満なら null。
+// 「済んでから◯日後」の予定で、実際のペースを事実として見せるのに使う
+function avgDoneIntervalDays(records, itemId, now, windowDays) {
+  const dates = [];
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (let i = 0; i < windowDays; i++) {
+    if (records[dateKey(d)] && records[dateKey(d)][itemId] === 'done') dates.push(new Date(d));
+    d.setDate(d.getDate() - 1);
+  }
+  if (dates.length < 2) return null;
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const span = (dates[0].getTime() - dates[dates.length - 1].getTime()) / DAY_MS;
+  return Math.round(span / (dates.length - 1));
+}
 // ===== スケジュール計算ロジック（ここまで）=====

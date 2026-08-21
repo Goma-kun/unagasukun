@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays };`
 )();
 
 let pass = 0;
@@ -333,6 +333,35 @@ eq('listSortMs: 休止中intervalはInfinity',
 
 // intervalはisOneOffに該当しない（dateを持たないのでSWの自動片付け対象にならない）
 eq('isOneOff: intervalはfalse', isOneOff({ id: 'a', intervalDays: 30, anchorDate: '2026-08-01' }), false);
+
+// ---- ふりかえりの集計（doneCountRecent / avgDoneIntervalDays） ----
+
+// 直近30日の「できた」回数。今日を含む・skipは数えない
+eq('doneCount: doneだけ数える',
+  doneCountRecent(rec({
+    '2026-08-13': { a: 'done' }, '2026-08-12': { a: 'skip' }, '2026-08-01': { a: 'done' }
+  }), 'a', thu10, 30), 2);
+// 窓の外（31日前）は数えない。7/15は8/13の29日前（窓内）、7/14は30日前（窓外・今日を含む30日）
+eq('doneCount: 窓の内側ぎりぎりは数える',
+  doneCountRecent(rec({ '2026-07-15': { a: 'done' } }), 'a', thu10, 30), 1);
+eq('doneCount: 窓の外は数えない',
+  doneCountRecent(rec({ '2026-07-14': { a: 'done' } }), 'a', thu10, 30), 0);
+eq('doneCount: 記録ゼロは0', doneCountRecent(rec({}), 'a', thu10, 30), 0);
+// 他の予定の記録は混ざらない
+eq('doneCount: 他IDは数えない',
+  doneCountRecent(rec({ '2026-08-13': { b: 'done' } }), 'a', thu10, 30), 0);
+
+// 平均間隔：8/1・8/7・8/13にできた → 12日間を2区間で割って6日
+eq('avgInterval: 等間隔',
+  avgDoneIntervalDays(rec({
+    '2026-08-01': { a: 'done' }, '2026-08-07': { a: 'done' }, '2026-08-13': { a: 'done' }
+  }), 'a', thu10, 365), 6);
+// 不等間隔：7/1と8/10 → 40日1区間 → 40
+eq('avgInterval: 2回なら差そのもの',
+  avgDoneIntervalDays(rec({ '2026-07-01': { a: 'done' }, '2026-08-10': { a: 'done' } }), 'a', thu10, 365), 40);
+eq('avgInterval: 1回だけならnull',
+  avgDoneIntervalDays(rec({ '2026-08-01': { a: 'done' } }), 'a', thu10, 365), null);
+eq('avgInterval: 記録ゼロはnull', avgDoneIntervalDays(rec({}), 'a', thu10, 365), null);
 
 console.log(`テスト完了: ${pass} 件成功 / ${fail} 件失敗`);
 process.exit(fail === 0 ? 0 : 1);

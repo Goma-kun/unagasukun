@@ -479,5 +479,45 @@
   },
   "sinceDone1": {
     "message": "最後にやってから1日"
+  },
+  "reviewHeading": {
+    "message": "ふりかえり"
+  },
+  "reviewEmpty": {
+    "message": "予定を登録すると、ここでふりかえりができます。"
+  },
+  "doneCount30": {
+    "message": "この30日で$N$回できました",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "doneCount301": {
+    "message": "この30日で1回できました"
+  },
+  "avgInterval": {
+    "message": "平均$N$日間隔",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "avgInterval1": {
+    "message": "平均1日間隔"
+  },
+  "recNone": {
+    "message": "記録なし"
+  },
+  "reviewMarkDone": {
+    "message": "できた"
+  },
+  "reviewMarkSkip": {
+    "message": "スキップ"
+  },
+  "reviewClear": {
+    "message": "記録を消す"
   }
 }

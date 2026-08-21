@@ -910,9 +910,179 @@ function renderItems() {
   }
 }
 
+// ---- ふりかえり（過去の実績のタイルグリッド。HabitKit等のGitHub風グリッドが定石だが、
+// 「できた」だけに色を付けて欠けを強調しない＝責めない設計に合わせた形にする）----
+
+let reviewOpen = false; // 「ふりかえり」の開閉状態（既定は畳む）
+let reviewSelected = null; // 選択中の日 { itemId, key }
+
+const REVIEW_WEEKS = 12; // 直近12週間ぶんを表示（幅340pxに収まる）
+
+// 過去の日の記録を付け直す（付け忘れの救済。グリッドの日をタップして使う）
+async function setPastRecord(itemId, key, result) {
+  if (result === undefined) {
+    if (records[key]) {
+      delete records[key][itemId];
+      if (Object.keys(records[key]).length === 0) delete records[key];
+    }
+  } else {
+    if (!records[key]) records[key] = {};
+    records[key][itemId] = result;
+  }
+  await saveRecords();
+  renderAll();
+}
+
+function reviewDateText(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return `${m}/${d}(${DAY_NAMES[new Date(y, m - 1, d).getDay()]})`;
+}
+
+// 選択した日の詳細行（状態＋「実際は」＋記録の修正ボタン）
+function buildReviewDetail(item, key) {
+  const wrap = document.createElement('div');
+  wrap.className = 'review-detail';
+
+  const rec = records[key] && records[key][item.id];
+  const head = document.createElement('div');
+  head.className = 'review-detail-head';
+  const dateEl = document.createElement('span');
+  dateEl.className = 'review-date';
+  dateEl.textContent = reviewDateText(key);
+  const st = document.createElement('span');
+  st.className = 'status ' + (rec === 'done' ? 'done' : rec === 'skip' ? 'skip' : 'since');
+  st.textContent = rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone');
+  head.append(dateEl, st);
+  wrap.append(head);
+
+  const note = notes[key] && notes[key][item.id];
+  if (note) {
+    const n = document.createElement('div');
+    n.className = 'review-note';
+    n.textContent = T('noteView', [note]);
+    wrap.append(n);
+  }
+
+  // 記録の付け直し。今の記録と同じボタンは出さない（意味のある操作だけ見せる）
+  const actions = document.createElement('div');
+  actions.className = 'badge-row';
+  if (rec !== 'done') {
+    const b = document.createElement('button');
+    b.className = 'mark-done';
+    b.textContent = T('reviewMarkDone');
+    b.addEventListener('click', () => setPastRecord(item.id, key, 'done'));
+    actions.append(b);
+  }
+  if (rec !== 'skip') {
+    const b = document.createElement('button');
+    b.textContent = T('reviewMarkSkip');
+    b.addEventListener('click', () => setPastRecord(item.id, key, 'skip'));
+    actions.append(b);
+  }
+  if (rec !== undefined) {
+    const b = document.createElement('button');
+    b.textContent = T('reviewClear');
+    b.addEventListener('click', () => setPastRecord(item.id, key, undefined));
+    actions.append(b);
+  }
+  wrap.append(actions);
+  return wrap;
+}
+
+function renderReview() {
+  const listEl = document.getElementById('review-list');
+  const emptyEl = document.getElementById('review-empty');
+  listEl.textContent = '';
+  listEl.hidden = !reviewOpen;
+  // やりなおしコピーは元の予定に集約されるので出さない
+  const items = schedule.filter((it) => !it.origId);
+  emptyEl.hidden = !reviewOpen || items.length > 0;
+  if (!reviewOpen) return;
+
+  const now = new Date();
+  const today = todayKey();
+  // グリッドの起点＝REVIEW_WEEKS週前の日曜日（列が週・行が日〜土）
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  start.setDate(start.getDate() - start.getDay() - 7 * (REVIEW_WEEKS - 1));
+
+  for (const item of items) {
+    const card = document.createElement('div');
+    card.className = 'card review-card';
+
+    const label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = item.label;
+    label.title = item.label;
+    card.append(label);
+
+    // 集計は事実だけ。0回のときは何も言わない（沈黙が中立）。
+    // 済んでから◯日後は間隔が本体なので、30日窓に関係なく実際のペースを出す
+    const parts = [];
+    const doneN = doneCountRecent(records, item.id, now, 30);
+    if (doneN > 0) parts.push(Tn('doneCount30', doneN));
+    if (isInterval(item)) {
+      const avg = avgDoneIntervalDays(records, item.id, now, 365);
+      if (avg !== null) parts.push(Tn('avgInterval', avg));
+    }
+    if (parts.length > 0) {
+      const sum = document.createElement('span');
+      sum.className = 'review-summary';
+      sum.textContent = parts.join('・');
+      card.append(sum);
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'review-grid';
+    for (let i = 0; i < REVIEW_WEEKS * 7; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const key = dateKey(d);
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'tile';
+      if (key > today) {
+        // 今週のこれからの日は場所だけ確保して見えなくする
+        tile.classList.add('future');
+        tile.disabled = true;
+      } else {
+        const rec = records[key] && records[key][item.id];
+        if (rec === 'done') tile.classList.add('done');
+        else if (rec === 'skip') tile.classList.add('skip');
+        if (key === today) tile.classList.add('today');
+        if (reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key) {
+          tile.classList.add('selected');
+        }
+        tile.title = `${reviewDateText(key)} ${rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone')}`;
+        tile.addEventListener('click', () => {
+          const same = reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key;
+          reviewSelected = same ? null : { itemId: item.id, key };
+          renderReview();
+        });
+      }
+      grid.append(tile);
+    }
+    card.append(grid);
+
+    // 凡例（タイルの色の意味。小さく1行だけ）
+    const legend = document.createElement('div');
+    legend.className = 'review-legend';
+    const legDone = document.createElement('span');
+    legDone.className = 'legend-swatch done';
+    const legSkip = document.createElement('span');
+    legSkip.className = 'legend-swatch skip';
+    legend.append(legDone, document.createTextNode(T('reviewMarkDone') + '　'), legSkip, document.createTextNode(T('reviewMarkSkip')));
+    card.append(legend);
+
+    if (reviewSelected && reviewSelected.itemId === item.id) {
+      card.append(buildReviewDetail(item, reviewSelected.key));
+    }
+    listEl.append(card);
+  }
+}
+
 function renderAll() {
   renderToday();
   renderItems();
+  renderReview();
 }
 
 function buildDayBoxes() {
@@ -1201,6 +1371,13 @@ document.getElementById('list-title').addEventListener('click', () => {
 document.getElementById('done-title').addEventListener('click', () => {
   doneOpen = !doneOpen;
   renderToday();
+});
+
+// 「ふりかえり」も見出しクリックで開閉する
+document.getElementById('review-title').addEventListener('click', () => {
+  reviewOpen = !reviewOpen;
+  document.getElementById('review-title').classList.toggle('open', reviewOpen);
+  renderReview();
 });
 
 (async function init() {
