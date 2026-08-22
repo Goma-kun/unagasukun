@@ -369,10 +369,15 @@ eq('isArchived: フラグあり', isArchived({ archived: true }), true);
 eq('isArchived: フラグなし', isArchived({ label: 'a' }), false);
 eq('isArchived: null', isArchived(null), false);
 
-// 日の印：「できた」が1つでもあれば done、スキップだけなら skip、記録なしは null
-eq('dayMark: done優先', dayMark(rec({ '2026-08-13': { a: 'skip', b: 'done' } }), '2026-08-13'), 'done');
-eq('dayMark: skipのみ', dayMark(rec({ '2026-08-13': { a: 'skip' } }), '2026-08-13'), 'skip');
-eq('dayMark: 記録なしはnull', dayMark(rec({}), '2026-08-13'), null);
+// 日の印：「できた」が1つでもあれば done、スキップだけなら skip、記録なしは null。
+// いまある予定（ids）以外の記録は数えない（削除済み予定の記録で色が付くと一覧と食い違う）
+eq('dayMark: done優先', dayMark(rec({ '2026-08-13': { a: 'skip', b: 'done' } }), '2026-08-13', ['a', 'b']), 'done');
+eq('dayMark: skipのみ', dayMark(rec({ '2026-08-13': { a: 'skip' } }), '2026-08-13', ['a']), 'skip');
+eq('dayMark: 記録なしはnull', dayMark(rec({}), '2026-08-13', ['a']), null);
+eq('dayMark: 削除済み予定のdoneは数えない',
+  dayMark(rec({ '2026-08-13': { gone: 'done' } }), '2026-08-13', ['a']), null);
+eq('dayMark: 削除済みのdoneがあっても、今ある予定のskipで判定',
+  dayMark(rec({ '2026-08-13': { gone: 'done', a: 'skip' } }), '2026-08-13', ['a']), 'skip');
 
 // 日別の予定一覧
 const daily = { id: 'd1', label: '毎日', time: '09:00', days: [], enabled: true };

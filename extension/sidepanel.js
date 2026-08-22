@@ -1045,6 +1045,9 @@ function renderCalendar() {
   const first = new Date(y, m - 1, 1);
   const daysInMonth = new Date(y, m, 0).getDate();
   const today = todayKey();
+  // 色の判定に使うのは、いまある予定（やりなおしコピー以外）の記録だけ。
+  // 削除した予定の記録で色が付くと、日別リストと食い違って「何の色か分からない」
+  const knownIds = schedule.filter((it) => !it.origId).map((it) => it.id);
   for (let i = 0; i < first.getDay(); i++) {
     const b = document.createElement('span');
     b.className = 'cal-cell blank';
@@ -1061,14 +1064,17 @@ function renderCalendar() {
       cell.classList.add('future');
       cell.disabled = true;
     } else {
-      const mark = dayMark(records, key);
+      const mark = dayMark(records, key, knownIds);
       if (mark) cell.classList.add(mark);
       if (key === today) cell.classList.add('today');
       if (calSelected === key) cell.classList.add('selected');
       cell.addEventListener('click', () => {
         calSelected = calSelected === key ? null : key;
         calDetailFor = null;
-        renderCalendar();
+        // 下のタイル側で開いていた日の詳細は閉じる。カレンダーの日を替えたのに
+        // 前に選んだ日の「できた」が下に残っていると、その日の内容に見えてしまう
+        reviewSelected = null;
+        renderReview();
       });
     }
     grid.append(cell);
@@ -1186,6 +1192,10 @@ function renderReview() {
         tile.addEventListener('click', () => {
           const same = reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key;
           reviewSelected = same ? null : { itemId: item.id, key };
+          // 逆方向も同じ：タイルの日を選んだら、上のカレンダーで開いていた日は閉じる
+          // （日の詳細を見る場所は一度に1つ）
+          calSelected = null;
+          calDetailFor = null;
           renderReview();
         });
       }

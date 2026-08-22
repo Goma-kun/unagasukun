@@ -226,11 +226,13 @@ function itemsOnDay(schedule, records, key) {
 }
 
 // カレンダーの日の印。「できた」が1つでもあれば done、スキップだけなら skip、それ以外は null。
-// できなかった日に印を付けない（沈黙が中立）のはタイルグリッドと同じ
-function dayMark(records, key) {
+// できなかった日に印を付けない（沈黙が中立）のはタイルグリッドと同じ。
+// ids（いまある予定のID一覧）に無い記録は数えない。削除した予定の記録が残っていると、
+// 色だけ付くのに日別リストには何も出せず「何の色か分からない」食い違いになるため
+function dayMark(records, key, ids) {
   const rec = records[key];
   if (!rec) return null;
-  const vals = Object.values(rec);
+  const vals = Object.keys(rec).filter((id) => ids.includes(id)).map((id) => rec[id]);
   if (vals.includes('done')) return 'done';
   return vals.includes('skip') ? 'skip' : null;
 }
