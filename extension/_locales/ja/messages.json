@@ -484,7 +484,7 @@
     "message": "ふりかえり"
   },
   "reviewEmpty": {
-    "message": "予定を登録すると、ここでふりかえりができます。"
+    "message": "繰り返しの予定を登録すると、ここでふりかえりができます。1回だけの予定はここには出ません。"
   },
   "doneCount30": {
     "message": "この30日で$N$回できました",
@@ -519,5 +519,24 @@
   },
   "reviewClear": {
     "message": "記録を消す"
+  },
+  "previewEveryday": {
+    "message": "→ 毎日繰り返します"
+  },
+  "previewWeekly": {
+    "message": "→ 毎週 $DAYS$ に繰り返します",
+    "placeholders": {
+      "days": {
+        "content": "$1"
+      }
+    }
+  },
+  "previewOneOff": {
+    "message": "→ $DATE$ の1回だけの予定になります",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
   }
 }

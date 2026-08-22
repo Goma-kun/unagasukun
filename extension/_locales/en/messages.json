@@ -484,7 +484,7 @@
     "message": "History"
   },
   "reviewEmpty": {
-    "message": "Add plans to see their history here."
+    "message": "Add repeating plans to see their history here. One-time plans are not shown."
   },
   "doneCount30": {
     "message": "Done $N$ times in the last 30 days",
@@ -519,5 +519,24 @@
   },
   "reviewClear": {
     "message": "Clear record"
+  },
+  "previewEveryday": {
+    "message": "→ Repeats every day"
+  },
+  "previewWeekly": {
+    "message": "→ Repeats weekly on $DAYS$",
+    "placeholders": {
+      "days": {
+        "content": "$1"
+      }
+    }
+  },
+  "previewOneOff": {
+    "message": "→ One-time plan on $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
   }
 }

@@ -994,8 +994,9 @@ function renderReview() {
   const emptyEl = document.getElementById('review-empty');
   listEl.textContent = '';
   listEl.hidden = !reviewOpen;
-  // やりなおしコピーは元の予定に集約されるので出さない
-  const items = schedule.filter((it) => !it.origId);
+  // やりなおしコピーは元の予定に集約されるので出さない。
+  // 1回だけの予定は習慣ではないので、タイルや30日集計の対象にしない
+  const items = schedule.filter((it) => !it.origId && !isOneOff(it));
   emptyEl.hidden = !reviewOpen || items.length > 0;
   if (!reviewOpen) return;
 
@@ -1111,6 +1112,28 @@ function setSelectedDays(days) {
 // 曜日を選んでいる間は日付が使われないので、入力欄を無効化して意味を見せる
 function syncDateDisabled() {
   document.getElementById('input-date').disabled = selectedDays().length > 0;
+  syncRepeatPreview();
+}
+
+// いま登録しようとしている繰り返しの内容を、フォームの中でその場で見せる。
+// 説明文だけだと「今週の土曜のつもりで土に付けたら毎週だった」の読み違えを防げないため
+function syncRepeatPreview() {
+  const el = document.getElementById('repeat-preview');
+  // 済んでから◯日後モードは interval-fields 側に説明があるので重ねない
+  if (isIntervalMode()) { el.hidden = true; return; }
+  const days = selectedDays();
+  if (days.length === 7) {
+    el.textContent = T('previewEveryday');
+  } else if (days.length > 0) {
+    el.textContent = T('previewWeekly', [days.sort((a, b) => a - b).map((d) => DAY_NAMES[d]).join('・')]);
+  } else {
+    const v = document.getElementById('input-date').value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { el.hidden = true; return; }
+    const [y, m, d] = v.split('-').map(Number);
+    const dayName = DAY_NAMES[new Date(y, m - 1, d).getDay()];
+    el.textContent = T('previewOneOff', [`${m}/${d}(${dayName})`]);
+  }
+  el.hidden = false;
 }
 
 // 「時刻を決めない」の切り替え：時刻欄と目安欄を入れ替える。
@@ -1414,6 +1437,8 @@ document.getElementById('review-title').addEventListener('click', () => {
   buildDayBoxes();
   // 曜日の選択状態で日付欄の有効/無効を切り替える
   document.getElementById('day-boxes').addEventListener('change', syncDateDisabled);
+  // 日付を変えたら「◯/◯の1回だけ」のプレビューも追従させる
+  document.getElementById('input-date').addEventListener('input', syncRepeatPreview);
   // 「済んでから◯日後」の切り替え
   document.getElementById('btn-interval').addEventListener('click', () => setIntervalMode(!isIntervalMode()));
   // 「時刻を決めない」の切り替えで時刻欄⇔目安欄を入れ替える
