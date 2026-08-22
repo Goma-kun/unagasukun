@@ -939,7 +939,7 @@ function renderItems() {
 let reviewOpen = false; // 「ふりかえり」の開閉状態（既定は畳む）
 let reviewSelected = null; // 選択中の日 { itemId, key }
 
-const REVIEW_WEEKS = 12; // 直近12週間ぶんを表示（幅340pxに収まる）
+const REVIEW_WEEKS = 12; // 先週までの12週間ぶんを表示（完全な週だけ。幅340pxに収まる）
 
 // 過去の日の記録を付け直す（付け忘れの救済。グリッドの日をタップして使う）
 async function setPastRecord(itemId, key, result) {
@@ -1137,10 +1137,11 @@ function renderReview() {
   if (!reviewOpen) return;
 
   const now = new Date();
-  const today = todayKey();
-  // グリッドの起点＝REVIEW_WEEKS週前の日曜日（列が週・行が日〜土）
+  // グリッドは「先週までの12週」＝完全な週だけで、常にきれいな四角にする
+  // （今週の列だけタイルが欠けて飛び出して見える、の本人指摘対応）。
+  // 今日・今週の分は上のカレンダーで見る・直す。起点＝12週前の日曜日（列が週・行が日〜土）
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  start.setDate(start.getDate() - start.getDay() - 7 * (REVIEW_WEEKS - 1));
+  start.setDate(start.getDate() - start.getDay() - 7 * REVIEW_WEEKS);
 
   for (const item of items) {
     const card = document.createElement('div');
@@ -1176,29 +1177,22 @@ function renderReview() {
       const tile = document.createElement('button');
       tile.type = 'button';
       tile.className = 'tile';
-      if (key > today) {
-        // 今週のこれからの日は場所だけ確保して見えなくする
-        tile.classList.add('future');
-        tile.disabled = true;
-      } else {
-        const rec = records[key] && records[key][item.id];
-        if (rec === 'done') tile.classList.add('done');
-        else if (rec === 'skip') tile.classList.add('skip');
-        if (key === today) tile.classList.add('today');
-        if (reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key) {
-          tile.classList.add('selected');
-        }
-        tile.title = `${reviewDateText(key)} ${rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone')}`;
-        tile.addEventListener('click', () => {
-          const same = reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key;
-          reviewSelected = same ? null : { itemId: item.id, key };
-          // 逆方向も同じ：タイルの日を選んだら、上のカレンダーで開いていた日は閉じる
-          // （日の詳細を見る場所は一度に1つ）
-          calSelected = null;
-          calDetailFor = null;
-          renderReview();
-        });
+      const rec = records[key] && records[key][item.id];
+      if (rec === 'done') tile.classList.add('done');
+      else if (rec === 'skip') tile.classList.add('skip');
+      if (reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key) {
+        tile.classList.add('selected');
       }
+      tile.title = `${reviewDateText(key)} ${rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone')}`;
+      tile.addEventListener('click', () => {
+        const same = reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key;
+        reviewSelected = same ? null : { itemId: item.id, key };
+        // 逆方向も同じ：タイルの日を選んだら、上のカレンダーで開いていた日は閉じる
+        // （日の詳細を見る場所は一度に1つ）
+        calSelected = null;
+        calDetailFor = null;
+        renderReview();
+      });
       grid.append(tile);
     }
     card.append(grid);

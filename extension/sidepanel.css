@@ -189,9 +189,7 @@ h2.toggle:hover { color: var(--text); }
 }
 .review-grid .tile.done { background: var(--done); }
 .review-grid .tile.skip { background: #b9c2d6; }
-.review-grid .tile.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
 .review-grid .tile.selected { box-shadow: 0 0 0 2px var(--navy); }
-.review-grid .tile.future { background: transparent; cursor: default; }
 
 .review-summary { font-size: 11px; color: var(--muted); }
 .review-legend { flex-basis: 100%; font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
