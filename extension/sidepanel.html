@@ -99,9 +99,22 @@
 
       <h2 id="list-title" class="toggle" data-i18n="listHeading">登録済みの予定</h2>
       <div id="item-list" class="list" hidden></div>
+      <!-- 今日の予定に出ている分を隠していることの断り（黙って隠すと「無くなった」に見える） -->
+      <p id="items-today-note" class="hint" data-i18n="itemsHiddenToday" hidden>今日の予定に出ているものは、ここには重ねて表示しません。</p>
       <p id="items-empty" class="empty-note" data-i18n="itemsEmpty" hidden>登録済みの予定はまだありません。</p>
 
       <h2 id="review-title" class="toggle" data-i18n="reviewHeading">ふりかえり</h2>
+      <!-- 月カレンダー：日付起点で「その日に何があったか」を見る（1回だけの予定も含む）。
+           印は「できた」の日だけ。何もない日は白いまま（責めない設計） -->
+      <div id="cal-box" hidden>
+        <div class="cal-header">
+          <button type="button" id="cal-prev" data-i18n-title="calPrev">◀</button>
+          <span id="cal-title"></span>
+          <button type="button" id="cal-next" data-i18n-title="calNext">▶</button>
+        </div>
+        <div id="cal-grid" class="cal-grid"></div>
+        <div id="cal-detail"></div>
+      </div>
       <div id="review-list" class="list" hidden></div>
       <p id="review-empty" class="empty-note" data-i18n="reviewEmpty" hidden>予定を登録すると、ここでふりかえりができます。</p>
     </section>

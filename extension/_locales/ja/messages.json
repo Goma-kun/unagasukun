@@ -538,5 +538,64 @@
         "content": "$1"
       }
     }
+  },
+  "monthName1": {
+    "message": "1月"
+  },
+  "monthName2": {
+    "message": "2月"
+  },
+  "monthName3": {
+    "message": "3月"
+  },
+  "monthName4": {
+    "message": "4月"
+  },
+  "monthName5": {
+    "message": "5月"
+  },
+  "monthName6": {
+    "message": "6月"
+  },
+  "monthName7": {
+    "message": "7月"
+  },
+  "monthName8": {
+    "message": "8月"
+  },
+  "monthName9": {
+    "message": "9月"
+  },
+  "monthName10": {
+    "message": "10月"
+  },
+  "monthName11": {
+    "message": "11月"
+  },
+  "monthName12": {
+    "message": "12月"
+  },
+  "calMonthTitle": {
+    "message": "$Y$年$MON$",
+    "placeholders": {
+      "y": {
+        "content": "$1"
+      },
+      "mon": {
+        "content": "$2"
+      }
+    }
+  },
+  "calPrev": {
+    "message": "前の月"
+  },
+  "calNext": {
+    "message": "次の月"
+  },
+  "calDayEmpty": {
+    "message": "この日の予定はありません。"
+  },
+  "itemsHiddenToday": {
+    "message": "今日の予定に出ているものは、ここには重ねて表示しません。休む・編集・削除は今日の予定のカードを開くとできます。"
   }
 }

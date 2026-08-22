@@ -201,4 +201,37 @@ function avgDoneIntervalDays(records, itemId, now, windowDays) {
   const span = (dates[0].getTime() - dates[dates.length - 1].getTime()) / DAY_MS;
   return Math.round(span / (dates.length - 1));
 }
+
+// 保管済みの予定か（日付が過ぎた1回だけの予定。一覧や通知には出さないが、
+// カレンダーで名前を引けるように削除せず残してある）
+function isArchived(item) {
+  return !!(item && item.archived);
+}
+
+// カレンダーの日別表示：その日にあった予定を返す（1回だけ・保管済みを含む）。
+// やりなおしコピー（origId）は記録が元の予定に付け替えられるので出さない。
+// 記録がある予定は種類を問わず出し、記録がない予定はその日に予定されていたものだけ出す
+// （済んでから◯日後は目安日が動くので、記録がない日には出さない）
+function itemsOnDay(schedule, records, key) {
+  const [y, m, d] = key.split('-').map(Number);
+  const day = new Date(y, m - 1, d);
+  const rec = records[key] || {};
+  return schedule.filter((item) => {
+    if (item.origId) return false;
+    if (rec[item.id] !== undefined) return true;
+    if (isOneOff(item)) return item.date === key;
+    if (isInterval(item)) return false;
+    return !!item.enabled && isScheduledOn(item.days, day);
+  });
+}
+
+// カレンダーの日の印。「できた」が1つでもあれば done、スキップだけなら skip、それ以外は null。
+// できなかった日に印を付けない（沈黙が中立）のはタイルグリッドと同じ
+function dayMark(records, key) {
+  const rec = records[key];
+  if (!rec) return null;
+  const vals = Object.values(rec);
+  if (vals.includes('done')) return 'done';
+  return vals.includes('skip') ? 'skip' : null;
+}
 // ===== スケジュール計算ロジック（ここまで）=====

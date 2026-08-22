@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark };`
 )();
 
 let pass = 0;
@@ -362,6 +362,44 @@ eq('avgInterval: 2回なら差そのもの',
 eq('avgInterval: 1回だけならnull',
   avgDoneIntervalDays(rec({ '2026-08-01': { a: 'done' } }), 'a', thu10, 365), null);
 eq('avgInterval: 記録ゼロはnull', avgDoneIntervalDays(rec({}), 'a', thu10, 365), null);
+
+// ---- isArchived / dayMark / itemsOnDay（カレンダー用・v1.4.0）----
+
+eq('isArchived: フラグあり', isArchived({ archived: true }), true);
+eq('isArchived: フラグなし', isArchived({ label: 'a' }), false);
+eq('isArchived: null', isArchived(null), false);
+
+// 日の印：「できた」が1つでもあれば done、スキップだけなら skip、記録なしは null
+eq('dayMark: done優先', dayMark(rec({ '2026-08-13': { a: 'skip', b: 'done' } }), '2026-08-13'), 'done');
+eq('dayMark: skipのみ', dayMark(rec({ '2026-08-13': { a: 'skip' } }), '2026-08-13'), 'skip');
+eq('dayMark: 記録なしはnull', dayMark(rec({}), '2026-08-13'), null);
+
+// 日別の予定一覧
+const daily = { id: 'd1', label: '毎日', time: '09:00', days: [], enabled: true };
+const weeklyThu = { id: 'w1', label: '毎週木', time: '10:00', days: [4], enabled: true };
+const onceThu = { id: 'o1', label: '1回だけ', time: '11:00', date: '2026-08-13', days: [], enabled: true };
+const onceArchived = { id: 'o2', label: '保管済み', time: '11:00', date: '2026-08-13', days: [], enabled: true, archived: true };
+const redoCopy = { id: 'r1', label: 'やりなおし', time: '12:00', date: '2026-08-13', days: [], enabled: true, origId: 'd1' };
+const interval30 = { id: 'i1', label: '靴の手入れ', time: '09:00', intervalDays: 30, anchorDate: '2026-08-01', enabled: true };
+const paused = { id: 'p1', label: '休止中', time: '09:00', days: [], enabled: false };
+const all = [daily, weeklyThu, onceThu, onceArchived, redoCopy, interval30, paused];
+const ids = (items) => items.map((it) => it.id);
+
+// 2026-08-13 は木曜
+eq('itemsOnDay: 木曜（記録なし）は毎日・毎週木・1回だけ・保管済みが出る',
+  ids(itemsOnDay(all, rec({}), '2026-08-13')), ['d1', 'w1', 'o1', 'o2']);
+eq('itemsOnDay: 金曜は毎日だけ',
+  ids(itemsOnDay(all, rec({}), '2026-08-14')), ['d1']);
+eq('itemsOnDay: 記録があれば種類を問わず出る（そろそろ・休止中も）',
+  ids(itemsOnDay(all, rec({ '2026-08-14': { i1: 'done', p1: 'skip' } }), '2026-08-14')), ['d1', 'i1', 'p1']);
+eq('itemsOnDay: やりなおしコピーは記録があっても出さない',
+  ids(itemsOnDay(all, rec({ '2026-08-13': { r1: 'done' } }), '2026-08-13')), ['d1', 'w1', 'o1', 'o2']);
+eq('itemsOnDay: 1回だけは日付違いの日には出ない',
+  itemsOnDay([onceThu], rec({}), '2026-08-20'), []);
+
+// 保管済みの1回だけ予定にはアラームを張らない（nextOccurrence は過去日なので null）
+eq('archived: 過去の1回だけはnextOccurrenceがnull',
+  nextOccurrence(onceArchived, new Date(2026, 7, 20, 9, 0), rec({})), null);
 
 console.log(`テスト完了: ${pass} 件成功 / ${fail} 件失敗`);
 process.exit(fail === 0 ? 0 : 1);

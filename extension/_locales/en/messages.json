@@ -538,5 +538,64 @@
         "content": "$1"
       }
     }
+  },
+  "monthName1": {
+    "message": "January"
+  },
+  "monthName2": {
+    "message": "February"
+  },
+  "monthName3": {
+    "message": "March"
+  },
+  "monthName4": {
+    "message": "April"
+  },
+  "monthName5": {
+    "message": "May"
+  },
+  "monthName6": {
+    "message": "June"
+  },
+  "monthName7": {
+    "message": "July"
+  },
+  "monthName8": {
+    "message": "August"
+  },
+  "monthName9": {
+    "message": "September"
+  },
+  "monthName10": {
+    "message": "October"
+  },
+  "monthName11": {
+    "message": "November"
+  },
+  "monthName12": {
+    "message": "December"
+  },
+  "calMonthTitle": {
+    "message": "$MON$ $Y$",
+    "placeholders": {
+      "y": {
+        "content": "$1"
+      },
+      "mon": {
+        "content": "$2"
+      }
+    }
+  },
+  "calPrev": {
+    "message": "Previous month"
+  },
+  "calNext": {
+    "message": "Next month"
+  },
+  "calDayEmpty": {
+    "message": "No plans on this day."
+  },
+  "itemsHiddenToday": {
+    "message": "Plans shown in Today are not repeated here. Open a card in Today to pause, edit, or delete it."
   }
 }

@@ -473,7 +473,7 @@ function repeatText(item) {
 }
 
 function isTodayItem(item) {
-  if (!item.enabled) return false;
+  if (!item.enabled || isArchived(item)) return false;
   // 済んでから◯日後：目安日の noticeDays 日前から「今日の予定」に出す。
   // 今日「できた」を押すと次の目安日は先になるが、カードが消えると押した結果が
   // 見えなくなるので、今日の記録がある間は「今日対応済み」に残す
@@ -642,9 +642,10 @@ function renderToday() {
     if (expandedToday.has(item.id)) card.classList.add('expanded');
     card.addEventListener('click', (e) => {
       if (e.target.closest('button, input, textarea, select, a')) return;
-      const opened = card.classList.toggle('expanded');
-      if (opened) expandedToday.add(item.id);
-      else expandedToday.delete(item.id);
+      if (expandedToday.has(item.id)) expandedToday.delete(item.id);
+      else expandedToday.add(item.id);
+      // 開閉で管理操作（休む・編集・削除）の行も出し入れするので描画し直す
+      renderToday();
     });
     const result = todayRec[item.id];
     card.append(time, label);
@@ -799,6 +800,36 @@ function renderToday() {
     if (redoOpenFor.has(item.id) && result === undefined && pastDue && !isActive) {
       card.append(buildRedoRow(item));
     }
+    // 今日に出ている予定は「登録済みの予定」に重ねて出さないので、管理操作
+    // （休む・編集・削除）はカードを開いたときにここへ出す（登録済み一覧と同じ並び）。
+    // やりなおしコピーは元の予定側で管理するため出さない
+    if (expandedToday.has(item.id) && !item.origId) {
+      const pauseBtn = document.createElement('button');
+      pauseBtn.textContent = T('pauseBtn');
+      pauseBtn.title = T('pauseTitle');
+      pauseBtn.addEventListener('click', async () => {
+        item.enabled = false;
+        await saveSchedule();
+        renderAll();
+      });
+      const editBtn = document.createElement('button');
+      editBtn.textContent = T('editBtn');
+      editBtn.addEventListener('click', () => startEdit(item.id));
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete';
+      delBtn.textContent = T('deleteBtn');
+      delBtn.addEventListener('click', async () => {
+        if (!confirm(T('deleteConfirm', [item.label, timeText(item)]))) return;
+        schedule = schedule.filter((it) => it.id !== item.id);
+        await saveSchedule();
+        if (editingId === item.id) resetForm();
+        renderAll();
+      });
+      const manage = document.createElement('div');
+      manage.className = 'badge-row';
+      manage.append(pauseBtn, editBtn, delBtn);
+      card.append(manage);
+    }
     // 対応済みは「今日対応済み」欄へ、それ以外は「今日の予定」欄へ
     (groupOf(item) === 5 ? doneListEl : listEl).append(card);
   }
@@ -811,11 +842,12 @@ function renderItems() {
   const emptyEl = document.getElementById('items-empty');
   listEl.textContent = '';
   const sortNow = new Date();
-  const recToday = records[todayKey()] || {};
-  // 今日だけの予定で今日すでに対応済みのものは「今日対応済み」欄に出ているので、
-  // ここには重複して出さない（繰り返し予定は明日以降があるので残す）
+  // 今日の予定・今日対応済みに出ているものは、ここには重ねて出さない（同じ予定が
+  // 2か所にあると「登録済みの方にもあるけど、なんだっけ」となる。本人指摘）。
+  // その分の休む・編集・削除は、今日の予定のカードを開いたところに出す。
+  // 保管済みの1回だけ予定（カレンダー用に残しているもの）もここには出さない
   const items = schedule
-    .filter((it) => !(isOneOff(it) && it.date === todayKey() && recToday[it.id] !== undefined))
+    .filter((it) => !isArchived(it) && !isTodayItem(it) && !it.origId)
     // 次に実行される順に並べる（これからの予定が上から順に見える）。
     // 時刻を固定しない予定は「その日の終わり」扱いで同じ日の時刻つき予定の後ろ。
     // 実行予定のないもの（休止中・終わった1回だけ）は一番下
@@ -824,11 +856,14 @@ function renderItems() {
       const nb = listSortMs(b, sortNow, records);
       return na - nb || (a.time || '').localeCompare(b.time || '');
     });
+  // 今日側に出ていて隠した件数。1件でもあれば「重ねて出さない」ことを一言添える
+  // （黙って隠すと「登録したのに無い」に見える）
+  const hiddenToday = schedule.filter((it) => !isArchived(it) && !it.origId && isTodayItem(it)).length;
+  const noteEl = document.getElementById('items-today-note');
+  noteEl.hidden = !registeredOpen || hiddenToday === 0;
   listEl.hidden = !registeredOpen;
-  emptyEl.hidden = !registeredOpen || items.length > 0;
+  emptyEl.hidden = !registeredOpen || items.length > 0 || hiddenToday > 0;
   const now = new Date();
-  const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-  const todayRec = records[todayKey()] || {};
   for (const item of items) {
     const card = document.createElement('div');
     card.className = 'card' + (item.enabled ? '' : ' disabled');
@@ -842,22 +877,10 @@ function renderItems() {
     days.textContent = repeatText(item);
     const target = buildTargetSpan(item);
 
-    // 今日の分の状態（✓できた／スキップ／未対応）は、今日の予定側と同じ表示で連動させる。
-    // 時刻を固定しない予定は「未対応」にならない点も今日の予定側と揃える
+    // 今日側に出ている予定はこの一覧に来ないので、今日の状態バッジはここでは不要。
+    // 済んでから◯日後（まだ先のもの）だけ「あと何日か」を見せる（今日の予定側と同じバッジ）
     let statusBadge = null;
-    const rec = todayRec[item.id];
-    if ((isTodayItem(item) || isInterval(item)) && (rec === 'done' || rec === 'skip')) {
-      statusBadge = document.createElement('span');
-      statusBadge.className = rec === 'done' ? 'status done' : 'status skip';
-      statusBadge.textContent = rec === 'done' ? T('statusDone') : T('statusSkip');
-    } else if (isInterval(item)) {
-      // 済んでから◯日後は「あと何日か」を常に見せる（今日の予定側と同じバッジ）
-      if (item.enabled) statusBadge = buildIntervalBadge(item, now);
-    } else if (isTodayItem(item) && !isAnytime(item) && (item.endTime || item.time) <= nowHM) {
-      statusBadge = document.createElement('span');
-      statusBadge.className = 'status pending';
-      statusBadge.textContent = T('statusPending');
-    }
+    if (isInterval(item) && item.enabled) statusBadge = buildIntervalBadge(item, now);
 
     // 1行に収める：普段は 時刻・名前・繰り返し・状態 だけ。
     // カードをクリックすると操作ボタン（休む・編集・削除）が2行目に開く
@@ -938,22 +961,25 @@ function reviewDateText(key) {
   return `${m}/${d}(${DAY_NAMES[new Date(y, m - 1, d).getDay()]})`;
 }
 
-// 選択した日の詳細行（状態＋「実際は」＋記録の修正ボタン）
-function buildReviewDetail(item, key) {
+// 選択した日の詳細行（状態＋「実際は」＋記録の修正ボタン）。
+// カレンダーの日別リストからは日付も状態も行の側に出ているので showHead=false で使う
+function buildReviewDetail(item, key, showHead = true) {
   const wrap = document.createElement('div');
   wrap.className = 'review-detail';
 
   const rec = records[key] && records[key][item.id];
-  const head = document.createElement('div');
-  head.className = 'review-detail-head';
-  const dateEl = document.createElement('span');
-  dateEl.className = 'review-date';
-  dateEl.textContent = reviewDateText(key);
-  const st = document.createElement('span');
-  st.className = 'status ' + (rec === 'done' ? 'done' : rec === 'skip' ? 'skip' : 'since');
-  st.textContent = rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone');
-  head.append(dateEl, st);
-  wrap.append(head);
+  if (showHead) {
+    const head = document.createElement('div');
+    head.className = 'review-detail-head';
+    const dateEl = document.createElement('span');
+    dateEl.className = 'review-date';
+    dateEl.textContent = reviewDateText(key);
+    const st = document.createElement('span');
+    st.className = 'status ' + (rec === 'done' ? 'done' : rec === 'skip' ? 'skip' : 'since');
+    st.textContent = rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone');
+    head.append(dateEl, st);
+    wrap.append(head);
+  }
 
   const note = notes[key] && notes[key][item.id];
   if (note) {
@@ -989,7 +1015,111 @@ function buildReviewDetail(item, key) {
   return wrap;
 }
 
+// ---- カレンダー（日付起点のふりかえり。Streaks / Loop Habit Tracker 等の
+// 「日をタップしてその日の記録を見る・直す」が定石）----
+// 印は「できた」の日だけ濃く、スキップだけの日は薄く、何もない日は白いまま（責めない設計）
+
+let calYm = null; // 表示中の月 { y, m }（m は 1〜12）。null なら今月から始める
+let calSelected = null; // 選択中の日（dateKey 形式）
+let calDetailFor = null; // 日別リストで付け直しを開いている予定の id
+
+function renderCalendar() {
+  const box = document.getElementById('cal-box');
+  box.hidden = !reviewOpen;
+  if (!reviewOpen) return;
+  const now = new Date();
+  if (!calYm) calYm = { y: now.getFullYear(), m: now.getMonth() + 1 };
+  const { y, m } = calYm;
+  document.getElementById('cal-title').textContent = T('calMonthTitle', [String(y), T('monthName' + m)]);
+  // 未来の月へは進めない（これからの予定は「今日の予定」と「登録済み」の担当）
+  document.getElementById('cal-next').disabled = y === now.getFullYear() && m === now.getMonth() + 1;
+
+  const grid = document.getElementById('cal-grid');
+  grid.textContent = '';
+  for (const name of DAY_NAMES) {
+    const h = document.createElement('span');
+    h.className = 'cal-dow';
+    h.textContent = name;
+    grid.append(h);
+  }
+  const first = new Date(y, m - 1, 1);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const today = todayKey();
+  for (let i = 0; i < first.getDay(); i++) {
+    const b = document.createElement('span');
+    b.className = 'cal-cell blank';
+    grid.append(b);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${y}-${pad2(m)}-${pad2(d)}`;
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.className = 'cal-cell';
+    cell.textContent = String(d);
+    if (key > today) {
+      // これからの日は数字だけ薄く見せて押せなくする
+      cell.classList.add('future');
+      cell.disabled = true;
+    } else {
+      const mark = dayMark(records, key);
+      if (mark) cell.classList.add(mark);
+      if (key === today) cell.classList.add('today');
+      if (calSelected === key) cell.classList.add('selected');
+      cell.addEventListener('click', () => {
+        calSelected = calSelected === key ? null : key;
+        calDetailFor = null;
+        renderCalendar();
+      });
+    }
+    grid.append(cell);
+  }
+  renderCalDayDetail();
+}
+
+// 選んだ日にあった予定の一覧（1回だけ・保管済みも含む）。行をタップすると付け直しが開く
+function renderCalDayDetail() {
+  const box = document.getElementById('cal-detail');
+  box.textContent = '';
+  if (!calSelected) return;
+  const head = document.createElement('div');
+  head.className = 'cal-detail-date';
+  head.textContent = reviewDateText(calSelected);
+  box.append(head);
+  const items = itemsOnDay(schedule, records, calSelected);
+  if (items.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'empty-note';
+    p.textContent = T('calDayEmpty');
+    box.append(p);
+    return;
+  }
+  const rec = records[calSelected] || {};
+  for (const item of items) {
+    const row = document.createElement('div');
+    row.className = 'card cal-day-row';
+    const label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = item.label;
+    label.title = item.label;
+    const r = rec[item.id];
+    const st = document.createElement('span');
+    st.className = 'status ' + (r === 'done' ? 'done' : r === 'skip' ? 'skip' : 'since');
+    st.textContent = r === 'done' ? T('statusDone') : r === 'skip' ? T('statusSkip') : T('recNone');
+    row.append(buildTimeSpan(item), label, st);
+    if (calDetailFor === item.id) {
+      row.append(buildReviewDetail(item, calSelected, false));
+    }
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      calDetailFor = calDetailFor === item.id ? null : item.id;
+      renderCalendar();
+    });
+    box.append(row);
+  }
+}
+
 function renderReview() {
+  renderCalendar();
   const listEl = document.getElementById('review-list');
   const emptyEl = document.getElementById('review-empty');
   listEl.textContent = '';
@@ -1439,6 +1569,16 @@ document.getElementById('review-title').addEventListener('click', () => {
   document.getElementById('day-boxes').addEventListener('change', syncDateDisabled);
   // 日付を変えたら「◯/◯の1回だけ」のプレビューも追従させる
   document.getElementById('input-date').addEventListener('input', syncRepeatPreview);
+  // カレンダーの月送り。移動したら日の選択は外す（別の月の日付が残ると紛らわしい）
+  const calMove = (delta) => {
+    const d = new Date(calYm.y, calYm.m - 1 + delta, 1);
+    calYm = { y: d.getFullYear(), m: d.getMonth() + 1 };
+    calSelected = null;
+    calDetailFor = null;
+    renderCalendar();
+  };
+  document.getElementById('cal-prev').addEventListener('click', () => calMove(-1));
+  document.getElementById('cal-next').addEventListener('click', () => calMove(1));
   // 「済んでから◯日後」の切り替え
   document.getElementById('btn-interval').addEventListener('click', () => setIntervalMode(!isIntervalMode()));
   // 「時刻を決めない」の切り替えで時刻欄⇔目安欄を入れ替える

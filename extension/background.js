@@ -105,17 +105,30 @@ async function rescheduleAll() {
   const { records = {} } = await chrome.storage.local.get('records');
   const now = new Date();
 
-  // 日付が過ぎた「1回だけ」の予定は翌日以降に自動で片付ける（実績の記録は残る）
+  // 日付が過ぎた「1回だけ」の予定は翌日以降に自動で片付ける（実績の記録は残る）。
+  // v1.4.0から削除でなく「保管」（archived:true）にする。records は ID しか持たないので、
+  // 消してしまうとカレンダーで予定の名前が引けなくなるため。
+  // やりなおしコピー（origId）は記録が元の予定に付いているので従来どおり削除する
   const today = dateKey(now);
-  const alive = schedule.filter((item) => !(isOneOff(item) && item.date < today));
-  if (alive.length !== schedule.length) {
-    schedule = alive;
+  let changed = false;
+  schedule = schedule.filter((item) => {
+    if (isOneOff(item) && item.date < today && item.origId) { changed = true; return false; }
+    return true;
+  });
+  for (const item of schedule) {
+    if (isOneOff(item) && item.date < today && !item.archived) {
+      item.archived = true;
+      changed = true;
+    }
+  }
+  if (changed) {
     await chrome.storage.local.set({ schedule });
     // この set が storage.onChanged 経由で rescheduleAll をもう一度呼ぶが、
-    // 2回目は削除対象が無いのでここには戻らない（無限ループにならない）
+    // 2回目は片付ける対象が無いのでここには戻らない（無限ループにならない）
   }
 
   for (const item of schedule) {
+    if (isArchived(item)) continue; // 保管済みにはアラームを張らない
     const next = nextOccurrence(item, now, records);
     if (next) {
       chrome.alarms.create(ALARM_PREFIX + item.id, { when: next.getTime() });
