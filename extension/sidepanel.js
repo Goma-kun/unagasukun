@@ -73,12 +73,36 @@ function applyI18n() {
 }
 
 let toastTimer = null;
-function showToast(text) {
+function showToast(text, opts) {
   const el = document.getElementById('toast');
   el.textContent = text;
+  if (opts && opts.emoji) {
+    const s = document.createElement('span');
+    s.className = 'toast-animal';
+    s.textContent = opts.emoji;
+    el.prepend(s);
+  }
   el.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 3000);
+  toastTimer = setTimeout(() => { el.hidden = true; }, opts && opts.emoji ? 3600 : 3000);
+  if (opts && opts.party) throwPetParty();
+}
+
+// 今日のぜんぶ済みのお祝い：動物たちがふわっと浮かんで消える。
+// 数秒で跡形もなく消え、記録には何も残さない（見た人だけのごほうび）
+function throwPetParty() {
+  if (document.getElementById('pet-party')) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'pet-party';
+  for (let i = 0; i < 6; i++) {
+    const s = document.createElement('span');
+    s.textContent = CHEER_ANIMALS[Math.floor(Math.random() * CHEER_ANIMALS.length)];
+    s.style.left = `${8 + Math.random() * 84}%`;
+    s.style.animationDelay = `${i * 0.18}s`;
+    wrap.append(s);
+  }
+  document.body.append(wrap);
+  setTimeout(() => wrap.remove(), 3400);
 }
 
 // ---- 別ウィンドウ表示（おさむくん v1.2〜1.3 と同じ仕組み）----
@@ -368,6 +392,32 @@ async function saveNote(item, text) {
 // 「済み」のときだけ応援のことばを出す（責めない設計：スキップには何も言わない）
 const PRAISE_KEYS = ['praise1', 'praise2', 'praise3', 'praise4', 'praise5'];
 
+// こっそりお祝い（隠し機能）。今日の予定がぜんぶ済んだ日とストリークの節目だけ
+// 動物が出てきて祝う。ふだんの「できた」にも、ときどき1匹だけ顔を出す。
+// どこにも説明を書かない・記録に残さない・出なくても何も失わない（責めない設計の裏返し）
+const CHEER_ANIMALS = ['🐶', '🐱', '🐹', '🐰', '🐻', '🐧', '🦔', '🐿️', '🐥', '🦊'];
+
+function pickAnimal() {
+  return CHEER_ANIMALS[Math.floor(Math.random() * CHEER_ANIMALS.length)];
+}
+
+function cheerAfterDone(item, targetId) {
+  const now = new Date();
+  if (allDoneToday(schedule, records, now)) {
+    showToast(T('cheerAllDone'), { emoji: pickAnimal(), party: true });
+    return;
+  }
+  if (!isOneOff(item) && !isInterval(item)) {
+    const streak = streakFor(records, targetId, now, item.days);
+    if (isStreakMilestone(streak)) {
+      showToast(T('cheerStreak', [streak]), { emoji: pickAnimal() });
+      return;
+    }
+  }
+  const emoji = Math.random() < 0.25 ? pickAnimal() : '';
+  showToast(T(PRAISE_KEYS[Math.floor(Math.random() * PRAISE_KEYS.length)]), { emoji });
+}
+
 async function recordFromPanel(item, result) {
   const key = todayKey();
   const targetId = item.origId || item.id;
@@ -379,7 +429,7 @@ async function recordFromPanel(item, result) {
     await saveSchedule();
   }
   if (result === 'done') {
-    showToast(T(PRAISE_KEYS[Math.floor(Math.random() * PRAISE_KEYS.length)]));
+    cheerAfterDone(item, targetId);
   }
   renderToday();
 }

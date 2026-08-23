@@ -362,6 +362,13 @@
   "praise5": {
     "message": "今日の分、きちんと積み上がりました"
   },
+  "cheerAllDone": {
+    "message": "今日のよてい、ぜんぶできました！おめでとう🎉"
+  },
+  "cheerStreak": {
+    "message": "$N$日つづいています。おめでとう！",
+    "placeholders": { "n": { "content": "$1" } }
+  },
   "anytimeToggle": {
     "message": "時刻を決めない（空いた時間にやる）"
   },

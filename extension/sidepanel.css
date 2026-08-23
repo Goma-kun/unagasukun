@@ -91,6 +91,49 @@ h1 {
   z-index: 10;
 }
 
+/* こっそりお祝い（隠し機能）。派手にしすぎず、数秒で跡形もなく消える */
+.toast-animal {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 16px;
+  animation: cheer-pop 0.5s ease-out;
+}
+
+@keyframes cheer-pop {
+  0% { transform: scale(0) rotate(-20deg); }
+  60% { transform: scale(1.3) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+#pet-party {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9;
+}
+
+#pet-party span {
+  position: absolute;
+  bottom: -32px;
+  font-size: 22px;
+  opacity: 0;
+  animation: pet-float 2.6s ease-out forwards;
+}
+
+@keyframes pet-float {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(-70vh) rotate(12deg); opacity: 0; }
+}
+
+/* 動きを減らす設定の人には、動物は跳ねさせず、浮かぶ演出は出さない */
+@media (prefers-reduced-motion: reduce) {
+  .toast-animal { animation: none; }
+  #pet-party { display: none; }
+}
+
 main { padding: 12px 14px 24px; }
 
 h2 {

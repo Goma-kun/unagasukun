@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday };`
 )();
 
 let pass = 0;
@@ -405,6 +405,49 @@ eq('itemsOnDay: 1回だけは日付違いの日には出ない',
 // 保管済みの1回だけ予定にはアラームを張らない（nextOccurrence は過去日なので null）
 eq('archived: 過去の1回だけはnextOccurrenceがnull',
   nextOccurrence(onceArchived, new Date(2026, 7, 20, 9, 0), rec({})), null);
+
+// ---- こっそりお祝い（隠し機能） ----
+
+eq('isStreakMilestone: 3日は節目', isStreakMilestone(3), true);
+eq('isStreakMilestone: 4日は節目でない', isStreakMilestone(4), false);
+eq('isStreakMilestone: 7日は節目', isStreakMilestone(7), true);
+eq('isStreakMilestone: 0日は節目でない', isStreakMilestone(0), false);
+
+// 2026-08-13（木）を「今日」として判定する
+{
+  const daily = { id: 'cd', enabled: true, time: '09:00', days: [] };
+  const thuW = { id: 'cw', enabled: true, time: '10:00', days: [4] };
+  const friW = { id: 'cf', enabled: true, time: '10:00', days: [5] };
+  const onceToday = { id: 'co', enabled: true, time: '11:00', date: '2026-08-13', days: [] };
+  const intSoon = { id: 'ci', enabled: true, time: '09:00', intervalDays: 30, anchorDate: '2026-08-11', noticeDays: 3 };
+  const intDue = { id: 'cj', enabled: true, time: '09:00', intervalDays: 30, anchorDate: '2026-07-13' };
+  const copy = { id: 'cc', origId: 'cd', enabled: true, time: '12:00', date: '2026-08-13', days: [] };
+  const paused = { id: 'cp', enabled: false, time: '09:00', days: [] };
+  const done = (ids) => rec({ '2026-08-13': Object.fromEntries(ids.map((i) => [i, 'done'])) });
+
+  eq('allDoneToday: 今日の分がぜんぶ「できた」なら true',
+    allDoneToday([daily, thuW], done(['cd', 'cw']), thu10), true);
+  eq('allDoneToday: 未記録が残っていれば false',
+    allDoneToday([daily, thuW], done(['cd']), thu10), false);
+  eq('allDoneToday: スキップが混ざったら祝わない',
+    allDoneToday([daily, thuW], rec({ '2026-08-13': { cd: 'done', cw: 'skip' } }), thu10), false);
+  eq('allDoneToday: 予定が1件もない日は祝わない',
+    allDoneToday([friW], rec({}), thu10), false);
+  eq('allDoneToday: 曜日違いの予定は数えない',
+    allDoneToday([daily, friW], done(['cd']), thu10), true);
+  eq('allDoneToday: 今日の1回だけ予定も数える',
+    allDoneToday([daily, onceToday], done(['cd']), thu10), false);
+  eq('allDoneToday: 予告中の「済んでから◯日後」は数えない',
+    allDoneToday([daily, intSoon], done(['cd']), thu10), true);
+  eq('allDoneToday: 予告中でも前倒しで済ませたら数える',
+    allDoneToday([daily, intSoon], done(['cd', 'ci']), thu10), true);
+  eq('allDoneToday: 目安日が来ている「済んでから◯日後」は数える',
+    allDoneToday([daily, intDue], done(['cd']), thu10), false);
+  eq('allDoneToday: 目安日の「済んでから◯日後」も済めば true',
+    allDoneToday([daily, intDue], done(['cd', 'cj']), thu10), true);
+  eq('allDoneToday: やりなおしコピーと休止中は数えない',
+    allDoneToday([daily, copy, paused], done(['cd']), thu10), true);
+}
 
 console.log(`テスト完了: ${pass} 件成功 / ${fail} 件失敗`);
 process.exit(fail === 0 ? 0 : 1);

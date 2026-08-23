@@ -236,4 +236,32 @@ function dayMark(records, key, ids) {
   if (vals.includes('done')) return 'done';
   return vals.includes('skip') ? 'skip' : null;
 }
+// ---- こっそりお祝い（隠し機能。掲載文・説明には書かない）----
+
+// ストリークの節目か。祝うだけで、切れても何も言わない（責めない設計）
+function isStreakMilestone(streak) {
+  return [3, 7, 14, 30, 50, 100, 200, 365].includes(streak);
+}
+
+// 今日の予定がぜんぶ「できた」か。
+// - まだ目安日が先の「済んでから◯日後」（予告で出ているだけ）は数に入れない。
+//   ただし前倒しで記録を付けたら数える
+// - やりなおしコピー（origId付き）は元の予定に記録が付くので数えない
+// - スキップが混ざった日は祝わない（沈黙が中立）。1件もない日も祝わない
+function allDoneToday(schedule, records, now) {
+  const key = dateKey(now);
+  const rec = records[key] || {};
+  let count = 0;
+  for (const item of schedule) {
+    if (item.origId || isArchived(item) || !item.enabled) continue;
+    let due;
+    if (isInterval(item)) due = intervalDueInfo(item, records, now).daysUntil <= 0;
+    else if (isOneOff(item)) due = item.date === key;
+    else due = isScheduledOn(item.days, now);
+    if (!due && rec[item.id] === undefined) continue;
+    count++;
+    if (rec[item.id] !== 'done') return false;
+  }
+  return count > 0;
+}
 // ===== スケジュール計算ロジック（ここまで）=====

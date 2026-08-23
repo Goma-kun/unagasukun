@@ -362,6 +362,13 @@
   "praise5": {
     "message": "Another one in the books today."
   },
+  "cheerAllDone": {
+    "message": "Everything for today is done. Congrats! 🎉"
+  },
+  "cheerStreak": {
+    "message": "That's $N$ days in a row — congrats!",
+    "placeholders": { "n": { "content": "$1" } }
+  },
   "anytimeToggle": {
     "message": "No fixed time (do it in a free moment)"
   },
