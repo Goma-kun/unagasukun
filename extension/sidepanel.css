@@ -523,19 +523,46 @@ form { background: var(--card); border: 1px solid #e3e6ee; border-radius: 8px; p
 .day-row .chip { white-space: nowrap; }
 .day-row + .day-row { margin-top: 6px; }
 
-/* 済んでから◯日後の設定欄（間隔・お知らせ開始のチップ） */
-#interval-fields { margin-top: 8px; }
+/* 繰り返しの種類を選ぶタブ（1回だけ／毎週／◯日ごと）。曜日ボタンと同じ見た目で並べる */
+.seg { display: flex; gap: 4px; margin-bottom: 8px; }
+.seg-btn {
+  flex: 1;
+  font-size: 13px;
+  padding: 6px 0;
+  border: 1px solid #cfd4e0;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+}
+.seg-btn.selected {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+  font-weight: 600;
+}
+.mode-pane .field { margin-bottom: 0; }
+.mode-pane .field + .hint { margin-top: 4px; }
+
+/* ◯日ごとの設定欄（間隔・最後にやった日・お知らせ開始のチップ） */
 #interval-fields .sub-label {
   display: block;
   font-size: 12px;
   color: var(--muted);
   margin: 8px 0 4px;
 }
-/* 曜日と排他なことを、押せない見た目でも伝える */
-.day-boxes label:has(input:disabled) {
-  opacity: 0.45;
-  cursor: default;
+#interval-fields .field { margin-top: 10px; }
+
+/* 「いま登録されるもの」の言い切り。説明文より目立たせて、読み違えを防ぐ */
+.preview {
+  margin: 8px 0 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #eef2fa;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
 }
+.preview + .hint { margin-top: 4px; }
 
 .day-boxes { display: flex; gap: 4px; }
 

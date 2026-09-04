@@ -71,7 +71,7 @@
     "message": "Type the digits directly (e.g. 0930 for 9:30), or click the clock icon to pick from a list."
   },
   "daysLegend": {
-    "message": "Repeat (pick days for weekly; leave empty for one-time on the date above)"
+    "message": "Repeat"
   },
   "everydayBtn": {
     "message": "Every day"
@@ -367,7 +367,11 @@
   },
   "cheerStreak": {
     "message": "That's $N$ days in a row — congrats!",
-    "placeholders": { "n": { "content": "$1" } }
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
   "anytimeToggle": {
     "message": "No fixed time (do it in a free moment)"
@@ -403,11 +407,8 @@
   "pastDate": {
     "message": "That date is in the past. Please pick today or later."
   },
-  "intervalBtn": {
-    "message": "Repeat after done"
-  },
   "intervalDaysLabel": {
-    "message": "Days until it comes up again"
+    "message": "Every how many days"
   },
   "noticeDaysLabel": {
     "message": "Show in Today's plan from"
@@ -432,13 +433,18 @@
     }
   },
   "intervalHint": {
-    "message": "The count restarts from the day you tap “Done”. No nagging if you're late."
+    "message": "The next due date is $N$ days after you tap “Done”. No nagging if you're late.",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
   "lastDoneLabel": {
     "message": "Last done on"
   },
   "intervalText": {
-    "message": "$N$d after done",
+    "message": "Every $N$ days",
     "placeholders": {
       "n": {
         "content": "$1"
@@ -604,5 +610,50 @@
   },
   "itemsHiddenToday": {
     "message": "Plans shown in Today are not repeated here. Open a card in Today to pause, edit, or delete it."
+  },
+  "modeOnce": {
+    "message": "One time"
+  },
+  "modeWeekly": {
+    "message": "Weekly"
+  },
+  "modeInterval": {
+    "message": "Every N days"
+  },
+  "previewWeeklyNone": {
+    "message": "→ Pick the days of the week to repeat on"
+  },
+  "previewInterval": {
+    "message": "→ Repeats every $N$ days",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "previewIntervalNext": {
+    "message": "→ Every $N$ days. Next due: $DATE$",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "date": {
+        "content": "$2"
+      }
+    }
+  },
+  "previewIntervalDue": {
+    "message": "→ Every $N$ days. The due date ($DATE$) has come, so it shows in Today's plan right away",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "date": {
+        "content": "$2"
+      }
+    }
+  },
+  "weeklyNoDays": {
+    "message": "Pick at least one day of the week (or tap “Every day”)."
   }
 }

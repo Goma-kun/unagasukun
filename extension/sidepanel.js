@@ -1293,31 +1293,45 @@ function setSelectedDays(days) {
   });
 }
 
-// 曜日を選んでいる間は日付が使われないので、入力欄を無効化して意味を見せる
-function syncDateDisabled() {
-  document.getElementById('input-date').disabled = selectedDays().length > 0;
-  syncRepeatPreview();
+// YYYY-MM-DD を「9/8(火)」の形にする（プレビュー用）
+function shortDateText(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return `${m}/${d}(${DAY_NAMES[new Date(y, m - 1, d).getDay()]})`;
 }
 
-// いま登録しようとしている繰り返しの内容を、フォームの中でその場で見せる。
-// 説明文だけだと「今週の土曜のつもりで土に付けたら毎週だった」の読み違えを防げないため
+// いま登録しようとしている繰り返しの内容を、フォームの中でその場で具体的に言い切る。
+// 説明文だけだと「今週の土曜のつもりで土に付けたら毎週だった」「3日ごとは何日空くのか」の
+// 読み違えを防げないため。◯日ごとは次の目安日を実際の日付で見せる
 function syncRepeatPreview() {
   const el = document.getElementById('repeat-preview');
-  // 済んでから◯日後モードは interval-fields 側に説明があるので重ねない
-  if (isIntervalMode()) { el.hidden = true; return; }
-  const days = selectedDays();
-  if (days.length === 7) {
-    el.textContent = T('previewEveryday');
-  } else if (days.length > 0) {
-    el.textContent = T('previewWeekly', [days.sort((a, b) => a - b).map((d) => DAY_NAMES[d]).join('・')]);
-  } else {
-    const v = document.getElementById('input-date').value;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { el.hidden = true; return; }
-    const [y, m, d] = v.split('-').map(Number);
-    const dayName = DAY_NAMES[new Date(y, m - 1, d).getDay()];
-    el.textContent = T('previewOneOff', [`${m}/${d}(${dayName})`]);
-  }
+  const hint = document.getElementById('interval-hint');
+  const mode = getRepeatMode();
+  hint.hidden = mode !== 'interval';
   el.hidden = false;
+  if (mode === 'weekly') {
+    const days = selectedDays();
+    if (days.length === 7) el.textContent = T('previewEveryday');
+    else if (days.length > 0) el.textContent = T('previewWeekly', [days.sort((a, b) => a - b).map((d) => DAY_NAMES[d]).join('・')]);
+    else el.textContent = T('previewWeeklyNone');
+    return;
+  }
+  if (mode === 'interval') {
+    const n = Number(document.getElementById('input-interval-days').value);
+    const anchor = document.getElementById('input-anchor-date').value;
+    hint.textContent = T('intervalHint', [n]);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(anchor)) { el.textContent = T('previewInterval', [n]); return; }
+    // 登録直後の状態をそのまま計算する（records は使わない＝フォームの値だけで決まる）
+    const info = intervalDueInfo({ intervalDays: n, anchorDate: anchor }, {}, new Date());
+    const today = new Date();
+    const due = dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + info.daysUntil));
+    el.textContent = info.daysUntil > 0
+      ? T('previewIntervalNext', [n, shortDateText(due)])
+      : T('previewIntervalDue', [n, shortDateText(due)]);
+    return;
+  }
+  const v = document.getElementById('input-date').value;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { el.hidden = true; return; }
+  el.textContent = T('previewOneOff', [shortDateText(v)]);
 }
 
 // 「時刻を決めない」の切り替え：時刻欄と目安欄を入れ替える。
@@ -1344,16 +1358,17 @@ function setTargetMinValue(v) {
   renderTargetMinChips();
 }
 
-// ---- 済んでから◯日後（間隔と、何日前から知らせるかのチップ）----
+// ---- ◯日ごと（間隔と、何日前から知らせるかのチップ）----
 
-// 間隔の選択肢。週次〜月次〜四半期あたりの実用域に絞る
-const INTERVAL_DAY_CHOICES = [3, 5, 7, 10, 14, 21, 30, 45, 60, 90];
+// 間隔の選択肢。薬や点滴の「3日ごと・4日ごと」から、靴の手入れの月次・四半期までを1画面に収める
+const INTERVAL_DAY_CHOICES = [2, 3, 4, 5, 6, 7, 10, 14, 21, 30, 45, 60, 90];
 // お知らせ開始の選択肢（0=目安日の当日から）
 const NOTICE_DAY_CHOICES = [0, 1, 2, 3, 5, 7];
 
 // hidden input が値を持ち、チップで選ぶ（目安時間と同じ方式）。
-// 選択肢に無い保存済みの値も編集時に壊さないよう、並び順の位置に足す
-function renderValueChips(boxId, inputId, choices, labelOf) {
+// 選択肢に無い保存済みの値も編集時に壊さないよう、並び順の位置に足す。
+// onChange はチップで値を変えたときだけ呼ぶ（プレビューの追従用）
+function renderValueChips(boxId, inputId, choices, labelOf, onChange) {
   const box = document.getElementById(boxId);
   const cur = Number(document.getElementById(inputId).value);
   box.textContent = '';
@@ -1367,14 +1382,22 @@ function renderValueChips(boxId, inputId, choices, labelOf) {
     btn.textContent = labelOf(v);
     btn.addEventListener('click', () => {
       document.getElementById(inputId).value = String(v);
-      renderValueChips(boxId, inputId, choices, labelOf);
+      renderValueChips(boxId, inputId, choices, labelOf, onChange);
+      if (onChange) onChange();
     });
     box.append(btn);
   }
 }
 
 function renderIntervalChips() {
-  renderValueChips('interval-chips', 'input-interval-days', INTERVAL_DAY_CHOICES, (v) => T('dayOption', v));
+  renderValueChips('interval-chips', 'input-interval-days', INTERVAL_DAY_CHOICES, (v) => T('dayOption', v), () => {
+    // 「3日ごと」に「3日前から出す」が付くと済ませた翌日からずっと一覧に居座る。
+    // 短い間隔を選んだら、お知らせ開始を間隔より2日以上短くして「済んだら一度消える」を保つ
+    const n = Number(document.getElementById('input-interval-days').value);
+    const notice = Number(document.getElementById('input-notice-days').value);
+    if (notice > Math.max(0, n - 2)) setNoticeDaysValue(Math.max(0, n - 2));
+    syncRepeatPreview();
+  });
 }
 
 function renderNoticeChips() {
@@ -1392,22 +1415,29 @@ function setNoticeDaysValue(v) {
   renderNoticeChips();
 }
 
-function isIntervalMode() {
-  return document.getElementById('btn-interval').classList.contains('selected');
+// 繰り返しの種類（'once' | 'weekly' | 'interval'）。排他のタブで1つだけ選ぶ
+const REPEAT_MODES = ['once', 'weekly', 'interval'];
+let repeatMode = 'once';
+
+function getRepeatMode() {
+  return repeatMode;
 }
 
-// 「済んでから◯日後」モードの切り替え。曜日（毎週）とは両立しないので、
-// オンにしたら曜日を外して触れなくする。日付欄は「最後にやった日」に読み替える
-function setIntervalMode(on) {
-  document.getElementById('btn-interval').classList.toggle('selected', on);
-  document.getElementById('interval-fields').hidden = !on;
-  document.querySelectorAll('#day-boxes input').forEach((el) => {
-    if (on) el.checked = false;
-    el.disabled = on;
+// タブの切り替え。選ばれていない種類の入力欄は隠すだけでなく disabled にして、
+// 隠れた required の日付が保存を止めないようにする（制約検証は disabled を飛ばす）
+function setRepeatMode(mode) {
+  repeatMode = REPEAT_MODES.includes(mode) ? mode : 'once';
+  document.querySelectorAll('#repeat-seg .seg-btn').forEach((btn) => {
+    const on = btn.dataset.mode === repeatMode;
+    btn.classList.toggle('selected', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
-  document.getElementById('btn-everyday').disabled = on;
-  document.getElementById('date-label').textContent = on ? T('lastDoneLabel') : T('dateLabel');
-  syncDateDisabled();
+  document.getElementById('once-fields').hidden = repeatMode !== 'once';
+  document.getElementById('weekly-fields').hidden = repeatMode !== 'weekly';
+  document.getElementById('interval-fields').hidden = repeatMode !== 'interval';
+  document.getElementById('input-date').disabled = repeatMode !== 'once';
+  document.getElementById('input-anchor-date').disabled = repeatMode !== 'interval';
+  syncRepeatPreview();
 }
 
 function startEdit(id) {
@@ -1418,17 +1448,24 @@ function startEdit(id) {
   document.getElementById('form-title').textContent = T('editHeading');
   document.getElementById('save-btn').textContent = T('saveBtn');
   document.getElementById('cancel-btn').hidden = false;
-  document.getElementById('input-date').value = item.date || item.anchorDate || todayKey();
+  document.getElementById('input-date').value = item.date || todayKey();
+  // 「最後にやった日」は登録時の値でなく、いま効いている基準日（記録の最新「できた」が
+  // 新しければそちら）を出す。プレビューの「次の目安日」を実際の表示と一致させるため
+  document.getElementById('input-anchor-date').value =
+    (isInterval(item) && intervalAnchorKey(item, records, new Date())) || todayKey();
   document.getElementById('input-anytime').checked = isAnytime(item);
   setTargetMinValue(item.targetMin || 10);
-  setIntervalDaysValue(isInterval(item) ? item.intervalDays : 30);
+  setIntervalDaysValue(isInterval(item) ? item.intervalDays : 7);
   setNoticeDaysValue(isInterval(item) ? intervalNoticeDays(item) : 3);
   document.getElementById('input-time').value = item.time || '';
   document.getElementById('input-end-time').value = item.endTime || '';
   document.getElementById('input-label').value = item.label;
   document.getElementById('input-detail').value = item.detail || '';
-  setSelectedDays(item.days);
-  setIntervalMode(isInterval(item));
+  // 旧形式（曜日なし・日付なし＝毎日）は全曜日を付けた「毎週」として開く。
+  // そのまま保存すると1回だけに化けていた取りこぼしの修正
+  const weekly = !isInterval(item) && !isOneOff(item);
+  setSelectedDays(weekly && (!Array.isArray(item.days) || item.days.length === 0) ? [0, 1, 2, 3, 4, 5, 6] : item.days);
+  setRepeatMode(isInterval(item) ? 'interval' : weekly ? 'weekly' : 'once');
   syncAnytime();
   document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
 }
@@ -1440,11 +1477,12 @@ function resetForm() {
   document.getElementById('cancel-btn').hidden = true;
   document.getElementById('item-form').reset();
   document.getElementById('input-date').value = todayKey();
+  document.getElementById('input-anchor-date').value = todayKey();
   setTargetMinValue(10);
-  setIntervalDaysValue(30);
+  setIntervalDaysValue(7);
   setNoticeDaysValue(3);
   setSelectedDays([]);
-  setIntervalMode(false);
+  setRepeatMode('once');
   syncAnytime();
 }
 
@@ -1471,29 +1509,34 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
       return;
     }
   }
-  const intervalOn = isIntervalMode();
-  const days = intervalOn ? [] : selectedDays();
+  const mode = getRepeatMode();
+  const intervalOn = mode === 'interval';
+  const days = mode === 'weekly' ? selectedDays() : [];
   let date;
   let intervalDays;
   let noticeDays;
   let anchorDate;
+  if (mode === 'weekly' && days.length === 0) {
+    alert(T('weeklyNoDays'));
+    return;
+  }
   if (intervalOn) {
-    // 済んでから◯日後：日付欄は「最後にやった日」（次の目安日の基準）。
+    // ◯日ごと：「最後にやった日」が次の目安日の基準。
     // 過去の日付でよいが、未来はまだ「済んで」いないので受け付けない
     intervalDays = Number(document.getElementById('input-interval-days').value);
     noticeDays = Number(document.getElementById('input-notice-days').value);
     if (!Number.isInteger(intervalDays) || intervalDays < 1 || intervalDays > 365) return;
     if (!Number.isInteger(noticeDays) || noticeDays < 0 || noticeDays > 30) noticeDays = 3;
-    anchorDate = document.getElementById('input-date').value;
+    anchorDate = document.getElementById('input-anchor-date').value;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(anchorDate)) return;
     if (anchorDate > todayKey()) {
       alert(T('anchorFuture'));
       return;
     }
   } else {
-    // 曜日なし＝日付指定の1回だけ。過去の日時は受け付けない
+    // 1回だけ＝日付指定。過去の日時は受け付けない
     // （時刻を固定しない予定は日付だけで判定し、今日はその日のうちなので受け付ける）
-    date = days.length === 0 ? document.getElementById('input-date').value : undefined;
+    date = mode === 'once' ? document.getElementById('input-date').value : undefined;
     if (date) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
       if (anytime) {
@@ -1619,10 +1662,14 @@ document.getElementById('review-title').addEventListener('click', () => {
   renderIntervalChips();
   renderNoticeChips();
   buildDayBoxes();
-  // 曜日の選択状態で日付欄の有効/無効を切り替える
-  document.getElementById('day-boxes').addEventListener('change', syncDateDisabled);
-  // 日付を変えたら「◯/◯の1回だけ」のプレビューも追従させる
+  // 繰り返しの種類はタブで排他に選ぶ
+  document.querySelectorAll('#repeat-seg .seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => setRepeatMode(btn.dataset.mode));
+  });
+  // 曜日・日付・最後にやった日を変えたら、プレビューの文言も追従させる
+  document.getElementById('day-boxes').addEventListener('change', syncRepeatPreview);
   document.getElementById('input-date').addEventListener('input', syncRepeatPreview);
+  document.getElementById('input-anchor-date').addEventListener('input', syncRepeatPreview);
   // カレンダーの月送り。移動したら日の選択は外す（別の月の日付が残ると紛らわしい）
   const calMove = (delta) => {
     const d = new Date(calYm.y, calYm.m - 1 + delta, 1);
@@ -1633,8 +1680,6 @@ document.getElementById('review-title').addEventListener('click', () => {
   };
   document.getElementById('cal-prev').addEventListener('click', () => calMove(-1));
   document.getElementById('cal-next').addEventListener('click', () => calMove(1));
-  // 「済んでから◯日後」の切り替え
-  document.getElementById('btn-interval').addEventListener('click', () => setIntervalMode(!isIntervalMode()));
   // 「時刻を決めない」の切り替えで時刻欄⇔目安欄を入れ替える
   document.getElementById('input-anytime').addEventListener('change', syncAnytime);
   // 「毎日」ボタン：全曜日を一括で付け外しする
@@ -1642,7 +1687,7 @@ document.getElementById('review-title').addEventListener('click', () => {
     const boxes = [...document.querySelectorAll('#day-boxes input')];
     const allChecked = boxes.every((b) => b.checked);
     boxes.forEach((b) => { b.checked = !allChecked; });
-    syncDateDisabled();
+    syncRepeatPreview();
   });
   // クリックでの showPicker() は使わない。サイドパネルではピッカーの表示位置が
   // 画面端に飛ぶ Chromium のバグがあり、遅延を入れても再発した（2026-08-14に実機で2回）。
@@ -1658,6 +1703,7 @@ document.getElementById('review-title').addEventListener('click', () => {
   };
   bindInputHint(['input-time', 'input-end-time'], 'time-hint');
   bindInputHint(['input-date'], 'date-hint');
+  bindInputHint(['input-anchor-date'], 'anchor-hint');
   resetForm();
   await load();
   // 予定がまだ1つも無い（初回起動など）ときは、最初の一歩が見えるようフォームを開いておく

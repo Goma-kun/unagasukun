@@ -71,7 +71,7 @@
     "message": "数字をそのまま入力できます（9時30分なら「0930」）。一覧から選ぶには右の時計アイコンを押します。"
   },
   "daysLegend": {
-    "message": "繰り返し（曜日を選ぶと毎週。選ばなければ上の日付の1回だけ）"
+    "message": "繰り返し"
   },
   "everydayBtn": {
     "message": "毎日"
@@ -367,7 +367,11 @@
   },
   "cheerStreak": {
     "message": "$N$日つづいています。おめでとう！",
-    "placeholders": { "n": { "content": "$1" } }
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
   "anytimeToggle": {
     "message": "時刻を決めない（空いた時間にやる）"
@@ -403,11 +407,8 @@
   "pastDate": {
     "message": "過去の日付です。今日以降を選んでください。"
   },
-  "intervalBtn": {
-    "message": "済んでから◯日後"
-  },
   "intervalDaysLabel": {
-    "message": "済んでから何日後にまた出すか"
+    "message": "何日ごとにやるか"
   },
   "noticeDaysLabel": {
     "message": "何日前から「今日の予定」に出すか"
@@ -432,13 +433,18 @@
     }
   },
   "intervalHint": {
-    "message": "「できた」を押した日から数え直します。遅れても催促はしません。"
+    "message": "「できた」を押した日から$N$日後が、次の目安日になります。遅れても催促はしません。",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
   },
   "lastDoneLabel": {
     "message": "最後にやった日"
   },
   "intervalText": {
-    "message": "済んで$N$日後",
+    "message": "$N$日ごと",
     "placeholders": {
       "n": {
         "content": "$1"
@@ -604,5 +610,50 @@
   },
   "itemsHiddenToday": {
     "message": "今日の予定に出ているものは、ここには重ねて表示しません。休む・編集・削除は今日の予定のカードを開くとできます。"
+  },
+  "modeOnce": {
+    "message": "1回だけ"
+  },
+  "modeWeekly": {
+    "message": "毎週"
+  },
+  "modeInterval": {
+    "message": "◯日ごと"
+  },
+  "previewWeeklyNone": {
+    "message": "→ 曜日を選んでください（選んだ曜日に毎週繰り返します）"
+  },
+  "previewInterval": {
+    "message": "→ $N$日ごとに繰り返します",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "previewIntervalNext": {
+    "message": "→ $N$日ごと。次の目安日は $DATE$ です",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "date": {
+        "content": "$2"
+      }
+    }
+  },
+  "previewIntervalDue": {
+    "message": "→ $N$日ごと。目安日（$DATE$）が来ているので、すぐ「今日の予定」に出ます",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "date": {
+        "content": "$2"
+      }
+    }
+  },
+  "weeklyNoDays": {
+    "message": "曜日を選んでください。毎日なら「毎日」を押します。"
   }
 }
