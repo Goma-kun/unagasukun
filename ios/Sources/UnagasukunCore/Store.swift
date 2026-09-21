@@ -11,6 +11,12 @@ public struct Snapshot: Codable, Equatable, Sendable {
     /// 同期で「新しいほう」を選ぶのに使う（拡張側にも同じものを足す）
     public var updatedAt: Double
 
+    /// 中身が同じか。`updatedAt` は見ない。
+    /// 同期で「上げ直す必要があるか」を決めるのに使う（時刻だけ違うものを上げ続けないため）
+    public func sameContent(as other: Snapshot) -> Bool {
+        schedule == other.schedule && records == other.records
+    }
+
     public init(schedule: [Item] = [], records: Records = [:], updatedAt: Double = 0) {
         self.schedule = schedule
         self.records = records

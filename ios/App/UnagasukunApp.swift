@@ -20,6 +20,8 @@ struct UnagasukunApp: App {
                     .tabItem { Label("今日", systemImage: "list.bullet") }
                 LookBackView()
                     .tabItem { Label("ふりかえり", systemImage: "calendar") }
+                SettingsView()
+                    .tabItem { Label("設定", systemImage: "gearshape") }
             }
                 .environmentObject(model)
                 .tint(Theme.navy)
@@ -35,6 +37,8 @@ struct UnagasukunApp: App {
                     Task {
                         await model.refreshNotificationState()
                         model.reschedule()
+                        // 前面に戻るたびに揃える。ほかの端末で付けた記録を取りに行く
+                        await model.syncNow()
                     }
                 }
         }

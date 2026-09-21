@@ -15,8 +15,19 @@ final class AppModel: ObservableObject {
         didSet { UserDefaults.standard.set(preNoticeMin, forKey: "preNoticeMin"); reschedule() }
     }
 
+    /// iCloud 同期の状態。**うまくいっていないことを黙っていない**
+    @Published private(set) var syncState: CloudSync.State = .off
+    @Published var syncEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(syncEnabled, forKey: "syncEnabled")
+            Task { await syncNow() }
+        }
+    }
+
     private let store: SnapshotStore?
     private let notifier: Notifier
+    private let cloud = CloudSync()
+    private var pushTask: Task<Void, Never>?
 
     init(store: SnapshotStore? = try? SnapshotStore(url: SnapshotStore.defaultURL()),
          notifier: Notifier = Notifier()) {
@@ -28,6 +39,46 @@ final class AppModel: ObservableObject {
         // 未設定のときは拡張機能と同じ既定（10分前・オン）
         self.preNoticeOn = d.object(forKey: "preNoticeOn") as? Bool ?? Logic.preNoticeDefault.on
         self.preNoticeMin = d.object(forKey: "preNoticeMin") as? Int ?? Logic.preNoticeDefault.minutes
+        // リマインダーやメモと同じで、既定はオン。**自分の iCloud に入るだけ**なので
+        // 預かる側の都合で止める理由がない
+        self.syncEnabled = d.object(forKey: "syncEnabled") as? Bool ?? true
+    }
+
+    // MARK: - iCloud 同期
+
+    /// iCloud と揃える。**取ってきて混ぜてから上げる**。片方を捨てない
+    func syncNow() async {
+        guard syncEnabled else { syncState = .off; return }
+        if let blocked = await cloud.availability() { syncState = blocked; return }
+
+        syncState = .syncing
+        do {
+            let plan = SyncPlan.decide(local: snapshot, remote: try await cloud.pull())
+
+            if plan.updateLocal {
+                snapshot = plan.merged
+                try? store?.save(snapshot)
+                reschedule()
+            }
+            if plan.push {
+                try await cloud.push(plan.merged)
+            }
+            syncState = .ok(Date())
+        } catch {
+            // 圏外などで失敗しても、手元は普通に使える
+            syncState = .failed("同期できませんでした。次に開いたときにやり直します")
+        }
+    }
+
+    /// 変更のたびに上げる。続けて操作されたときに何度も上げないよう、少し待ってからにする
+    private func schedulePush() {
+        guard syncEnabled else { return }
+        pushTask?.cancel()
+        pushTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled, let self else { return }
+            await self.syncNow()
+        }
     }
 
     // MARK: - 読むほう
@@ -145,6 +196,7 @@ final class AppModel: ObservableObject {
         snapshot.updatedAt = Date().timeIntervalSince1970 * 1000
         try? store?.save(snapshot)
         reschedule()
+        schedulePush()
     }
 
     /// 予定や記録が変わったら通知を丸ごと張り直す。
