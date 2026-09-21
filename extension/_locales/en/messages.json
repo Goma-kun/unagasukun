@@ -655,5 +655,36 @@
   },
   "weeklyNoDays": {
     "message": "Pick at least one day of the week (or tap “Every day”)."
+  },
+  "settingsHeading": {
+    "message": "Settings"
+  },
+  "preNoticeToggle": {
+    "message": "Pop up a window before the time"
+  },
+  "preNoticeMinLabel": {
+    "message": "How long before"
+  },
+  "preNoticeHint": {
+    "message": "Only one window opens. If it is already open, it is brought to the front."
+  },
+  "minuteBeforeOption": {
+    "message": "$MIN$ min before",
+    "placeholders": {
+      "min": {
+        "content": "$1"
+      }
+    }
+  },
+  "notifPreMsg": {
+    "message": "\"$LABEL$\" starts soon ($TIME$)",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
+    }
   }
 }

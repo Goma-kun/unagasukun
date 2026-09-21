@@ -343,13 +343,20 @@ let editingId = null; // null なら新規追加モード
 let expandedNoteFor = null; // 「実際は」を編集中の itemId
 let noteFreeTextFor = null; // 「その他…」の自由入力を開いている itemId
 let expandedActionsFor = null; // 登録済み一覧で操作ボタンを開いている itemId
+let settings = {}; // 設定（今は予告のオン/オフと何分前か）
+let settingsOpen = false; // 「設定」の開閉状態（既定は畳む）
 
 async function load() {
-  const data = await store.get(['schedule', 'records', 'notes', 'activeBlock']);
+  const data = await store.get(['schedule', 'records', 'notes', 'activeBlock', 'settings']);
   schedule = Array.isArray(data.schedule) ? data.schedule : [];
   records = data.records || {};
   notes = data.notes || {};
   activeBlock = data.activeBlock || null;
+  settings = data.settings || {};
+}
+
+async function saveSettings() {
+  await store.set({ settings });
 }
 
 async function saveSchedule() {
@@ -1267,6 +1274,7 @@ function renderReview() {
 function renderAll() {
   renderToday();
   renderItems();
+  renderSettings();
   renderReview();
 }
 
@@ -1413,6 +1421,28 @@ function setIntervalDaysValue(v) {
 function setNoticeDaysValue(v) {
   document.getElementById('input-notice-days').value = String(v);
   renderNoticeChips();
+}
+
+// ---- 設定（予告）----
+
+// 何分前に出すかの選択肢。3分＝直前の一声、60分＝出かける支度が要る予定まで
+const PRE_MIN_CHOICES = [3, 5, 10, 15, 30, 60];
+
+function renderSettings() {
+  const box = document.getElementById('settings-box');
+  box.hidden = !settingsOpen;
+  document.getElementById('settings-title').classList.toggle('open', settingsOpen);
+  if (!settingsOpen) return;
+  const { on, minutes } = preNoticeSettings(settings);
+  document.getElementById('input-pre-notice').checked = on;
+  document.getElementById('input-pre-min').value = String(minutes);
+  // オフのときに「何分前」を出しておくと、効いていないのに効いて見える（状態表示は全箇所で連動）
+  document.getElementById('pre-min-field').hidden = !on;
+  renderValueChips('pre-min-chips', 'input-pre-min', PRE_MIN_CHOICES,
+    (v) => T('minuteBeforeOption', String(v)), async () => {
+      settings = { ...settings, preNoticeMin: Number(document.getElementById('input-pre-min').value) };
+      await saveSettings();
+    });
 }
 
 // 繰り返しの種類（'once' | 'weekly' | 'interval'）。排他のタブで1つだけ選ぶ
@@ -1623,6 +1653,12 @@ document.getElementById('done-title').addEventListener('click', () => {
   renderToday();
 });
 
+// 「設定」も見出しクリックで開閉する
+document.getElementById('settings-title').addEventListener('click', () => {
+  settingsOpen = !settingsOpen;
+  renderSettings();
+});
+
 // 「ふりかえり」も見出しクリックで開閉する
 document.getElementById('review-title').addEventListener('click', () => {
   reviewOpen = !reviewOpen;
@@ -1682,6 +1718,12 @@ document.getElementById('review-title').addEventListener('click', () => {
   document.getElementById('cal-next').addEventListener('click', () => calMove(1));
   // 「時刻を決めない」の切り替えで時刻欄⇔目安欄を入れ替える
   document.getElementById('input-anytime').addEventListener('change', syncAnytime);
+  // 予告のオン/オフ
+  document.getElementById('input-pre-notice').addEventListener('change', async (e) => {
+    settings = { ...settings, preNoticeOn: e.target.checked };
+    await saveSettings();
+    renderSettings();
+  });
   // 「毎日」ボタン：全曜日を一括で付け外しする
   document.getElementById('btn-everyday').addEventListener('click', () => {
     const boxes = [...document.querySelectorAll('#day-boxes input')];
@@ -1723,6 +1765,7 @@ document.getElementById('review-title').addEventListener('click', () => {
       if (changes.notes) notes = changes.notes.newValue || {};
       if (changes.schedule) schedule = changes.schedule.newValue || [];
       if (changes.activeBlock) activeBlock = changes.activeBlock.newValue || null;
+      if (changes.settings) settings = changes.settings.newValue || {};
       renderAll();
     });
   }

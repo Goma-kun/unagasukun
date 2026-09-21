@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday, preNoticeSettings, preNoticeAt } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday, preNoticeSettings, preNoticeAt };`
 )();
 
 let pass = 0;
@@ -447,6 +447,28 @@ eq('isStreakMilestone: 0日は節目でない', isStreakMilestone(0), false);
     allDoneToday([daily, intDue], done(['cd', 'cj']), thu10), true);
   eq('allDoneToday: やりなおしコピーと休止中は数えない',
     allDoneToday([daily, copy, paused], done(['cd']), thu10), true);
+}
+
+// ---- 予告（時間が近づいたら知らせる）----
+{
+  const at = new Date(2026, 8, 20, 20, 30).getTime();
+  const now = new Date(2026, 8, 20, 19, 0).getTime();
+  eq('preNoticeSettings: 既定は10分前でオン',
+    JSON.stringify(preNoticeSettings(undefined)), JSON.stringify({ on: true, minutes: 10 }));
+  eq('preNoticeSettings: 設定した分数を使う',
+    preNoticeSettings({ preNoticeMin: 30 }).minutes, 30);
+  eq('preNoticeSettings: 範囲外の分数は既定に戻す',
+    preNoticeSettings({ preNoticeMin: 999 }).minutes, 10);
+  eq('preNoticeSettings: 小数や文字は既定に戻す',
+    preNoticeSettings({ preNoticeMin: '5分' }).minutes, 10);
+  eq('preNoticeAt: 10分前の時刻を返す',
+    preNoticeAt(at, {}, now), at - 10 * 60000);
+  eq('preNoticeAt: オフなら出さない',
+    preNoticeAt(at, { preNoticeOn: false }, now), null);
+  eq('preNoticeAt: 予告の時刻を過ぎていたら出さない',
+    preNoticeAt(at, {}, at - 5 * 60000), null);
+  eq('preNoticeAt: 本番と同時になる場合も出さない',
+    preNoticeAt(at, { preNoticeMin: 10 }, at - 10 * 60000), null);
 }
 
 console.log(`テスト完了: ${pass} 件成功 / ${fail} 件失敗`);

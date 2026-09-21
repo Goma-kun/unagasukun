@@ -655,5 +655,36 @@
   },
   "weeklyNoDays": {
     "message": "曜日を選んでください。毎日なら「毎日」を押します。"
+  },
+  "settingsHeading": {
+    "message": "設定"
+  },
+  "preNoticeToggle": {
+    "message": "時間が近づいたらポップアップで出す"
+  },
+  "preNoticeMinLabel": {
+    "message": "何分前に出すか"
+  },
+  "preNoticeHint": {
+    "message": "窓は1つだけ開きます。もう開いているときは、その窓を前に出します。"
+  },
+  "minuteBeforeOption": {
+    "message": "$MIN$分前",
+    "placeholders": {
+      "min": {
+        "content": "$1"
+      }
+    }
+  },
+  "notifPreMsg": {
+    "message": "まもなく「$LABEL$」の時間です（$TIME$）",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
+    }
   }
 }

@@ -264,4 +264,27 @@ function allDoneToday(schedule, records, now) {
   }
   return count > 0;
 }
+// ---- 予告（時間が近づいたら知らせる）----
+// 既定は10分前。Googleカレンダーの既定が10分前、Outlookが15分前なので、
+// 「移動のいらない自宅の予定」に寄せて短いほうを既定にした。
+const PRE_NOTICE_DEFAULT = { on: true, minutes: 10 };
+
+function preNoticeSettings(settings) {
+  const s = settings && typeof settings === 'object' ? settings : {};
+  const on = s.preNoticeOn === undefined ? PRE_NOTICE_DEFAULT.on : !!s.preNoticeOn;
+  const m = Number(s.preNoticeMin);
+  const minutes = Number.isInteger(m) && m > 0 && m <= 120 ? m : PRE_NOTICE_DEFAULT.minutes;
+  return { on, minutes };
+}
+
+// 予告を出す時刻（ミリ秒）。出さない場合は null。
+// さかのぼって出さない（PCが寝ていて過ぎていた予告を起動直後に浴びせない＝責めない設計）
+function preNoticeAt(nextMs, settings, nowMs) {
+  const { on, minutes } = preNoticeSettings(settings);
+  if (!on || !Number.isFinite(nextMs)) return null;
+  const at = nextMs - minutes * 60000;
+  if (at <= nowMs) return null;
+  return at;
+}
+
 // ===== スケジュール計算ロジック（ここまで）=====

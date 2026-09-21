@@ -118,6 +118,21 @@
       <p id="items-today-note" class="hint" data-i18n="itemsHiddenToday" hidden>今日の予定に出ているものは、ここには重ねて表示しません。</p>
       <p id="items-empty" class="empty-note" data-i18n="itemsEmpty" hidden>登録済みの予定はまだありません。</p>
 
+      <h2 id="settings-title" class="toggle" data-i18n="settingsHeading">設定</h2>
+      <div id="settings-box" hidden>
+        <label class="field anytime-toggle">
+          <input type="checkbox" id="input-pre-notice">
+          <span data-i18n="preNoticeToggle">時間が近づいたらポップアップで出す</span>
+        </label>
+        <div class="field" id="pre-min-field">
+          <span data-i18n="preNoticeMinLabel">何分前に出すか</span>
+          <!-- 値は hidden が持ち、チップで選ぶ（目安時間・◯日ごとと同じ方式） -->
+          <input type="hidden" id="input-pre-min" value="10">
+          <div id="pre-min-chips" class="target-chips"></div>
+        </div>
+        <p class="hint" data-i18n="preNoticeHint">窓は1つだけ開きます。もう開いているときは、その窓を前に出します。</p>
+      </div>
+
       <h2 id="review-title" class="toggle" data-i18n="reviewHeading">ふりかえり</h2>
       <!-- 月カレンダー：日付起点で「その日に何があったか」を見る（1回だけの予定も含む）。
            印は「できた」の日だけ。何もない日は白いまま（責めない設計） -->

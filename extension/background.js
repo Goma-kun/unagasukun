@@ -5,7 +5,11 @@
 importScripts('logic.js');
 
 const ALARM_PREFIX = 'item:';
+const PRE_PREFIX = 'pre:';
 const TICK_ALARM = 'block-tick';
+// 予告ウィンドウは「切り離し」と同じ窓を使い回す（窓は1つだけ、が原則）
+const POPUP_ID_KEY = 'popupWindowId';
+const ORIGIN_ID_KEY = 'popupOriginWindowId';
 
 async function getSchedule() {
   const { schedule } = await chrome.storage.local.get('schedule');
@@ -97,12 +101,73 @@ async function finishBlockIfDue() {
   await endBlock();
 }
 
+// ---- 予告（時間が近づいたらポップアップで出す）----
+
+// 窓は1つだけ。Outlook のリマインダーウィンドウと同じで、予定ごとに窓を増やさない。
+// すでに開いていれば前面に出すだけにする（「既存を前面に」はこの拡張の型）
+async function openNoticeWindow(item) {
+  const saved = await chrome.storage.local.get(POPUP_ID_KEY);
+  const id = saved[POPUP_ID_KEY];
+  if (typeof id === 'number') {
+    try {
+      await chrome.windows.update(id, { focused: true, drawAttention: true });
+      return true;
+    } catch {
+      await chrome.storage.local.remove([POPUP_ID_KEY, ORIGIN_ID_KEY]);
+    }
+  }
+  try {
+    const created = await chrome.windows.create({
+      url: chrome.runtime.getURL('sidepanel.html'),
+      type: 'popup',
+      width: 420,
+      height: 680,
+      focused: true
+    });
+    await chrome.storage.local.set({ [POPUP_ID_KEY]: created.id });
+    return true;
+  } catch {
+    // 窓が開けない場面（全画面など）では、黙って諦めずに通知で知らせる
+    const opts = {
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+      title: chrome.i18n.getMessage('extName'),
+      message: chrome.i18n.getMessage('notifPreMsg', [item.label, item.time]),
+      priority: 2
+    };
+    if (item.detail) opts.contextMessage = String(item.detail).slice(0, 120);
+    chrome.notifications.create(`notifpre|${item.id}|${Date.now()}`, opts);
+    return false;
+  }
+}
+
+async function handlePreNotice(itemId, scheduledTime) {
+  // 寝ていたPCが起きた直後に、過ぎた予告をまとめて浴びせない
+  if (isTooLate(scheduledTime, Date.now())) return;
+  const schedule = await getSchedule();
+  const item = schedule.find((it) => it.id === itemId);
+  if (!item || !item.enabled || isArchived(item)) return;
+  // 先に済ませてある予定は蒸し返さない（責めない設計）
+  if ((await getTodayRecord(item.origId || item.id)) !== undefined) return;
+  const opened = await openNoticeWindow(item);
+  logNotif(opened ? 'pre' : 'pre-fallback', item.id, item.label);
+}
+
+// 予告の窓を本人が閉じたら、覚えているIDを捨てる（次回また開けるように）
+chrome.windows.onRemoved.addListener(async (windowId) => {
+  const saved = await chrome.storage.local.get(POPUP_ID_KEY);
+  if (saved[POPUP_ID_KEY] === windowId) {
+    await chrome.storage.local.remove([POPUP_ID_KEY, ORIGIN_ID_KEY]);
+  }
+});
+
 // ---- アラームの登録 ----
 
 async function rescheduleAll() {
   await chrome.alarms.clearAll();
   let schedule = await getSchedule();
   const { records = {} } = await chrome.storage.local.get('records');
+  const { settings } = await chrome.storage.local.get('settings');
   const now = new Date();
 
   // 日付が過ぎた「1回だけ」の予定は翌日以降に自動で片付ける（実績の記録は残る）。
@@ -132,6 +197,9 @@ async function rescheduleAll() {
     const next = nextOccurrence(item, now, records);
     if (next) {
       chrome.alarms.create(ALARM_PREFIX + item.id, { when: next.getTime() });
+      // 予告は本番とは別のアラームにする（本番の発火条件を触らない）
+      const pre = preNoticeAt(next.getTime(), settings, now.getTime());
+      if (pre) chrome.alarms.create(PRE_PREFIX + item.id, { when: pre });
     }
   }
   // clearAll で tick も消えるので、進行中ブロックがあれば張り直す
@@ -155,7 +223,7 @@ chrome.runtime.onStartup.addListener(() => {
 
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== 'local') return;
-  if (changes.schedule) rescheduleAll();
+  if (changes.schedule || changes.settings) rescheduleAll();
   if (changes.records) {
     // 「済んでから◯日後」の予定は「できた」の日で次の目安日が動くので、
     // 記録が変わったらアラームを組み直す（できた・取り消しの両方に効く）
@@ -172,6 +240,10 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === TICK_ALARM) {
     await finishBlockIfDue();
+    return;
+  }
+  if (alarm.name.startsWith(PRE_PREFIX)) {
+    await handlePreNotice(alarm.name.slice(PRE_PREFIX.length), alarm.scheduledTime);
     return;
   }
   if (!alarm.name.startsWith(ALARM_PREFIX)) return;
