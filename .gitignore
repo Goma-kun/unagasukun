@@ -10,3 +10,7 @@ ios/*.xcodeproj/xcuserdata/
 ios/*.xcodeproj/project.xcworkspace/
 ios/.build-mac/
 ios/.build-mac-check/
+
+# App Store の内部メモ・素材
+store-assets-ios/
+STORE_LISTING_IOS.md
