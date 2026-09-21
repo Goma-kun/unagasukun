@@ -56,6 +56,8 @@ final class AppModel: ObservableObject {
             let plan = SyncPlan.decide(local: snapshot, remote: try await cloud.pull())
 
             if plan.updateLocal {
+                // **書き換える前の中身を残す。** 混ぜ方を間違えたときの逃げ道
+                try? store?.saveBackup(snapshot)
                 snapshot = plan.merged
                 try? store?.save(snapshot)
                 reschedule()
@@ -68,6 +70,19 @@ final class AppModel: ObservableObject {
             // 圏外などで失敗しても、手元は普通に使える
             syncState = .failed("同期できませんでした。次に開いたときにやり直します")
         }
+    }
+
+    /// 同期で書き換える直前に残した控え（新しい順）
+    func backupCount() -> Int { store?.backups().count ?? 0 }
+
+    /// いちばん新しい控えに戻す。**いまの中身も控えに残してから**戻す
+    /// （戻すこと自体を取り消せないと、逃げ道が一方通行になる）
+    func restoreNewestBackup() {
+        guard let store, let newest = store.backups().first,
+              let restored = try? store.loadBackup(newest) else { return }
+        try? store.saveBackup(snapshot)
+        snapshot = restored
+        commit()
     }
 
     /// 変更のたびに上げる。続けて操作されたときに何度も上げないよう、少し待ってからにする

@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
 
+    @State private var confirmingRestore = false
+
     private let minuteChoices = [3, 5, 10, 15, 30, 60]
 
     var body: some View {
@@ -56,6 +58,19 @@ struct SettingsView: View {
                          : "予定の時刻にだけお知らせします。")
                 }
 
+                if model.backupCount() > 0 {
+                    Section {
+                        Button("いちばん新しい控えに戻す") { confirmingRestore = true }
+                    } header: {
+                        Text("もしものとき")
+                    } footer: {
+                        Text("ほかの端末と揃えるとき、この端末の中身を書き換える直前の控えを"
+                             + "\(model.backupCount())件 残しています。"
+                             + "記録が思っていたものと違うときは、ここから戻せます。"
+                             + "戻す前の中身も控えに残すので、やり直せます。")
+                    }
+                }
+
                 if !model.notificationsWorking {
                     Section {
                         Button("通知の設定を開く") { Platform.openNotificationSettings() }
@@ -67,6 +82,13 @@ struct SettingsView: View {
         }
         .background(Theme.bg)
         .task { await model.syncNow() }
+        .confirmationDialog("いちばん新しい控えに戻しますか？", isPresented: $confirmingRestore,
+                            titleVisibility: .visible) {
+            Button("戻す", role: .destructive) { model.restoreNewestBackup() }
+            Button("やめる", role: .cancel) {}
+        } message: {
+            Text("いまの中身も控えに残すので、やり直せます。")
+        }
     }
 
     private var syncIcon: String {

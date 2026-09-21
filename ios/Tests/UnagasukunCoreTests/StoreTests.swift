@@ -112,3 +112,50 @@ final class SnapshotStoreTests: XCTestCase {
         XCTAssertEqual(try store.load(), snap)
     }
 }
+
+/// 記録が消えたときに戻せる場所があるか。
+/// Merge も SyncPlan もテストしてあるが、それでも間違えたときの逃げ道は別に要る。
+final class BackupTests: XCTestCase {
+
+    private func makeStore() -> (SnapshotStore, URL) {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return (SnapshotStore(url: dir.appendingPathComponent("snapshot.json")), dir)
+    }
+
+    func testBackupRoundTrip() throws {
+        let (store, dir) = makeStore()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let snap = Snapshot(schedule: [Item(id: "a", label: "薬")],
+                            records: ["2026-09-21": ["a": .done]], updatedAt: 1)
+        try store.saveBackup(snap)
+
+        let files = store.backups()
+        XCTAssertEqual(files.count, 1)
+        XCTAssertEqual(try store.loadBackup(files[0]), snap)
+    }
+
+    /// 古いものから消えて、**新しい順**に並ぶ
+    func testKeepsNewestFive() throws {
+        let (store, dir) = makeStore()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        for i in 0..<8 {
+            try store.saveBackup(Snapshot(updatedAt: Double(i)),
+                                 at: base.addingTimeInterval(Double(i)))
+        }
+        let files = store.backups()
+        XCTAssertEqual(files.count, SnapshotStore.backupLimit)
+        XCTAssertEqual(try store.loadBackup(files[0]).updatedAt, 7, "いちばん新しいものが先頭")
+        XCTAssertEqual(try store.loadBackup(files.last!).updatedAt, 3, "古い3件は消えている")
+    }
+
+    func testBackupsAreEmptyBeforeAnySave() {
+        let (store, dir) = makeStore()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        XCTAssertTrue(store.backups().isEmpty, "無い状態でも落ちない")
+    }
+}

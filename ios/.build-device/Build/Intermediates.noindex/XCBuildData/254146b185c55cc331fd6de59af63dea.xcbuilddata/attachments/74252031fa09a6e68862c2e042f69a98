@@ -1,0 +1,199 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Unagasukun-primary.dia",
+    "emit-module-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Unagasukun-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Unagasukun-primary-emit-module.dia",
+    "pch" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Unagasukun-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Unagasukun-primary.swiftdeps"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/AppModel.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/AppModel~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/CloudSync.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/CloudSync~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/LookBackView.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBackView~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/Notifier.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Notifier~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/PlanFormView.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/PlanFormView~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/Platform.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Platform~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/SettingsView.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/Theme.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Theme~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/TodayView.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/TodayView~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/UnagasukunApp.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/UnagasukunApp~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/Describe.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Describe~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/Logic.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Logic~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/LookBack.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/LookBack~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/Model.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Model~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/NotificationPlan.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/NotificationPlan~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/Store.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Store~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/SyncPlan.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/SyncPlan~partial.swiftmodule"
+  },
+  "/Users/nishitoyomitsu/Claude code/unagasukun/ios/Sources/UnagasukunCore/Today.swift" : {
+    "const-values" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today.swiftconstvalues",
+    "dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today.d",
+    "diagnostics" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today.dia",
+    "index-unit-output-path" : "/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today.o",
+    "llvm-bc" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today.bc",
+    "object" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today.o",
+    "swift-dependencies" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today.swiftdeps",
+    "swiftmodule" : "/Users/nishitoyomitsu/Claude code/unagasukun/ios/.build-device/Build/Intermediates.noindex/Unagasukun.build/Debug-iphoneos/Unagasukun.build/Objects-normal/arm64/Today~partial.swiftmodule"
+  }
+}

@@ -79,6 +79,46 @@ public final class SnapshotStore {
         return try JSONDecoder().decode(Snapshot.self, from: data)
     }
 
+    // MARK: - 控え
+
+    /// 同期で手元を書き換える**直前**の中身を残しておく。
+    ///
+    /// `Merge` も `SyncPlan` もテストしてあるが、**記録が消えたときに戻せる場所が無い**のは別の話。
+    /// 習慣アプリで記録が消えると、そこで使うのをやめる。保険は安い
+    private var backupDir: URL {
+        url.deletingLastPathComponent().appendingPathComponent("backups", isDirectory: true)
+    }
+
+    /// 残す数。これを超えた古いものから消す
+    public static let backupLimit = 5
+
+    public func saveBackup(_ snapshot: Snapshot, at date: Date = Date()) throws {
+        try FileManager.default.createDirectory(at: backupDir, withIntermediateDirectories: true)
+        let stamp = Int(date.timeIntervalSince1970 * 1000)
+        let file = backupDir.appendingPathComponent("snapshot-\(stamp).json")
+        try JSONEncoder().encode(snapshot).write(to: file, options: .atomic)
+        pruneBackups()
+    }
+
+    /// 新しい順
+    public func backups() -> [URL] {
+        let files = (try? FileManager.default.contentsOfDirectory(
+            at: backupDir, includingPropertiesForKeys: nil)) ?? []
+        return files
+            .filter { $0.lastPathComponent.hasPrefix("snapshot-") }
+            .sorted { $0.lastPathComponent > $1.lastPathComponent }
+    }
+
+    public func loadBackup(_ file: URL) throws -> Snapshot {
+        try JSONDecoder().decode(Snapshot.self, from: try Data(contentsOf: file))
+    }
+
+    private func pruneBackups() {
+        for old in backups().dropFirst(Self.backupLimit) {
+            try? FileManager.default.removeItem(at: old)
+        }
+    }
+
     /// 書き込みは一時ファイル経由。途中で落ちても、読めないファイルを残さない
     public func save(_ snapshot: Snapshot) throws {
         let data = try JSONEncoder().encode(snapshot)
