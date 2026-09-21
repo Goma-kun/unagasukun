@@ -2,3 +2,6 @@
 dist/
 STORE_LISTING.md
 store-assets/内部メモ*
+
+# Swift のビルド成果物
+ios/.build/
