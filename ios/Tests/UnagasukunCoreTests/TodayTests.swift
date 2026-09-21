@@ -57,3 +57,46 @@ final class TodayTests: XCTestCase {
         XCTAssertTrue(todo.isEmpty && done.isEmpty)
     }
 }
+
+final class LookBackTests: XCTestCase {
+
+    private func d(_ y: Int, _ m: Int, _ day: Int) -> Date {
+        var c = DateComponents(); c.year = y; c.month = m; c.day = day
+        return Calendar.current.date(from: c)!
+    }
+
+    /// 2026年9月1日は火曜（日曜=0 で 2）なので、頭に2つ空きが要る
+    func testMonthGridPadsToSunday() {
+        let cells = LookBack.monthGrid(d(2026, 9, 15))
+        XCTAssertEqual(cells.count, 2 + 30)
+        XCTAssertNil(cells[0])
+        XCTAssertNil(cells[1])
+        XCTAssertEqual(Logic.dateKey(cells[2]!), "2026-09-01")
+        XCTAssertEqual(Logic.dateKey(cells.last!!), "2026-09-30")
+    }
+
+    /// 途中の週を混ぜない。最後の週は**先週**で終わる
+    func testTileWeeksEndLastWeek() {
+        let now = d(2026, 9, 21)   // 月曜
+        let weeks = LookBack.tileWeeks(now: now, count: 12)
+
+        XCTAssertEqual(weeks.count, 12)
+        XCTAssertTrue(weeks.allSatisfy { $0.count == 7 })
+        XCTAssertEqual(Logic.dateKey(weeks.last!.last!), "2026-09-19",
+                       "先週の土曜で終わる（今週は入らない）")
+        XCTAssertTrue(weeks.allSatisfy { Logic.jsWeekday($0[0]) == 0 }, "各週は日曜はじまり")
+    }
+
+    /// 未来の日は空。色を付けると「やらなかった日」に見える
+    func testFutureTilesAreEmpty() {
+        let now = d(2026, 9, 21)
+        let item = Item(id: "a")
+        let records: Records = ["2026-09-25": ["a": .done]]
+        XCTAssertNil(LookBack.tileMark(item, records, d(2026, 9, 25), now: now))
+    }
+
+    func testOneOffItemsAreNotTiled() {
+        let schedule = [Item(id: "once", date: "2026-09-20"), Item(id: "daily", time: "07:00")]
+        XCTAssertEqual(LookBack.tileItems(schedule).map(\.id), ["daily"])
+    }
+}

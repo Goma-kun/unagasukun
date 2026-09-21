@@ -50,6 +50,38 @@ final class AppModel: ObservableObject {
                         < Logic.listSortMs($1, now, snapshot.records) }
     }
 
+    // MARK: - ふりかえり
+
+    /// その日にあった予定（1回だけ・保管済みを含む）
+    func itemsOn(_ key: String) -> [Item] {
+        Logic.itemsOnDay(snapshot.schedule, snapshot.records, key)
+    }
+
+    func mark(_ item: Item, on key: String) -> Mark? {
+        snapshot.records[key]?[item.id]
+    }
+
+    /// カレンダーから記録を付け直す。同じものをもう一度押したら取り消し
+    func toggle(_ item: Item, _ mark: Mark, on key: String) {
+        var day = snapshot.records[key] ?? [:]
+        if day[item.id] == mark {
+            day.removeValue(forKey: item.id)
+        } else {
+            day[item.id] = mark
+        }
+        if day.isEmpty { snapshot.records.removeValue(forKey: key) } else { snapshot.records[key] = day }
+        commit()
+    }
+
+    /// カレンダーの日の印。いまある予定の記録だけを数える
+    func dayMark(_ key: String) -> Mark? {
+        Logic.dayMark(snapshot.records, key, snapshot.schedule.map(\.id))
+    }
+
+    func doneCount(_ item: Item, weeks: Int, now: Date = Date()) -> Int {
+        Logic.doneCountRecent(snapshot.records, item.id, now, weeks * 7)
+    }
+
     func describe(_ item: Item, now: Date = Date()) -> String {
         Describe.schedule(item, records: snapshot.records, now: now)
     }

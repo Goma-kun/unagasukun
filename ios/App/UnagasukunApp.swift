@@ -15,8 +15,14 @@ struct UnagasukunApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TodayView()
+            TabView {
+                TodayView()
+                    .tabItem { Label("今日", systemImage: "list.bullet") }
+                LookBackView()
+                    .tabItem { Label("ふりかえり", systemImage: "calendar") }
+            }
                 .environmentObject(model)
+                .tint(Theme.navy)
                 .task {
                     // 通知の許可はここでは聞かない。
                     // **何のアプリか分からないうちに聞かれると、人は断る。**
