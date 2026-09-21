@@ -1,0 +1,51 @@
+import Foundation
+import UserNotifications
+
+/// 予約通知の面倒を見る。
+///
+/// 拡張機能は `chrome.alarms` を「鳴ったら次回を張り直す」で回せるが、
+/// **iOS はアプリが動いていないと張り直せない。**
+/// だから先の回までまとめて予約し、アプリが開かれるたびに入れ替える。
+struct Notifier {
+
+    private let center = UNUserNotificationCenter.current()
+
+    /// 通知の許可を聞く。**断られても機能は止めない**（一覧は使えるため）
+    @discardableResult
+    func requestPermission() async -> Bool {
+        (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+    }
+
+    /// まだ許可を聞いていない／断られている間は**何も予約しない。**
+    /// `center.add()` は許可されていないと、そこで勝手にダイアログを出す。
+    /// 何のアプリか分からないうちに聞かれると人は断るので、聞く場所はこちらで決める
+    func replaceAll(with plan: [PlannedNotification]) async {
+        let status = await center.notificationSettings().authorizationStatus
+        guard status == .authorized || status == .provisional else { return }
+
+        center.removeAllPendingNotificationRequests()
+
+        for p in plan {
+            let content = UNMutableNotificationContent()
+            switch p.kind {
+            case .main:
+                content.title = "いまは「\(p.title)」の時間です"
+            case .pre:
+                content.title = "まもなく「\(p.title)」の時間です"
+            }
+            content.sound = .default
+
+            let parts = Calendar.current.dateComponents(
+                [.year, .month, .day, .hour, .minute], from: p.fireAt
+            )
+            let trigger = UNCalendarNotificationTrigger(dateMatching: parts, repeats: false)
+            let request = UNNotificationRequest(identifier: p.id, content: content, trigger: trigger)
+            try? await center.add(request)
+        }
+    }
+
+    /// いま何件が予約されているか（確認用）
+    func pendingCount() async -> Int {
+        await center.pendingNotificationRequests().count
+    }
+}
