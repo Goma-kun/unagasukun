@@ -23,7 +23,10 @@ final class CloudSync {
         case failed(String)
     }
 
-    private let container = CKContainer(identifier: "iCloud.jp.nishira.unagasukun")
+    /// **起動時には作らない。** `CKContainer(identifier:)` は
+    /// iCloud の権利が無いビルドだと、例外ではなく**その場で落ちる**（catch できない）。
+    /// 同期を実際に使うときまで遅らせておけば、少なくとも画面は開く
+    private lazy var container = CKContainer(identifier: "iCloud.jp.nishira.unagasukun")
     private var db: CKDatabase { container.privateCloudDatabase }
     private let recordID = CKRecord.ID(recordName: "snapshot")
     private let recordType = "Snapshot"

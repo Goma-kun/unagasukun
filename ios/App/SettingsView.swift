@@ -58,11 +58,7 @@ struct SettingsView: View {
 
                 if !model.notificationsWorking {
                     Section {
-                        Button("設定アプリを開く") {
-                            if let url = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(url)
-                            }
-                        }
+                        Button("通知の設定を開く") { Platform.openNotificationSettings() }
                     } footer: {
                         Text("通知がオフのため、時間が来てもお知らせできません。")
                     }

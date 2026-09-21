@@ -25,6 +25,9 @@ struct UnagasukunApp: App {
             }
                 .environmentObject(model)
                 .tint(Theme.navy)
+                #if os(macOS)
+                .frame(minWidth: 380, minHeight: 560)
+                #endif
                 .task {
                     // 通知の許可はここでは聞かない。
                     // **何のアプリか分からないうちに聞かれると、人は断る。**
@@ -42,5 +45,11 @@ struct UnagasukunApp: App {
                     }
                 }
         }
+        #if os(macOS)
+        // 予定を縦に並べる画面なので、横に広げても読みやすくならない。
+        // リマインダーやメモと同じくらいの幅を既定にする
+        .defaultSize(width: 420, height: 760)
+        .windowResizability(.contentMinSize)
+        #endif
     }
 }

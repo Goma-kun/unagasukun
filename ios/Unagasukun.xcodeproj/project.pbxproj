@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		0000000000000000000000A5 /* Unagasukun.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Unagasukun.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0000000000000000000000C5 /* UnagasukunMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Unagasukun.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -31,6 +32,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0000000000000000000000C7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -47,6 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				0000000000000000000000A5 /* Unagasukun.app */,
+				0000000000000000000000C5 /* UnagasukunMac.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,6 +84,29 @@
 			);
 			productName = Unagasukun;
 			productReference = 0000000000000000000000A5 /* Unagasukun.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0000000000000000000000C4 /* Unagasukun (Mac) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0000000000000000000000C9 /* Build configuration list for PBXNativeTarget "Unagasukun (Mac)" */;
+			buildPhases = (
+				0000000000000000000000C6 /* Sources */,
+				0000000000000000000000C7 /* Frameworks */,
+				0000000000000000000000C8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0000000000000000000000A6 /* App */,
+				0000000000000000000000AA /* UnagasukunCore */,
+			);
+			name = "Unagasukun (Mac)";
+			packageProductDependencies = (
+			);
+			productName = Unagasukun;
+			productReference = 0000000000000000000000C5 /* UnagasukunMac.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -108,6 +140,7 @@
 			projectRoot = "";
 			targets = (
 				0000000000000000000000A4 /* Unagasukun */,
+				0000000000000000000000C4 /* Unagasukun (Mac) */,
 			);
 		};
 /* End PBXProject section */
@@ -120,10 +153,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0000000000000000000000C8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0000000000000000000000A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0000000000000000000000C6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -252,6 +299,54 @@
 			};
 			name = Release;
 		};
+		0000000000000000000000C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UnagasukunMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9XV6M5KNMK;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "うながすくん";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.nishira.unagasukun;
+				PRODUCT_NAME = Unagasukun;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		0000000000000000000000C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UnagasukunMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9XV6M5KNMK;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "うながすくん";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.nishira.unagasukun;
+				PRODUCT_NAME = Unagasukun;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -269,6 +364,15 @@
 			buildConfigurations = (
 				0000000000000000000000B5 /* Debug */,
 				0000000000000000000000B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0000000000000000000000C9 /* Build configuration list for PBXNativeTarget "Unagasukun (Mac)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0000000000000000000000C1 /* Debug */,
+				0000000000000000000000C2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -63,9 +63,7 @@ struct TodayView: View {
     /// 通知が届かない状態を黙っていない。**責めずに、直し方だけ示す**
     private var notificationOffBanner: some View {
         Button {
-            if let url = URL(string: UIApplication.openSettingsURLString) {
-                UIApplication.shared.open(url)
-            }
+            Platform.openNotificationSettings()
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "bell.slash")

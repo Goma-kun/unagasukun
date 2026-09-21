@@ -8,3 +8,5 @@ ios/.build/
 ios/.build-xcode/
 ios/*.xcodeproj/xcuserdata/
 ios/*.xcodeproj/project.xcworkspace/
+ios/.build-mac/
+ios/.build-mac-check/

@@ -76,7 +76,7 @@ struct PlanFormView: View {
                 }
             }
             .navigationTitle(editing == nil ? "予定を追加" : "予定を編集")
-            .navigationBarTitleDisplayMode(.inline)
+            .compactNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("やめる") { dismiss() }
