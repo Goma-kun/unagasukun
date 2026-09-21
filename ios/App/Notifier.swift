@@ -1,6 +1,18 @@
 import Foundation
 import UserNotifications
 
+/// アプリを開いている間に来た通知も、黙って捨てずに出す。
+/// **iOS の既定は「前面のときは出さない」。** 予定の時刻にアプリを見ていた人だけ
+/// お知らせを受け取れないのは、この道具の趣旨に合わない
+final class ForegroundNotificationPresenter: NSObject, UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound, .list]
+    }
+}
+
 /// 予約通知の面倒を見る。
 ///
 /// 拡張機能は `chrome.alarms` を「鳴ったら次回を張り直す」で回せるが、
@@ -42,6 +54,10 @@ struct Notifier {
             let request = UNNotificationRequest(identifier: p.id, content: content, trigger: trigger)
             try? await center.add(request)
         }
+    }
+
+    func authorizationStatus() async -> UNAuthorizationStatus {
+        await center.notificationSettings().authorizationStatus
     }
 
     /// いま何件が予約されているか（確認用）

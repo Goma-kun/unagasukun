@@ -6,6 +6,8 @@ import SwiftUI
 final class AppModel: ObservableObject {
 
     @Published private(set) var snapshot: Snapshot
+    /// 通知が実際に届く状態か。**効いていないことを黙っていてはいけない**ので画面に出す
+    @Published private(set) var notificationsWorking = true
     @Published var preNoticeOn: Bool {
         didSet { UserDefaults.standard.set(preNoticeOn, forKey: "preNoticeOn"); reschedule() }
     }
@@ -38,6 +40,20 @@ final class AppModel: ObservableObject {
         Logic.streakFor(snapshot.records, item.id, now, item.days)
     }
 
+    /// 登録済み一覧に出すもの。**今日の画面に出ているものは重ねて出さない**
+    /// （同じものが2か所にあると、どちらを操作すればいいか迷う）
+    func registered(now: Date = Date()) -> [Item] {
+        let shown = Set((today(now: now).todo + today(now: now).done).map(\.item.id))
+        return snapshot.schedule
+            .filter { !shown.contains($0.id) && $0.origId == nil && !Logic.isArchived($0) }
+            .sorted { Logic.listSortMs($0, now, snapshot.records)
+                        < Logic.listSortMs($1, now, snapshot.records) }
+    }
+
+    func describe(_ item: Item, now: Date = Date()) -> String {
+        Describe.schedule(item, records: snapshot.records, now: now)
+    }
+
     /// 「◯日ごと」の次の目安日。それ以外は nil
     func nextDueText(for item: Item, now: Date = Date()) -> String? {
         guard Logic.isInterval(item), let info = Logic.intervalDueInfo(item, snapshot.records, now)
@@ -53,13 +69,23 @@ final class AppModel: ObservableObject {
         let isFirst = snapshot.schedule.isEmpty
         snapshot.schedule.append(item)
         commit()
-        // 最初の1件を登録した時点で通知の許可を聞く。
-        // 断られても一覧は使えるので、機能は止めない
-        if isFirst {
-            Task {
-                if await notifier.requestPermission() { reschedule() }
+        // まだ聞いていなければ、ここで聞く。
+        // 「予定が0件のときだけ」にすると、途中から使い始めた人に一生聞かないことになる
+        _ = isFirst
+        Task {
+            if await notifier.authorizationStatus() == .notDetermined {
+                _ = await notifier.requestPermission()
+                reschedule()
             }
+            await refreshNotificationState()
         }
+    }
+
+    /// 通知が届く状態かを見に行く。アプリが前面に戻るたびに呼ぶ
+    /// （設定アプリで切られていることがあるため）
+    func refreshNotificationState() async {
+        let status = await notifier.authorizationStatus()
+        notificationsWorking = (status == .authorized || status == .provisional)
     }
 
     func remove(_ item: Item) {

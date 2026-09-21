@@ -13,6 +13,10 @@ struct TodayView: View {
         VStack(spacing: 0) {
             header
 
+            if !model.notificationsWorking {
+                notificationOffBanner
+            }
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     if todo.isEmpty && done.isEmpty {
@@ -31,13 +35,46 @@ struct TodayView: View {
                             }
                         }
                     }
+
+                    let registered = model.registered(now: now)
+                    if !registered.isEmpty {
+                        sectionTitle("登録済み", count: registered.count)
+                        Text("今日の予定に出ているものは、ここには出しません。")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.skip)
+                        ForEach(registered, id: \.id) { item in
+                            RegisteredRow(item: item, detail: model.describe(item, now: now))
+                        }
+                    }
                 }
                 .padding(16)
             }
         }
         .background(Theme.bg)
         .onReceive(tick) { now = $0 }
+        .task { await model.refreshNotificationState() }
         .sheet(isPresented: $showingAdd) { AddPlanView() }
+    }
+
+    /// 通知が届かない状態を黙っていない。**責めずに、直し方だけ示す**
+    private var notificationOffBanner: some View {
+        Button {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "bell.slash")
+                Text("通知がオフのため、時間が来てもお知らせできません")
+                    .font(.system(size: 13))
+                Spacer(minLength: 0)
+                Text("設定を開く").font(.system(size: 13, weight: .medium))
+            }
+            .foregroundStyle(Theme.text)
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .background(Theme.accent.opacity(0.22))
+        }
+        .buttonStyle(.plain)
     }
 
     private var header: some View {
@@ -215,5 +252,45 @@ struct OutlineButton: ButtonStyle {
             .background(configuration.isPressed ? Theme.bg : Theme.card,
                         in: RoundedRectangle(cornerRadius: 9))
             .overlay(RoundedRectangle(cornerRadius: 9).stroke(Theme.skip, lineWidth: 1))
+    }
+}
+
+
+/// 登録済み一覧の1行。今日の画面に出ていないものだけが並ぶ
+private struct RegisteredRow: View {
+    @EnvironmentObject private var model: AppModel
+    let item: Item
+    let detail: String
+    @State private var confirmingDelete = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.label)
+                    .font(.system(size: 15))
+                    .foregroundStyle(item.enabled ? Theme.text : Theme.muted)
+                Text(detail)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.muted)
+            }
+            Spacer(minLength: 0)
+            Button {
+                confirmingDelete = true
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.muted)
+            }
+        }
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.skip.opacity(0.35), lineWidth: 1))
+        .confirmationDialog("「\(item.label)」を削除しますか？", isPresented: $confirmingDelete,
+                            titleVisibility: .visible) {
+            Button("削除する", role: .destructive) { model.remove(item) }
+            Button("やめる", role: .cancel) {}
+        } message: {
+            Text("これまでの記録は残ります。")
+        }
     }
 }
