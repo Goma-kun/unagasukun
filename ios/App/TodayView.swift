@@ -3,6 +3,7 @@ import SwiftUI
 struct TodayView: View {
     @EnvironmentObject private var model: AppModel
     @State private var showingAdd = false
+    @State private var editing: Item? = nil
     @State private var now = Date()
 
     private let tick = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
@@ -25,7 +26,7 @@ struct TodayView: View {
                         if !todo.isEmpty {
                             sectionTitle("今日の予定", count: todo.count)
                             ForEach(todo, id: \.item.id) { entry in
-                                TodoCard(entry: entry, now: now)
+                                TodoCard(entry: entry, now: now) { editing = $0 }
                             }
                         }
                         if !done.isEmpty {
@@ -43,7 +44,9 @@ struct TodayView: View {
                             .font(.system(size: 12))
                             .foregroundStyle(Theme.skip)
                         ForEach(registered, id: \.id) { item in
-                            RegisteredRow(item: item, detail: model.describe(item, now: now))
+                            RegisteredRow(item: item, detail: model.describe(item, now: now)) {
+                                editing = item
+                            }
                         }
                     }
                 }
@@ -53,7 +56,8 @@ struct TodayView: View {
         .background(Theme.bg)
         .onReceive(tick) { now = $0 }
         .task { await model.refreshNotificationState() }
-        .sheet(isPresented: $showingAdd) { AddPlanView() }
+        .sheet(isPresented: $showingAdd) { PlanFormView() }
+        .sheet(item: $editing) { PlanFormView(editing: $0) }
     }
 
     /// 通知が届かない状態を黙っていない。**責めずに、直し方だけ示す**
@@ -131,6 +135,8 @@ private struct TodoCard: View {
     @EnvironmentObject private var model: AppModel
     let entry: TodayEntry
     let now: Date
+    /// 毎日の予定は登録済み一覧に出ないので、**今日のカードが編集の唯一の入口**になる
+    var onEdit: (Item) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -143,6 +149,14 @@ private struct TodoCard: View {
                     .font(.system(size: 16))
                     .foregroundStyle(Theme.text)
                 Spacer(minLength: 0)
+                Button { onEdit(entry.item) } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Theme.muted)
+                        .frame(width: 32, height: 28)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("この予定を編集")
             }
 
             if !subtitles.isEmpty {
@@ -261,9 +275,14 @@ private struct RegisteredRow: View {
     @EnvironmentObject private var model: AppModel
     let item: Item
     let detail: String
+    var onEdit: () -> Void
     @State private var confirmingDelete = false
 
     var body: some View {
+        Button(action: onEdit) { row }.buttonStyle(.plain)
+    }
+
+    private var row: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.label)
@@ -274,23 +293,19 @@ private struct RegisteredRow: View {
                     .foregroundStyle(Theme.muted)
             }
             Spacer(minLength: 0)
-            Button {
-                confirmingDelete = true
-            } label: {
-                Image(systemName: "trash")
-                    .font(.system(size: 14))
+            if !item.enabled {
+                Text("休み中")
+                    .font(.system(size: 11))
                     .foregroundStyle(Theme.muted)
+                    .padding(.horizontal, 7).padding(.vertical, 2)
+                    .background(Theme.bg, in: Capsule())
             }
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.skip)
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.skip.opacity(0.35), lineWidth: 1))
-        .confirmationDialog("「\(item.label)」を削除しますか？", isPresented: $confirmingDelete,
-                            titleVisibility: .visible) {
-            Button("削除する", role: .destructive) { model.remove(item) }
-            Button("やめる", role: .cancel) {}
-        } message: {
-            Text("これまでの記録は残ります。")
-        }
     }
 }

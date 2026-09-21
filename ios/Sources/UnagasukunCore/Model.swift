@@ -2,7 +2,7 @@ import Foundation
 
 /// 予定1件。拡張機能の `schedule` 配列の要素をそのまま写したもの。
 /// 判定の意味は extension/logic.js のコメントが正本。ここでは形だけ持つ。
-public struct Item: Codable, Equatable, Sendable {
+public struct Item: Codable, Equatable, Identifiable, Sendable {
     public var id: String
     public var label: String
     /// "HH:MM"。時刻を固定しない予定は nil

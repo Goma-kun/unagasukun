@@ -171,6 +171,13 @@ final class AppModel: ObservableObject {
         notificationsWorking = (status == .authorized || status == .provisional)
     }
 
+    /// 既にある予定を差し替える。ID は変えない（記録が ID で結びついているため）
+    func update(_ item: Item) {
+        guard let i = snapshot.schedule.firstIndex(where: { $0.id == item.id }) else { return }
+        snapshot.schedule[i] = item
+        commit()
+    }
+
     func remove(_ item: Item) {
         snapshot.schedule.removeAll { $0.id == item.id }
         commit()

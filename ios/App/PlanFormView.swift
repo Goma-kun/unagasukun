@@ -1,10 +1,14 @@
 import SwiftUI
 
-/// 予定の登録。拡張機能 v1.6.0 と同じく、繰り返しは**先頭の3択タブ**にしてある。
+/// 予定の登録と編集。拡張機能 v1.6.0 と同じく、繰り返しは**先頭の3択タブ**にしてある。
 /// 選んだ結果は**必ずプレビュー帯に日本語で言い切る**（「3日ごとって何日空くの？」を日付で潰す）。
-struct AddPlanView: View {
+struct PlanFormView: View {
+    /// 編集するとき。新規なら nil
+    var editing: Item? = nil
+
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
+    @State private var confirmingDelete = false
 
     enum Repeat: String, CaseIterable { case once = "1回だけ", weekly = "毎週", interval = "◯日ごと" }
 
@@ -15,6 +19,7 @@ struct AddPlanView: View {
     @State private var date = Date()
     @State private var days: Set<Int> = []
     @State private var intervalDays = 3
+    @State private var enabled = true
 
     private let weekdayNames = ["日", "月", "火", "水", "木", "金", "土"]
     private let intervalChoices = [1, 2, 3, 4, 6, 7, 14, 30]
@@ -56,17 +61,66 @@ struct AddPlanView: View {
                         .font(.system(size: 14))
                         .foregroundStyle(Theme.navy)
                 }
+
+                if editing != nil {
+                    Section {
+                        Toggle("しばらく休む", isOn: Binding(get: { !enabled },
+                                                       set: { enabled = !$0 }))
+                    } footer: {
+                        Text("一覧と通知から外れます。記録はそのまま残ります。")
+                    }
+
+                    Section {
+                        Button("この予定を削除する", role: .destructive) { confirmingDelete = true }
+                    }
+                }
             }
-            .navigationTitle("予定を追加")
+            .navigationTitle(editing == nil ? "予定を追加" : "予定を編集")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("やめる") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("追加") { save() }.disabled(!canSave)
+                    Button(editing == nil ? "追加" : "保存") { save() }.disabled(!canSave)
                 }
             }
+            .onAppear(perform: load)
+            .confirmationDialog("この予定を削除しますか？", isPresented: $confirmingDelete,
+                                titleVisibility: .visible) {
+                Button("削除する", role: .destructive) {
+                    if let editing { model.remove(editing) }
+                    dismiss()
+                }
+                Button("やめる", role: .cancel) {}
+            } message: {
+                Text("これまでの記録は残ります。")
+            }
+        }
+    }
+
+    /// 編集のとき、いまの内容をフォームに写す
+    private func load() {
+        guard let item = editing else { return }
+        label = item.label
+        enabled = item.enabled
+        noTime = Logic.isAnytime(item)
+        if let t = item.time, let d = Logic.parseTime(t) {
+            time = Logic.at(Date(), hour: d.0, minute: d.1)
+        }
+        if Logic.isInterval(item) {
+            mode = .interval
+            intervalDays = item.intervalDays ?? 3
+        } else if let days = item.days, !days.isEmpty {
+            mode = .weekly
+            self.days = Set(days)
+        } else if Logic.isOneOff(item) {
+            mode = .once
+            if let d = Logic.parseDateKey(item.date) { date = d }
+        } else {
+            // 旧来の「毎日」は曜日を全部選んだ状態として見せる
+            mode = .weekly
+            self.days = Set(0...6)
         }
     }
 
@@ -107,19 +161,26 @@ struct AddPlanView: View {
 
     /// **選んだ結果を日本語で言い切る。** 読み違えはここで潰す
     private var preview: String {
-        let timePart = noTime ? "時刻は決めません" : "\(hhmm) に"
         switch mode {
         case .once:
-            return "→ \(dateText(date)) に1回だけ。\(timePart)お知らせします。"
+            return "→ \(dateText(date)) に1回だけ。" + timeSentence
         case .weekly:
             guard !days.isEmpty else { return "→ 曜日を選んでください。毎日なら全部押します。" }
-            let names = days.sorted().map { weekdayNames[$0] }.joined(separator: "・")
-            return "→ 毎週 \(names) に繰り返します。\(timePart)お知らせします。"
+            let how = days.count == 7 ? "毎日" : "毎週 " + days.sorted().map { weekdayNames[$0] }
+                                                            .joined(separator: "・")
+            return "→ \(how) に繰り返します。" + timeSentence
         case .interval:
-            let due = Logic.day(Date(), plus: intervalDays)
+            let base = editing?.anchorDate.flatMap(Logic.parseDateKey) ?? Date()
+            let due = Logic.day(base, plus: intervalDays)
             return "→ \(intervalDays)日ごと。次の目安日は \(dateText(due)) です。"
-                + "「できた」を押した日から数え直します。"
+                + "「できた」を押した日から数え直します。" + timeSentence
         }
+    }
+
+    private var timeSentence: String {
+        noTime
+            ? "時刻は決めません。済ませるまで今日の予定に残ります。"
+            : "\(hhmm) にお知らせします。"
     }
 
     private var hhmm: String {
@@ -139,8 +200,13 @@ struct AddPlanView: View {
     }
 
     private func save() {
-        var item = Item(id: UUID().uuidString,
+        var item = Item(id: editing?.id ?? UUID().uuidString,
                         label: label.trimmingCharacters(in: .whitespaces))
+        item.enabled = enabled
+        item.origId = editing?.origId
+        item.archived = editing?.archived ?? false
+        item.endTime = editing?.endTime
+        item.targetMin = editing?.targetMin
         if noTime {
             item.anytime = true
         } else {
@@ -153,11 +219,13 @@ struct AddPlanView: View {
             item.days = days.sorted()
         case .interval:
             item.intervalDays = intervalDays
-            item.anchorDate = Logic.dateKey(Date())
+            // **編集のときは基準日を作り直さない。** やり直すと数え直しが起きて、
+            // 「名前を直しただけなのに目安日が飛んだ」ことになる
+            item.anchorDate = editing?.anchorDate ?? Logic.dateKey(Date())
             // 短い間隔で「そろそろ」が一覧に居座らないよう、お知らせ開始を詰める
             item.noticeDays = max(0, min(3, intervalDays - 2))
         }
-        model.add(item)
+        if editing == nil { model.add(item) } else { model.update(item) }
         dismiss()
     }
 }
