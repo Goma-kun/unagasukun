@@ -1638,6 +1638,26 @@ function startEdit(id) {
   document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
 }
 
+// パネルを開いたまま日付が変わったとき（まとめるくんの窓で開きっぱなし等）の追従。
+// 追加フォームの日付は resetForm() で入れた「その日の今日」のままになるので、
+// まだ触っていなければ新しい今日に進める（2026-09-23 本人指摘：昨日の日付になっていた）。
+// 日付が変わったらカレンダーやふりかえりも含めて描き直す
+let lastSeenDay = todayKey();
+function rollOverDay() {
+  const today = todayKey();
+  if (today === lastSeenDay) return;
+  const prev = lastSeenDay;
+  lastSeenDay = today;
+  if (editingId === null) {
+    for (const id of ['input-date', 'input-anchor-date']) {
+      const el = document.getElementById(id);
+      if (el.value === prev || el.value === '') el.value = today;
+    }
+    syncRepeatPreview();
+  }
+  renderAll();
+}
+
 function resetForm() {
   editingId = null;
   document.getElementById('form-title').textContent = T('addHeading');
@@ -1907,5 +1927,9 @@ document.getElementById('review-title').addEventListener('click', () => {
     });
   }
   // 「いまの時間」の強調を1分ごとに更新
-  setInterval(renderToday, 60 * 1000);
+  setInterval(() => { rollOverDay(); renderToday(); }, 60 * 1000);
+  // 隠れている間はタイマーが間引かれることがあるので、見えた瞬間にも日付の変わり目を見る
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { rollOverDay(); renderToday(); }
+  });
 })();
