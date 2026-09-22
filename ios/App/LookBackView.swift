@@ -19,13 +19,19 @@ struct LookBackView: View {
             .padding(.horizontal, 16).padding(.vertical, 12)
             .background(Theme.navy)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    calendarCard
-                    if let key = selected { dayDetail(key) }
-                    tiles
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        calendarCard.id("calendar")
+                        if let key = selected { dayDetail(key) }
+                        tiles
+                    }
+                    .padding(16)
                 }
-                .padding(16)
+                // タイルで日を選んだら、付け直す場所（カレンダーの下）まで戻す
+                .onChange(of: selected) { _, _ in
+                    withAnimation { proxy.scrollTo("calendar", anchor: .top) }
+                }
             }
         }
         .background(Theme.bg)
@@ -160,6 +166,7 @@ struct LookBackView: View {
         // 「何もできていない」と突きつけるのと同じで、沈黙が中立という設計に反する
         let items = LookBack.tileItems(model.snapshot.schedule)
             .filter { model.doneCount($0, weeks: 12) > 0 }
+        // 先週までの12週に今週の列を足す（右端が今週）。今週のまだ来ていない日は点線の枠だけ
         let weeks = LookBack.tileWeeks(now: Date(), count: 12)
 
         return VStack(alignment: .leading, spacing: 12) {
@@ -169,9 +176,13 @@ struct LookBackView: View {
                     .foregroundStyle(Theme.skip)
                     .padding(.top, 4)
             } else {
-                Text("これまで（先週までの12週）")
+                Text("これまで（今週までの13週）")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Theme.muted)
+                // 見方の説明。「マスが並んでいるだけで何か分からない」と言われたので、先頭に1回だけ
+                Text("マス1つが1日。縦が日〜土、横が週で、右端の列が今週です。色が付いた日が「できた」日。マスを押すと、その日の記録を上のカレンダーで付け直せます。")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.skip)
 
                 ForEach(items, id: \.id) { item in
                     VStack(alignment: .leading, spacing: 8) {
@@ -183,7 +194,12 @@ struct LookBackView: View {
                                 .font(.system(size: 12))
                                 .foregroundStyle(Theme.muted)
                         }
+                        // 繰り返しと時刻。同じ名前の予定が2つあっても（曜日違いの登録など）どちらか分かるように
+                        Text(model.describe(item))
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.muted)
                         tileGrid(item, weeks)
+                        legend
                     }
                     .padding(12)
                     .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
@@ -192,18 +208,89 @@ struct LookBackView: View {
         }
     }
 
+    private let tileSize: CGFloat = 12
+    private let tileGap: CGFloat = 3
+
     private func tileGrid(_ item: Item, _ weeks: [[Date]]) -> some View {
-        HStack(spacing: 3) {
-            ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
-                VStack(spacing: 3) {
-                    ForEach(Array(week.enumerated()), id: \.offset) { _, day in
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(LookBack.tileMark(item, model.snapshot.records, day, now: Date()) == .done
-                                  ? Theme.done : Theme.skip.opacity(0.22))
-                            .frame(height: 12)
+        let labels = LookBack.monthLabelColumns(weeks)
+        let today = Logic.startOfDay(Date())
+        let todayKey = Logic.dateKey(today)
+        return VStack(alignment: .leading, spacing: tileGap) {
+            // 月名の行。月が変わった最初の週の上に出す（左右どちらが新しいかも、これで分かる）
+            HStack(spacing: tileGap) {
+                Color.clear.frame(width: 16, height: 12)
+                ForEach(Array(weeks.indices), id: \.self) { w in
+                    ZStack(alignment: .leading) {
+                        Color.clear.frame(width: tileSize, height: 12)
+                        if let l = labels.first(where: { $0.column == w }) {
+                            Text("\(Logic.calendar.component(.month, from: l.sunday))月")
+                                .font(.system(size: 9))
+                                .foregroundStyle(Theme.muted)
+                                .fixedSize()
+                        }
                     }
                 }
             }
+            ForEach(0..<7, id: \.self) { r in
+                HStack(spacing: tileGap) {
+                    // 左端に曜日。どの行が何曜日か、見なくても分かるように
+                    Text(weekdayNames[r])
+                        .font(.system(size: 9))
+                        .foregroundStyle(Theme.muted)
+                        .frame(width: 16, alignment: .trailing)
+                    ForEach(Array(weeks.indices), id: \.self) { w in
+                        let day = weeks[w][r]
+                        let key = Logic.dateKey(day)
+                        if day > today {
+                            // まだ来ていない日。押せないし色も付かない
+                            RoundedRectangle(cornerRadius: 2)
+                                .stroke(Theme.skip.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                                .frame(width: tileSize, height: tileSize)
+                        } else {
+                            Button {
+                                // その日を上のカレンダーで選ぶ（付け直しはカレンダーの下でする）
+                                selected = key
+                                month = day
+                            } label: {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(LookBack.tileMark(item, model.snapshot.records, day, now: Date()) == .done
+                                          ? Theme.done : Theme.skip.opacity(0.22))
+                                    .frame(width: tileSize, height: tileSize)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .stroke(key == todayKey ? Theme.accent : (key == selected ? Theme.navy : .clear),
+                                                    lineWidth: 1.5)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Describe.short(day))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// 凡例（色の意味。小さく1行だけ）
+    private var legend: some View {
+        HStack(spacing: 10) {
+            legendItem(Theme.done, "できた")
+            legendItem(Theme.skip.opacity(0.22), "記録なし")
+            HStack(spacing: 4) {
+                RoundedRectangle(cornerRadius: 2)
+                    .stroke(Theme.skip.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                    .frame(width: 10, height: 10)
+                Text("これから")
+            }
+        }
+        .font(.system(size: 10))
+        .foregroundStyle(Theme.muted)
+    }
+
+    private func legendItem(_ color: Color, _ text: String) -> some View {
+        HStack(spacing: 4) {
+            RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 10, height: 10)
+            Text(text)
         }
     }
 

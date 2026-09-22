@@ -206,6 +206,33 @@ final class AppModel: ObservableObject {
         commit()
     }
 
+    /// 「◯日ごと」で、済ませたのに付け忘れた日を選べる候補（昨日から新しい順・最大7日）
+    func pastDoneCandidates(for item: Item, now: Date = Date()) -> [String] {
+        Logic.pastDoneCandidates(item, snapshot.records, now)
+    }
+
+    /// 過去の日に「できた」を付ける。◯日ごとは基準日が動くので、次の目安日を言い切って返す
+    /// （カードが今日の予定から消えることがあり、黙って消えると「無くなった」に見える）
+    @discardableResult
+    func recordPastDone(_ item: Item, on key: String, now: Date = Date()) -> String {
+        var day = snapshot.records[key] ?? [:]
+        day[item.id] = .done
+        snapshot.records[key] = day
+        commit()
+
+        let dayText = Logic.parseDateKey(key).map(Describe.short) ?? key
+        guard let info = Logic.intervalDueInfo(item, snapshot.records, now) else {
+            return "\(dayText) にできたと記録しました"
+        }
+        let due = Describe.short(Logic.day(now, plus: info.daysUntil))
+        if info.daysUntil > Logic.intervalNoticeDays(item) {
+            return "\(dayText) にできたと記録しました。次の目安日は \(due) です"
+        } else if info.daysUntil > 0 {
+            return "\(dayText) にできたと記録しました。次の目安日は \(due) なので、今日の予定に残ります"
+        }
+        return "\(dayText) にできたと記録しました。目安日（\(due)）が来ているので、今日の予定に残ります"
+    }
+
     /// 押し間違いを戻す。**記録を消すのは取り消しのときだけ**
     func undo(_ item: Item, now: Date = Date()) {
         let key = Logic.dateKey(now)

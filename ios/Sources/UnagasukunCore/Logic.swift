@@ -286,9 +286,36 @@ public enum Logic {
             if item.origId != nil { return false }
             if rec[item.id] != nil { return true }
             if isOneOff(item) { return item.date == key }
-            if isInterval(item) { return false }
+            if isInterval(item) {
+                // 「どの日にやってもよい」予定なので、登録時の「最後にやった日」より後なら毎日出す
+                // （出さないと、済ませたのに付け忘れた日に「できた」を付け直す場所が無くなる）
+                let anchor: String? = {
+                    guard let a = item.anchorDate, isDateKey(a) else { return nil }
+                    return a
+                }()
+                return item.enabled && (anchor == nil || key > anchor!)
+            }
             return item.enabled && isScheduledOn(item.days, day)
         }
+    }
+
+    /// ◯日ごとの予定を「前に済ませていた」とあとから付けるときの候補日。
+    /// 昨日から遡って最大 maxDays 日ぶん、基準日（最後にやった日）の翌日まで。新しい順
+    public static func pastDoneCandidates(
+        _ item: Item, _ records: Records, _ now: Date, maxDays: Int = 7
+    ) -> [String] {
+        guard isInterval(item) else { return [] }
+        let limit = maxDays > 0 ? maxDays : 7
+        let anchor = intervalAnchorKey(item, records, now)
+        var out: [String] = []
+        var d = startOfDay(now)
+        for _ in 0..<limit {
+            d = day(d, plus: -1)
+            let k = dateKey(d)
+            if let anchor, k <= anchor { break }
+            out.append(k)
+        }
+        return out
     }
 
     /// カレンダーの日の印。できなかった日に印は付けない（沈黙が中立）。

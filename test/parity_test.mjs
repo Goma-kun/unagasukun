@@ -24,7 +24,7 @@ const block = src.slice(s + START.length, e);
 const names = ['dateKey', 'isScheduledOn', 'nextOccurrence', 'isTooLate', 'isValidEndTime',
   'blockEndMs', 'streakFor', 'isOneOff', 'isAnytime', 'listSortMs', 'isInterval',
   'intervalNoticeDays', 'intervalAnchorKey', 'intervalDueInfo', 'doneCountRecent',
-  'avgDoneIntervalDays', 'isArchived', 'itemsOnDay', 'dayMark', 'isStreakMilestone',
+  'avgDoneIntervalDays', 'isArchived', 'itemsOnDay', 'dayMark', 'isStreakMilestone', 'pastDoneCandidates',
   'allDoneToday', 'preNoticeSettings', 'preNoticeAt'];
 const JS = new Function(`${block}; return { ${names.join(', ')} };`)();
 
@@ -110,6 +110,10 @@ for (const now of NOWS) {
         () => { const r = JS.nextOccurrence(item, now, records); return r ? r.getTime() : null; });
     add({ fn: 'listSortMs', item, records, now: nowMs },
         () => JS.listSortMs(item, now, records));
+    for (const maxDays of [7, 3, 0]) {
+      add({ fn: 'pastDoneCandidates', item, records, now: nowMs, maxDays },
+          () => JS.pastDoneCandidates(item, records, now, maxDays));
+    }
     add({ fn: 'streakFor', itemId: item.id, days: item.days, records, now: nowMs },
         () => JS.streakFor(records, item.id, now, item.days));
     for (const w of [7, 30, 84]) {

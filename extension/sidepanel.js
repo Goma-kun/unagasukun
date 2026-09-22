@@ -50,6 +50,13 @@ function Tn(key, n) {
   return n === 1 ? T(key + '1') : T(key, [n]);
 }
 
+// 月名などを出すときの言語。拡張なら Chrome の表示言語、プレビューなら ?lang= に合わせる
+// （ブラウザの既定言語だと、英語表示のなかに「9月」が混ざる）
+function uiLocale() {
+  if (hasChromeI18n) return chrome.i18n.getUILanguage();
+  return new URLSearchParams(location.search).get('lang') || 'ja';
+}
+
 async function loadPreviewMessages() {
   if (hasChromeI18n) return;
   const lang = new URLSearchParams(location.search).get('lang') || 'ja';
@@ -313,6 +320,50 @@ function buildTimeSpan(item) {
   return time;
 }
 
+// 「前にできていた」の候補日チップ。昨日から新しい順に、最後にやった日の翌日まで（最大7日）
+function buildPastDoneRow(item, now) {
+  const wrap = document.createElement('div');
+  wrap.className = 'past-done-row';
+  const hint = document.createElement('div');
+  hint.className = 'note-label';
+  hint.textContent = T('pastDoneHint');
+  const chips = document.createElement('div');
+  chips.className = 'past-done-chips';
+  const yesterday = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
+  for (const key of pastDoneCandidates(item, records, now, 7)) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = key === yesterday ? T('pastDoneYesterday', [reviewDateText(key)]) : reviewDateText(key);
+    b.addEventListener('click', () => recordPastDone(item, key));
+    chips.append(b);
+  }
+  wrap.append(hint, chips);
+  return wrap;
+}
+
+// 過去の日に「できた」を付ける。◯日ごとは基準日が動くので、次の目安日を言い切って知らせる
+// （カードが今日の予定から消えることがあり、黙って消えると「無くなった」に見える）
+async function recordPastDone(item, key) {
+  const targetId = item.origId || item.id;
+  if (!records[key]) records[key] = {};
+  records[key][targetId] = 'done';
+  await saveRecords();
+  pastDoneOpenFor.delete(item.id);
+  const now = new Date();
+  const info = intervalDueInfo(item, records, now);
+  const due = new Date(now.getFullYear(), now.getMonth(), now.getDate() + info.daysUntil);
+  const dueText = reviewDateText(dateKey(due));
+  if (info.daysUntil > intervalNoticeDays(item)) {
+    showToast(T('pastDoneToastNext', [reviewDateText(key), dueText]));
+  } else if (info.daysUntil > 0) {
+    showToast(T('pastDoneToastSoon', [reviewDateText(key), dueText]));
+  } else {
+    showToast(T('pastDoneToastDue', [reviewDateText(key), dueText]));
+  }
+  renderAll();
+}
+
 function buildTargetSpan(item) {
   if (!isAnytime(item) || !item.targetMin) return null;
   const t = document.createElement('span');
@@ -574,6 +625,8 @@ const expandedToday = new Set();
 
 // 「再設定」の入力行を開いているカードのID（同じく画面ごとの一時状態）
 const redoOpenFor = new Set();
+// ◯日ごとのカードで「前にできていた」の候補日を開いている予定の id
+const pastDoneOpenFor = new Set();
 
 // 「再設定」の行。今日の別の時刻でもう一度通知させる。
 // 繰り返し予定は本体の時刻を動かさず、今日だけの「やりなおし」コピー（origId付き）を作る。
@@ -742,6 +795,24 @@ function renderToday() {
     // 済んでから◯日後の状態（そろそろ／今日が目安／最後にやってから◯日）
     if (isInterval(item) && result === undefined) {
       subBadges.push(buildIntervalBadge(item, now));
+      // 済ませたのに付け忘れた日を、あとから「できた」にする入口。
+      // ふりかえりまで行かなくても今日のカードから直せる（2026-09-22 本人指摘：
+      // 昨日やった点滴が今日の予定に残り、「今日済み」では次の目安日がずれる）
+      if (pastDoneCandidates(item, records, now, 7).length > 0) {
+        const spacer = document.createElement('span');
+        spacer.className = 'row-spacer';
+        const pastBtn = document.createElement('button');
+        pastBtn.type = 'button';
+        pastBtn.className = 'redo-btn' + (pastDoneOpenFor.has(item.id) ? ' open' : '');
+        pastBtn.textContent = T('pastDoneBtn');
+        pastBtn.title = T('pastDoneTip');
+        pastBtn.addEventListener('click', () => {
+          if (pastDoneOpenFor.has(item.id)) pastDoneOpenFor.delete(item.id);
+          else pastDoneOpenFor.add(item.id);
+          renderToday();
+        });
+        subBadges.push(spacer, pastBtn);
+      }
     }
 
     // 次に来る予定は「次の予定・あと◯分」で目立たせる
@@ -838,6 +909,10 @@ function renderToday() {
       row.className = 'badge-row';
       row.append(...subBadges);
       card.append(row);
+    }
+    // 「前にできていた」の候補日（◯日ごとの未記録カードで、ボタンを押したときだけ）
+    if (isInterval(item) && result === undefined && pastDoneOpenFor.has(item.id)) {
+      card.append(buildPastDoneRow(item, now));
     }
 
     // 詳細（任意メモ）があれば小さく添える
@@ -996,7 +1071,7 @@ function renderItems() {
 let reviewOpen = false; // 「ふりかえり」の開閉状態（既定は畳む）
 let reviewSelected = null; // 選択中の日 { itemId, key }
 
-const REVIEW_WEEKS = 12; // 先週までの12週間ぶんを表示（完全な週だけ。幅340pxに収まる）
+const REVIEW_WEEKS = 12; // 先週までの12週間。これに今週の列を足して並べる（幅340pxに収まる）
 
 // 過去の日の記録を付け直す（付け忘れの救済。グリッドの日をタップして使う）
 async function setPastRecord(itemId, key, result) {
@@ -1046,7 +1121,13 @@ function buildReviewDetail(item, key, showHead = true) {
     wrap.append(n);
   }
 
-  // 記録の付け直し。今の記録と同じボタンは出さない（意味のある操作だけ見せる）
+  wrap.append(buildRecordActions(item, key));
+  return wrap;
+}
+
+// 記録の付け直しボタン。今の記録と同じボタンは出さない（意味のある操作だけ見せる）
+function buildRecordActions(item, key) {
+  const rec = records[key] && records[key][item.id];
   const actions = document.createElement('div');
   actions.className = 'badge-row';
   if (rec !== 'done') {
@@ -1068,8 +1149,7 @@ function buildReviewDetail(item, key, showHead = true) {
     b.addEventListener('click', () => setPastRecord(item.id, key, undefined));
     actions.append(b);
   }
-  wrap.append(actions);
-  return wrap;
+  return actions;
 }
 
 // ---- カレンダー（日付起点のふりかえり。Streaks / Loop Habit Tracker 等の
@@ -1078,7 +1158,6 @@ function buildReviewDetail(item, key, showHead = true) {
 
 let calYm = null; // 表示中の月 { y, m }（m は 1〜12）。null なら今月から始める
 let calSelected = null; // 選択中の日（dateKey 形式）
-let calDetailFor = null; // 日別リストで付け直しを開いている予定の id
 
 function renderCalendar() {
   const box = document.getElementById('cal-box');
@@ -1127,7 +1206,6 @@ function renderCalendar() {
       if (calSelected === key) cell.classList.add('selected');
       cell.addEventListener('click', () => {
         calSelected = calSelected === key ? null : key;
-        calDetailFor = null;
         // 下のタイル側で開いていた日の詳細は閉じる。カレンダーの日を替えたのに
         // 前に選んだ日の「できた」が下に残っていると、その日の内容に見えてしまう
         reviewSelected = null;
@@ -1139,7 +1217,9 @@ function renderCalendar() {
   renderCalDayDetail();
 }
 
-// 選んだ日にあった予定の一覧（1回だけ・保管済みも含む）。行をタップすると付け直しが開く
+// 選んだ日にあった予定の一覧（1回だけ・保管済みも含む）。
+// 付け直しのボタンは行に最初から出す。以前は行をタップして開く形だったが、
+// 開けることに気づけず「付け直せない」と受け取られた（2026-09-22 本人指摘）
 function renderCalDayDetail() {
   const box = document.getElementById('cal-detail');
   box.textContent = '';
@@ -1169,14 +1249,15 @@ function renderCalDayDetail() {
     st.className = 'status ' + (r === 'done' ? 'done' : r === 'skip' ? 'skip' : 'since');
     st.textContent = r === 'done' ? T('statusDone') : r === 'skip' ? T('statusSkip') : T('recNone');
     row.append(buildTimeSpan(item), label, st);
-    if (calDetailFor === item.id) {
-      row.append(buildReviewDetail(item, calSelected, false));
+    // 「実際は」のメモがあれば見せる（ここでは読むだけ。書くのは今日のカードから）
+    const note = notes[calSelected] && notes[calSelected][item.id];
+    if (note) {
+      const n = document.createElement('div');
+      n.className = 'review-note';
+      n.textContent = T('noteView', [note]);
+      row.append(n);
     }
-    row.addEventListener('click', (e) => {
-      if (e.target.closest('button')) return;
-      calDetailFor = calDetailFor === item.id ? null : item.id;
-      renderCalendar();
-    });
+    row.append(buildRecordActions(item, calSelected));
     box.append(row);
   }
 }
@@ -1194,11 +1275,20 @@ function renderReview() {
   if (!reviewOpen) return;
 
   const now = new Date();
-  // グリッドは「先週までの12週」＝完全な週だけで、常にきれいな四角にする
-  // （今週の列だけタイルが欠けて飛び出して見える、の本人指摘対応）。
-  // 今日・今週の分は上のカレンダーで見る・直す。起点＝12週前の日曜日（列が週・行が日〜土）
+  const today = todayKey();
+  // 列＝週（左が古い）、行＝日〜土。先週までの12週に今週の列を足し、右端が今週になる。
+  // 今週のまだ来ていない日は点線の枠だけにして、四角の形を崩さない。
+  // （以前は「今週の列だけ欠けて飛び出して見える」の指摘で完全な週だけにしていたが、
+  //  それだと昨日の記録を付け直す入口がここに無い。2026-09-22 本人指摘で今週まで出す）
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   start.setDate(start.getDate() - start.getDay() - 7 * REVIEW_WEEKS);
+  const columns = REVIEW_WEEKS + 1;
+
+  // 見方の説明。「ブロックが並んでいるだけで何か分からない」と言われたので、先頭に1回だけ書く
+  const guide = document.createElement('p');
+  guide.className = 'review-guide';
+  guide.textContent = T('reviewGuide');
+  listEl.append(guide);
 
   for (const item of items) {
     const card = document.createElement('div');
@@ -1209,6 +1299,12 @@ function renderReview() {
     label.textContent = item.label;
     label.title = item.label;
     card.append(label);
+
+    // 繰り返しと時刻。同じ名前の予定が2つあっても（曜日違いの登録など）どちらか分かるように
+    const when = document.createElement('span');
+    when.className = 'review-when';
+    when.textContent = `${repeatText(item)}・${timeText(item)}`;
+    card.append(when);
 
     // 集計は事実だけ。0回のときは何も言わない（沈黙が中立）。
     // 済んでから◯日後は間隔が本体なので、30日窓に関係なく実際のペースを出す
@@ -1228,29 +1324,65 @@ function renderReview() {
 
     const grid = document.createElement('div');
     grid.className = 'review-grid';
-    for (let i = 0; i < REVIEW_WEEKS * 7; i++) {
-      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-      const key = dateKey(d);
-      const tile = document.createElement('button');
-      tile.type = 'button';
-      tile.className = 'tile';
-      const rec = records[key] && records[key][item.id];
-      if (rec === 'done') tile.classList.add('done');
-      else if (rec === 'skip') tile.classList.add('skip');
-      if (reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key) {
-        tile.classList.add('selected');
+    grid.style.gridTemplateColumns = `16px repeat(${columns}, 14px)`;
+    // 左端に曜日。どの行が何曜日か、見なくても分かるように
+    DAY_NAMES.forEach((name, r) => {
+      const dow = document.createElement('span');
+      dow.className = 'review-dow';
+      dow.textContent = name;
+      dow.style.gridRow = String(r + 2);
+      dow.style.gridColumn = '1';
+      grid.append(dow);
+    });
+    const sundayOf = (w) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + w * 7);
+    for (let w = 0; w < columns; w++) {
+      const sunday = sundayOf(w);
+      // 月が変わった最初の週の上に月名。左右どちらが新しいかも、これで分かる。
+      // 左端の列は、隣の列で月が変わるなら書かない（「6月 7月」と詰まって読めないため）
+      const startsMonth = w === 0 || sunday.getMonth() !== sundayOf(w - 1).getMonth();
+      const nextStartsMonth = w + 1 < columns && sundayOf(w + 1).getMonth() !== sunday.getMonth();
+      if (startsMonth && !(w === 0 && nextStartsMonth)) {
+        const mon = document.createElement('span');
+        mon.className = 'review-month';
+        mon.textContent = sunday.toLocaleDateString(uiLocale(), { month: 'short' });
+        mon.style.gridRow = '1';
+        mon.style.gridColumn = String(w + 2);
+        grid.append(mon);
       }
-      tile.title = `${reviewDateText(key)} ${rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone')}`;
-      tile.addEventListener('click', () => {
-        const same = reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key;
-        reviewSelected = same ? null : { itemId: item.id, key };
-        // 逆方向も同じ：タイルの日を選んだら、上のカレンダーで開いていた日は閉じる
-        // （日の詳細を見る場所は一度に1つ）
-        calSelected = null;
-        calDetailFor = null;
-        renderReview();
-      });
-      grid.append(tile);
+      for (let r = 0; r < 7; r++) {
+        const d = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + r);
+        const key = dateKey(d);
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'tile';
+        tile.style.gridRow = String(r + 2);
+        tile.style.gridColumn = String(w + 2);
+        if (key > today) {
+          // まだ来ていない日。押せないし色も付かない
+          tile.classList.add('future');
+          tile.disabled = true;
+          tile.title = reviewDateText(key);
+          grid.append(tile);
+          continue;
+        }
+        if (key === today) tile.classList.add('today');
+        const rec = records[key] && records[key][item.id];
+        if (rec === 'done') tile.classList.add('done');
+        else if (rec === 'skip') tile.classList.add('skip');
+        if (reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key) {
+          tile.classList.add('selected');
+        }
+        tile.title = `${reviewDateText(key)} ${rec === 'done' ? T('statusDone') : rec === 'skip' ? T('statusSkip') : T('recNone')}`;
+        tile.addEventListener('click', () => {
+          const same = reviewSelected && reviewSelected.itemId === item.id && reviewSelected.key === key;
+          reviewSelected = same ? null : { itemId: item.id, key };
+          // 逆方向も同じ：タイルの日を選んだら、上のカレンダーで開いていた日は閉じる
+          // （日の詳細を見る場所は一度に1つ）
+          calSelected = null;
+          renderReview();
+        });
+        grid.append(tile);
+      }
     }
     card.append(grid);
 
@@ -1261,7 +1393,13 @@ function renderReview() {
     legDone.className = 'legend-swatch done';
     const legSkip = document.createElement('span');
     legSkip.className = 'legend-swatch skip';
-    legend.append(legDone, document.createTextNode(T('reviewMarkDone') + '　'), legSkip, document.createTextNode(T('reviewMarkSkip')));
+    const legFuture = document.createElement('span');
+    legFuture.className = 'legend-swatch future';
+    legend.append(
+      legDone, document.createTextNode(T('reviewMarkDone') + '　'),
+      legSkip, document.createTextNode(T('reviewMarkSkip') + '　'),
+      legFuture, document.createTextNode(T('legendFuture'))
+    );
     card.append(legend);
 
     if (reviewSelected && reviewSelected.itemId === item.id) {
@@ -1711,7 +1849,6 @@ document.getElementById('review-title').addEventListener('click', () => {
     const d = new Date(calYm.y, calYm.m - 1 + delta, 1);
     calYm = { y: d.getFullYear(), m: d.getMonth() + 1 };
     calSelected = null;
-    calDetailFor = null;
     renderCalendar();
   };
   document.getElementById('cal-prev').addEventListener('click', () => calMove(-1));

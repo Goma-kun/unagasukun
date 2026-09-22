@@ -210,8 +210,10 @@ function isArchived(item) {
 
 // カレンダーの日別表示：その日にあった予定を返す（1回だけ・保管済みを含む）。
 // やりなおしコピー（origId）は記録が元の予定に付け替えられるので出さない。
-// 記録がある予定は種類を問わず出し、記録がない予定はその日に予定されていたものだけ出す
-// （済んでから◯日後は目安日が動くので、記録がない日には出さない）
+// 記録がある予定は種類を問わず出し、記録がない予定はその日に予定されていたものだけ出す。
+// ◯日ごとは「どの日にやってもよい」予定なので、登録時の「最後にやった日」より後なら毎日出す
+// （出さないと、済ませたのに付け忘れた日に「できた」を付け直す場所が無くなる。
+// 2026-09-22 に本人が「昨日やった点滴を昨日の分として記録できない」と指摘した対応）
 function itemsOnDay(schedule, records, key) {
   const [y, m, d] = key.split('-').map(Number);
   const day = new Date(y, m - 1, d);
@@ -220,9 +222,30 @@ function itemsOnDay(schedule, records, key) {
     if (item.origId) return false;
     if (rec[item.id] !== undefined) return true;
     if (isOneOff(item)) return item.date === key;
-    if (isInterval(item)) return false;
+    if (isInterval(item)) {
+      const anchor = /^\d{4}-\d{2}-\d{2}$/.test(item.anchorDate || '') ? item.anchorDate : null;
+      return !!item.enabled && (!anchor || key > anchor);
+    }
     return !!item.enabled && isScheduledOn(item.days, day);
   });
+}
+
+// ◯日ごとの予定を「前に済ませていた」とあとから付けるときの候補日。
+// 昨日から遡って最大 maxDays 日ぶん、基準日（最後にやった日）の翌日まで。新しい順の YYYY-MM-DD。
+// 今日の予定に出ている◯日ごとのカードから使う（付け直しにふりかえりまで行かなくて済むように）
+function pastDoneCandidates(item, records, now, maxDays) {
+  if (!isInterval(item)) return [];
+  const limit = Number.isInteger(maxDays) && maxDays > 0 ? maxDays : 7;
+  const anchor = intervalAnchorKey(item, records || {}, now);
+  const out = [];
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (let i = 0; i < limit; i++) {
+    d.setDate(d.getDate() - 1);
+    const k = dateKey(d);
+    if (anchor && k <= anchor) break;
+    out.push(k);
+  }
+  return out;
 }
 
 // カレンダーの日の印。「できた」が1つでもあれば done、スキップだけなら skip、それ以外は null。

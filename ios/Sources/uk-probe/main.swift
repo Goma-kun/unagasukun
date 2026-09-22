@@ -89,6 +89,8 @@ func run(_ c: [String: Any]) -> Any {
                                          (c["windowDays"] as? NSNumber)?.intValue ?? 0) ?? NSNull()
     case "itemsOnDay":
         return Logic.itemsOnDay(sched, rec, c["key"] as? String ?? "").map(\.id)
+    case "pastDoneCandidates":
+        return Logic.pastDoneCandidates(it, rec, now, maxDays: (c["maxDays"] as? NSNumber)?.intValue ?? 7)
     case "dayMark":
         let ids = (c["ids"] as? [Any])?.compactMap { $0 as? String } ?? []
         return Logic.dayMark(rec, c["key"] as? String ?? "", ids)?.rawValue ?? NSNull()

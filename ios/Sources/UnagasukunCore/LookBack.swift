@@ -19,16 +19,35 @@ public enum LookBack {
         return cells
     }
 
-    /// ふりかえりのタイル。**先週までの完全な週**だけを並べる。
+    /// ふりかえりのタイル。先週までの `count` 週に、**今週の列を足して**並べる（右端が今週）。
     ///
-    /// 途中の週を混ぜると「今週はまだ途中なのに色が少ない」と見えてしまう。
-    /// 拡張機能 v1.4.0 で同じ理由から「先週までの完全12週」に直した経緯がある。
-    public static func tileWeeks(now: Date, count: Int = 12) -> [[Date]] {
+    /// 以前は「今週はまだ途中なのに色が少なく見える」として完全な週だけにしていたが、
+    /// それだと昨日の記録を付け直す入口がタイルに無い（2026-09-22 本人指摘）。
+    /// 今週のまだ来ていない日は画面側で点線の枠にして、四角の形は崩さない
+    public static func tileWeeks(now: Date, count: Int = 12, includeCurrent: Bool = true) -> [[Date]] {
         let thisWeekStart = Logic.day(now, plus: -Logic.jsWeekday(now))
-        return (0..<count).map { w in
+        let columns = includeCurrent ? count + 1 : count
+        return (0..<columns).map { w in
             let start = Logic.day(thisWeekStart, plus: -(count - w) * 7)
             return (0..<7).map { Logic.day(start, plus: $0) }
         }
+    }
+
+    /// タイルの上に月名を出す列。月が変わった最初の週に付ける。
+    /// 左端の列は、隣の列で月が変わるなら付けない（「6月 7月」と詰まって読めないため）。
+    /// 返すのは (列番号, その週の日曜)
+    public static func monthLabelColumns(_ weeks: [[Date]]) -> [(column: Int, sunday: Date)] {
+        let cal = Logic.calendar
+        func month(_ w: Int) -> Int { cal.component(.month, from: weeks[w][0]) }
+        var out: [(column: Int, sunday: Date)] = []
+        for w in weeks.indices {
+            let startsMonth = w == 0 || month(w) != month(w - 1)
+            let nextStartsMonth = w + 1 < weeks.count && month(w + 1) != month(w)
+            if startsMonth && !(w == 0 && nextStartsMonth) {
+                out.append((column: w, sunday: weeks[w][0]))
+            }
+        }
+        return out
     }
 
     /// タイル1マスの色分け。**「できた」だけ着色する。**

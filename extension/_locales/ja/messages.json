@@ -686,5 +686,61 @@
         "content": "$2"
       }
     }
+  },
+  "pastDoneBtn": {
+    "message": "前にできていた"
+  },
+  "pastDoneTip": {
+    "message": "済ませていたのに付け忘れた日を選んで「できた」にします"
+  },
+  "pastDoneHint": {
+    "message": "済ませていた日を押すと、その日に「できた」が付き、次の目安日が数え直されます。"
+  },
+  "pastDoneYesterday": {
+    "message": "きのう $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "pastDoneToastNext": {
+    "message": "$DATE$ にできたと記録しました。次の目安日は $NEXT$ です",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "next": {
+        "content": "$2"
+      }
+    }
+  },
+  "pastDoneToastSoon": {
+    "message": "$DATE$ にできたと記録しました。次の目安日は $NEXT$ なので、今日の予定に残ります",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "next": {
+        "content": "$2"
+      }
+    }
+  },
+  "pastDoneToastDue": {
+    "message": "$DATE$ にできたと記録しました。目安日（$NEXT$）が来ているので、今日の予定に残ります",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "next": {
+        "content": "$2"
+      }
+    }
+  },
+  "reviewGuide": {
+    "message": "マス1つが1日。縦が日〜土、横が週で、右端の列が今週です。色が付いた日が「できた」日。マスを押すと、その日の記録を付け直せます。"
+  },
+  "legendFuture": {
+    "message": "これから"
   }
 }

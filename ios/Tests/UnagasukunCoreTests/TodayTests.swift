@@ -75,16 +75,36 @@ final class LookBackTests: XCTestCase {
         XCTAssertEqual(Logic.dateKey(cells.last!!), "2026-09-30")
     }
 
-    /// 途中の週を混ぜない。最後の週は**先週**で終わる
-    func testTileWeeksEndLastWeek() {
+    /// 先週までの12週に今週の列を足す。右端の列が今週（日曜はじまり）
+    func testTileWeeksEndThisWeek() {
         let now = d(2026, 9, 21)   // 月曜
         let weeks = LookBack.tileWeeks(now: now, count: 12)
 
-        XCTAssertEqual(weeks.count, 12)
+        XCTAssertEqual(weeks.count, 13)
         XCTAssertTrue(weeks.allSatisfy { $0.count == 7 })
-        XCTAssertEqual(Logic.dateKey(weeks.last!.last!), "2026-09-19",
-                       "先週の土曜で終わる（今週は入らない）")
+        XCTAssertEqual(Logic.dateKey(weeks.last![0]), "2026-09-20", "右端の列は今週の日曜から")
+        XCTAssertEqual(Logic.dateKey(weeks.last!.last!), "2026-09-26", "今週の土曜まで（未来は画面側で点線）")
+        XCTAssertEqual(Logic.dateKey(weeks[11].last!), "2026-09-19", "その左は先週")
         XCTAssertTrue(weeks.allSatisfy { Logic.jsWeekday($0[0]) == 0 }, "各週は日曜はじまり")
+
+        let past = LookBack.tileWeeks(now: now, count: 12, includeCurrent: false)
+        XCTAssertEqual(past.count, 12)
+        XCTAssertEqual(Logic.dateKey(past.last!.last!), "2026-09-19", "今週を外せば先週の土曜で終わる")
+    }
+
+    /// 月名は月が変わった最初の週に。左端は隣で月が変わるなら付けない
+    func testMonthLabelColumns() {
+        let weeks = LookBack.tileWeeks(now: d(2026, 9, 22), count: 12)
+        // 6/28(日) はじまりの13列。6/28, 7/5, ..., 9/20
+        XCTAssertEqual(Logic.dateKey(weeks[0][0]), "2026-06-28")
+        let labels = LookBack.monthLabelColumns(weeks)
+        XCTAssertEqual(labels.map(\.column), [1, 5, 10], "6月は隣の列で7月に変わるので付けない")
+        XCTAssertEqual(labels.map { Logic.calendar.component(.month, from: $0.sunday) }, [7, 8, 9])
+
+        // 左端の週がその月の途中なら、左端にも付く
+        let weeks2 = LookBack.tileWeeks(now: d(2026, 9, 15), count: 12)
+        XCTAssertEqual(Logic.dateKey(weeks2[0][0]), "2026-06-21")
+        XCTAssertEqual(LookBack.monthLabelColumns(weeks2).map(\.column), [0, 2, 6, 11])
     }
 
     /// 未来の日は空。色を付けると「やらなかった日」に見える

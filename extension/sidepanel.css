@@ -211,16 +211,22 @@ h2.toggle:hover { color: var(--text); }
 /* ふりかえり：直近12週間のタイルグリッド（列＝週、行＝日〜土）。
    「できた」だけに色を付け、やらなかった日は強調しない（責めない） */
 .review-card .label { flex-basis: 100%; }
+/* 繰り返しと時刻（同名の予定を見分けるため。件名の直下に置く） */
+.review-when { flex-basis: 100%; font-size: 11px; color: var(--muted); margin-top: -6px; }
+/* 見方の説明（一覧の先頭に1回だけ） */
+.review-guide { font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0 0 6px; }
+/* 1列目に曜日、1行目に月名。列の数は JS が gridTemplateColumns で入れる */
 .review-grid {
   flex-basis: 100%;
   display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(7, 14px);
-  grid-auto-columns: 14px;
+  grid-template-rows: 12px repeat(7, 14px);
   gap: 3px;
   margin: 4px 0 2px;
   justify-content: start;
+  align-items: center;
 }
+.review-dow { font-size: 9px; color: var(--muted); line-height: 14px; text-align: right; padding-right: 2px; }
+.review-month { font-size: 9px; color: var(--muted); line-height: 12px; white-space: nowrap; }
 .review-grid .tile {
   width: 14px;
   height: 14px;
@@ -229,16 +235,35 @@ h2.toggle:hover { color: var(--text); }
   border-radius: 3px;
   background: #e7e9ef;
   cursor: pointer;
+  box-sizing: border-box;
 }
 .review-grid .tile.done { background: var(--done); }
 .review-grid .tile.skip { background: #b9c2d6; }
 .review-grid .tile.selected { box-shadow: 0 0 0 2px var(--navy); }
+/* まだ来ていない日：点線の枠だけ。今日：カレンダーと同じ橙の内枠 */
+.review-grid .tile.future { background: transparent; border: 1px dashed #d5dae6; cursor: default; }
+.review-grid .tile.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
 
 .review-summary { font-size: 11px; color: var(--muted); }
 .review-legend { flex-basis: 100%; font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
-.legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; box-sizing: border-box; }
 .legend-swatch.done { background: var(--done); }
 .legend-swatch.skip { background: #b9c2d6; }
+.legend-swatch.future { border: 1px dashed #b9c2d6; }
+
+/* 「前にできていた」：◯日ごとのカードで、済ませていた日を選んで付け直す */
+.redo-btn.open { color: var(--navy); border-color: var(--navy); }
+.past-done-row {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e3e6ee;
+}
+.past-done-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.past-done-chips .chip { cursor: pointer; }
+.past-done-chips .chip:hover { border-color: var(--navy); color: var(--navy); }
 
 /* 月カレンダー（日付起点のふりかえり）。色の意味はタイルグリッドと同じ */
 .cal-header {
@@ -280,7 +305,6 @@ h2.toggle:hover { color: var(--text); }
 .cal-cell.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
 .cal-cell.selected { box-shadow: 0 0 0 2px var(--navy); }
 .cal-detail-date { font-weight: 600; color: var(--navy); font-size: 12px; margin: 6px 0 4px; }
-.cal-day-row { cursor: pointer; }
 
 .review-detail {
   flex-basis: 100%;

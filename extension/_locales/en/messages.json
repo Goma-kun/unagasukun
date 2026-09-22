@@ -686,5 +686,61 @@
         "content": "$2"
       }
     }
+  },
+  "pastDoneBtn": {
+    "message": "Did it earlier"
+  },
+  "pastDoneTip": {
+    "message": "Pick a day you already did this but forgot to record"
+  },
+  "pastDoneHint": {
+    "message": "Tap the day you did it. It is recorded as done on that day and the next due date is recounted."
+  },
+  "pastDoneYesterday": {
+    "message": "Yesterday $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "pastDoneToastNext": {
+    "message": "Recorded as done on $DATE$. Next due: $NEXT$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "next": {
+        "content": "$2"
+      }
+    }
+  },
+  "pastDoneToastSoon": {
+    "message": "Recorded as done on $DATE$. Next due is $NEXT$, so it stays in today's plan",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "next": {
+        "content": "$2"
+      }
+    }
+  },
+  "pastDoneToastDue": {
+    "message": "Recorded as done on $DATE$. The due date ($NEXT$) has come, so it stays in today's plan",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "next": {
+        "content": "$2"
+      }
+    }
+  },
+  "reviewGuide": {
+    "message": "Each square is one day. Rows are Sun–Sat, columns are weeks, and the rightmost column is this week. Colored squares are days you got it done. Tap a square to fix that day's record."
+  },
+  "legendFuture": {
+    "message": "upcoming"
   }
 }

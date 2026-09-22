@@ -5,6 +5,9 @@ struct TodayView: View {
     @State private var showingAdd = false
     @State private var editing: Item? = nil
     @State private var now = Date()
+    /// 操作の結果を短く知らせる帯（「前にできていた」で次の目安日を言い切るのに使う）
+    @State private var notice: String? = nil
+    @State private var noticeTask: Task<Void, Never>? = nil
 
     private let tick = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
@@ -26,7 +29,8 @@ struct TodayView: View {
                         if !todo.isEmpty {
                             sectionTitle("今日の予定", count: todo.count)
                             ForEach(todo, id: \.item.id) { entry in
-                                TodoCard(entry: entry, now: now) { editing = $0 }
+                                TodoCard(entry: entry, now: now, onEdit: { editing = $0 },
+                                         onNotice: { show($0) })
                             }
                         }
                         if !done.isEmpty {
@@ -54,10 +58,32 @@ struct TodayView: View {
             }
         }
         .background(Theme.bg)
+        .overlay(alignment: .bottom) {
+            if let notice {
+                Text(notice)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(Theme.navy, in: RoundedRectangle(cornerRadius: 10))
+                    .padding(.horizontal, 24).padding(.bottom, 16)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
         .onReceive(tick) { now = $0 }
         .task { await model.refreshNotificationState() }
         .sheet(isPresented: $showingAdd) { PlanFormView() }
         .sheet(item: $editing) { PlanFormView(editing: $0) }
+    }
+
+    private func show(_ text: String) {
+        noticeTask?.cancel()
+        withAnimation { notice = text }
+        noticeTask = Task {
+            try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled else { return }
+            withAnimation { notice = nil }
+        }
     }
 
     /// 通知が届かない状態を黙っていない。**責めずに、直し方だけ示す**
@@ -135,8 +161,13 @@ private struct TodoCard: View {
     let now: Date
     /// 毎日の予定は登録済み一覧に出ないので、**今日のカードが編集の唯一の入口**になる
     var onEdit: (Item) -> Void
+    var onNotice: (String) -> Void = { _ in }
+    /// 「前にできていた」の候補日を開いているか
+    @State private var pastOpen = false
 
     var body: some View {
+        let pastCandidates = Logic.isInterval(entry.item) ? model.pastDoneCandidates(for: entry.item, now: now) : []
+
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(timeText)
@@ -157,10 +188,27 @@ private struct TodoCard: View {
                 .accessibilityLabel("この予定を編集")
             }
 
-            if !subtitles.isEmpty {
+            if !subtitles.isEmpty || !pastCandidates.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(subtitles, id: \.self) { chip($0) }
+                    Spacer(minLength: 0)
+                    // 済ませたのに付け忘れた日を、あとから「できた」にする入口。
+                    // ふりかえりまで行かなくても今日のカードから直せる（2026-09-22 本人指摘）
+                    if !pastCandidates.isEmpty {
+                        Button { withAnimation { pastOpen.toggle() } } label: {
+                            Text("前にできていた")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(pastOpen ? Theme.navy : Theme.muted)
+                                .padding(.horizontal, 10).padding(.vertical, 5)
+                                .overlay(Capsule().stroke(pastOpen ? Theme.navy : Theme.skip, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
+            }
+
+            if pastOpen && !pastCandidates.isEmpty {
+                pastDoneRow(pastCandidates)
             }
 
             HStack(spacing: 10) {
@@ -217,6 +265,68 @@ private struct TodoCard: View {
             .foregroundStyle(Theme.muted)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(Theme.bg, in: Capsule())
+    }
+
+    /// 「前にできていた」の候補日。昨日から新しい順に、最後にやった日の翌日まで（最大7日）
+    private func pastDoneRow(_ keys: [String]) -> some View {
+        let yesterday = Logic.dateKey(Logic.day(now, plus: -1))
+        return VStack(alignment: .leading, spacing: 8) {
+            Text("済ませていた日を押すと、その日に「できた」が付き、次の目安日が数え直されます。")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.muted)
+            FlowLayout(spacing: 8) {
+                ForEach(keys, id: \.self) { key in
+                    Button {
+                        let message = model.recordPastDone(entry.item, on: key, now: now)
+                        pastOpen = false
+                        onNotice(message)
+                    } label: {
+                        Text(dateChipText(key, yesterday: yesterday))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Theme.text)
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(Theme.bg, in: Capsule())
+                            .overlay(Capsule().stroke(Theme.skip, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.top, 4)
+        .overlay(alignment: .top) { Divider() }
+    }
+
+    private func dateChipText(_ key: String, yesterday: String) -> String {
+        let text = Logic.parseDateKey(key).map(Describe.short) ?? key
+        return key == yesterday ? "きのう \(text)" : text
+    }
+}
+
+/// 幅に収まるぶんだけ横に並べ、あふれたら次の行へ（候補日のチップ用）
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
+        for sub in subviews {
+            let size = sub.sizeThatFits(.unspecified)
+            if x > 0 && x + size.width > width { x = 0; y += rowHeight + spacing; rowHeight = 0 }
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        return CGSize(width: width == .infinity ? x : width, height: y + rowHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
+        for sub in subviews {
+            let size = sub.sizeThatFits(.unspecified)
+            if x > 0 && x + size.width > bounds.width { x = 0; y += rowHeight + spacing; rowHeight = 0 }
+            sub.place(at: CGPoint(x: bounds.minX + x, y: bounds.minY + y), proposal: .unspecified)
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }
 

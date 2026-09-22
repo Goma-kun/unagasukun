@@ -24,9 +24,10 @@ public enum Describe {
             } else {
                 parts.append("1回だけ")
             }
-        } else if let days = item.days, !days.isEmpty {
+        } else if let days = item.days, !days.isEmpty, Set(days).count < 7 {
             parts.append("毎週 " + days.sorted().map { weekdayNames[$0] }.joined(separator: "・"))
         } else {
+            // 曜日を7つ全部選んだものは「毎日」。拡張機能の repeatText() と同じ言い方にする
             parts.append("毎日")
         }
 

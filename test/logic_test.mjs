@@ -17,8 +17,8 @@ if (s === -1 || e === -1) {
   process.exit(1);
 }
 const block = src.slice(s + START.length, e);
-const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday, preNoticeSettings, preNoticeAt } = new Function(
-  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday, preNoticeSettings, preNoticeAt };`
+const { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday, preNoticeSettings, preNoticeAt, pastDoneCandidates } = new Function(
+  `${block}; return { dateKey, nextOccurrence, isTooLate, isValidEndTime, blockEndMs, streakFor, isOneOff, isAnytime, listSortMs, isInterval, intervalNoticeDays, intervalAnchorKey, intervalDueInfo, doneCountRecent, avgDoneIntervalDays, isArchived, itemsOnDay, dayMark, isStreakMilestone, allDoneToday, preNoticeSettings, preNoticeAt, pastDoneCandidates };`
 )();
 
 let pass = 0;
@@ -391,16 +391,43 @@ const all = [daily, weeklyThu, onceThu, onceArchived, redoCopy, interval30, paus
 const ids = (items) => items.map((it) => it.id);
 
 // 2026-08-13 は木曜
-eq('itemsOnDay: 木曜（記録なし）は毎日・毎週木・1回だけ・保管済みが出る',
-  ids(itemsOnDay(all, rec({}), '2026-08-13')), ['d1', 'w1', 'o1', 'o2']);
-eq('itemsOnDay: 金曜は毎日だけ',
-  ids(itemsOnDay(all, rec({}), '2026-08-14')), ['d1']);
-eq('itemsOnDay: 記録があれば種類を問わず出る（そろそろ・休止中も）',
+// ◯日ごと（i1・最後にやった日 8/1）は、それより後の日なら記録が無くても毎日出る
+eq('itemsOnDay: 木曜（記録なし）は毎日・毎週木・1回だけ・保管済み・◯日ごとが出る',
+  ids(itemsOnDay(all, rec({}), '2026-08-13')), ['d1', 'w1', 'o1', 'o2', 'i1']);
+eq('itemsOnDay: 金曜は毎日と◯日ごと',
+  ids(itemsOnDay(all, rec({}), '2026-08-14')), ['d1', 'i1']);
+eq('itemsOnDay: 記録があれば種類を問わず出る（休止中も）',
   ids(itemsOnDay(all, rec({ '2026-08-14': { i1: 'done', p1: 'skip' } }), '2026-08-14')), ['d1', 'i1', 'p1']);
 eq('itemsOnDay: やりなおしコピーは記録があっても出さない',
-  ids(itemsOnDay(all, rec({ '2026-08-13': { r1: 'done' } }), '2026-08-13')), ['d1', 'w1', 'o1', 'o2']);
+  ids(itemsOnDay(all, rec({ '2026-08-13': { r1: 'done' } }), '2026-08-13')), ['d1', 'w1', 'o1', 'o2', 'i1']);
 eq('itemsOnDay: 1回だけは日付違いの日には出ない',
   itemsOnDay([onceThu], rec({}), '2026-08-20'), []);
+eq('itemsOnDay: ◯日ごとは「最後にやった日」当日とそれ以前には出ない',
+  ids(itemsOnDay([interval30], rec({}), '2026-08-01')), []);
+eq('itemsOnDay: ◯日ごとは「最後にやった日」の翌日から出る',
+  ids(itemsOnDay([interval30], rec({}), '2026-08-02')), ['i1']);
+eq('itemsOnDay: 休止中の◯日ごとは記録が無ければ出ない',
+  ids(itemsOnDay([{ ...interval30, enabled: false }], rec({}), '2026-08-13')), []);
+eq('itemsOnDay: 最後にやった日が未設定の◯日ごとはどの日にも出る',
+  ids(itemsOnDay([{ id: 'i2', label: 'x', intervalDays: 3, enabled: true }], rec({}), '2020-01-01')), ['i2']);
+
+// ---- pastDoneCandidates（今日のカードから「前にできていた」を付ける候補日）----
+// 2026-08-13(木) 10:00 基準。i1 は 8/1 が最後 → 8/12 から遡って 8/2 まで（最大7日）
+eq('pastDoneCandidates: 昨日から新しい順に最大7日',
+  pastDoneCandidates(interval30, rec({}), thu10),
+  ['2026-08-12', '2026-08-11', '2026-08-10', '2026-08-09', '2026-08-08', '2026-08-07', '2026-08-06']);
+eq('pastDoneCandidates: 基準日の翌日で止まる',
+  pastDoneCandidates(interval30, rec({ '2026-08-10': { i1: 'done' } }), thu10), ['2026-08-12', '2026-08-11']);
+eq('pastDoneCandidates: 昨日が基準日なら候補なし',
+  pastDoneCandidates(interval30, rec({ '2026-08-12': { i1: 'done' } }), thu10), []);
+eq('pastDoneCandidates: maxDays で絞れる',
+  pastDoneCandidates(interval30, rec({}), thu10, 2), ['2026-08-12', '2026-08-11']);
+eq('pastDoneCandidates: maxDays が変なら7日',
+  pastDoneCandidates(interval30, rec({}), thu10, 0).length, 7);
+eq('pastDoneCandidates: 基準が無ければ7日ぶん',
+  pastDoneCandidates({ id: 'i2', intervalDays: 3, enabled: true }, rec({}), thu10).length, 7);
+eq('pastDoneCandidates: ◯日ごと以外は空',
+  pastDoneCandidates(daily, rec({}), thu10), []);
 
 // 保管済みの1回だけ予定にはアラームを張らない（nextOccurrence は過去日なので null）
 eq('archived: 過去の1回だけはnextOccurrenceがnull',
