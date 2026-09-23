@@ -89,14 +89,14 @@ struct TodayView: View {
     /// 通知が届かない状態を黙っていない。**責めずに、直し方だけ示す**
     private var notificationOffBanner: some View {
         Button {
-            Platform.openNotificationSettings()
+            Task { await model.enableNotifications() }
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "bell.slash")
                 Text("通知がオフのため、時間が来てもお知らせできません")
                     .font(.system(size: 13))
                 Spacer(minLength: 0)
-                Text("設定を開く").font(.system(size: 13, weight: .medium))
+                Text("通知をオンにする").font(.system(size: 13, weight: .medium))
             }
             .foregroundStyle(Theme.text)
             .padding(.horizontal, 16).padding(.vertical, 10)

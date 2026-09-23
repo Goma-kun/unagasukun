@@ -73,7 +73,7 @@ struct SettingsView: View {
 
                 if !model.notificationsWorking {
                     Section {
-                        Button("通知の設定を開く") { Platform.openNotificationSettings() }
+                        Button("通知をオンにする") { Task { await model.enableNotifications() } }
                     } footer: {
                         Text("通知がオフのため、時間が来てもお知らせできません。")
                     }

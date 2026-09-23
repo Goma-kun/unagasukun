@@ -179,6 +179,19 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// 通知をオンにする導線。**まだ聞いていなければ聞く。断られていたら設定を開く。**
+    /// macOS は一度 requestAuthorization しないと、システム設定の通知一覧にアプリ自体が並ばない。
+    /// 「設定を開く」だけだと、行っても何も無い画面に着く
+    func enableNotifications() async {
+        if await notifier.authorizationStatus() == .notDetermined {
+            _ = await notifier.requestPermission()
+            reschedule()
+        } else {
+            Platform.openNotificationSettings()
+        }
+        await refreshNotificationState()
+    }
+
     /// 通知が届く状態かを見に行く。アプリが前面に戻るたびに呼ぶ
     /// （設定アプリで切られていることがあるため）
     func refreshNotificationState() async {
