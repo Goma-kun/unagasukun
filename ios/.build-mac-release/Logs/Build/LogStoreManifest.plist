@@ -48,48 +48,6 @@
 			<key>uniqueIdentifier</key>
 			<string>A97DF140-2AA5-4427-A7BB-9AE1E1DFD204</string>
 		</dict>
-		<key>FEA9336A-1B63-4056-9F28-B384DBD76473</key>
-		<dict>
-			<key>className</key>
-			<string>IDECommandLineBuildLog</string>
-			<key>documentTypeString</key>
-			<string>&lt;nil&gt;</string>
-			<key>domainType</key>
-			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
-			<key>fileName</key>
-			<string>FEA9336A-1B63-4056-9F28-B384DBD76473.xcactivitylog</string>
-			<key>hasPrimaryLog</key>
-			<true/>
-			<key>primaryObservable</key>
-			<dict>
-				<key>highLevelStatus</key>
-				<string>W</string>
-				<key>totalNumberOfAnalyzerIssues</key>
-				<integer>0</integer>
-				<key>totalNumberOfErrors</key>
-				<integer>0</integer>
-				<key>totalNumberOfTestFailures</key>
-				<integer>0</integer>
-				<key>totalNumberOfWarnings</key>
-				<integer>1</integer>
-			</dict>
-			<key>schemeIdentifier-containerName</key>
-			<string>Unagasukun project</string>
-			<key>schemeIdentifier-schemeName</key>
-			<string>Unagasukun (Mac)</string>
-			<key>schemeIdentifier-sharedScheme</key>
-			<integer>1</integer>
-			<key>signature</key>
-			<string>Building project Unagasukun with scheme Unagasukun (Mac) and configuration Release</string>
-			<key>timeStartedRecording</key>
-			<real>811845221.24693298</real>
-			<key>timeStoppedRecording</key>
-			<real>811845231.006935</real>
-			<key>title</key>
-			<string>Building project Unagasukun with scheme Unagasukun (Mac) and configuration Release</string>
-			<key>uniqueIdentifier</key>
-			<string>FEA9336A-1B63-4056-9F28-B384DBD76473</string>
-		</dict>
 	</dict>
 </dict>
 </plist>
