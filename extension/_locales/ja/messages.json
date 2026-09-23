@@ -784,5 +784,11 @@
   },
   "intervalGapNone": {
     "message": "毎日"
+  },
+  "exportButton": {
+    "message": "データを書き出す"
+  },
+  "exportHint": {
+    "message": "予定と記録を1つのファイルに保存します。iPhone・Mac アプリの 設定 →「拡張機能のデータを取り込む」で読み込めます。"
   }
 }

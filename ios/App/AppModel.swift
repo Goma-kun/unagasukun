@@ -85,6 +85,26 @@ final class AppModel: ObservableObject {
         commit()
     }
 
+    // MARK: - 拡張機能からの取り込み
+
+    /// 拡張機能が書き出した JSON を取り込む。戻り値は画面に出す結果の文
+    func importExtensionFile(_ url: URL) -> String {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let file = try JSONDecoder().decode(ExportFile.self, from: try Data(contentsOf: url))
+            let before = (snapshot.schedule.count, snapshot.records.count)
+            try? store?.saveBackup(snapshot)          // 取り込む前の中身も控えに残す
+            snapshot = Merge.importing(local: snapshot, imported: file)
+            commit()
+            let added = snapshot.schedule.count - before.0
+            let days = snapshot.records.count - before.1
+            return "予定を\(added)件、記録を\(days)日ぶん取り込みました。ほかの端末にも数秒で揃います。"
+        } catch {
+            return "読み込めませんでした。うながすくん（拡張機能）の「データを書き出す」で作ったファイルを選んでください。"
+        }
+    }
+
     /// 変更のたびに上げる。続けて操作されたときに何度も上げないよう、少し待ってからにする
     private func schedulePush() {
         guard syncEnabled else { return }

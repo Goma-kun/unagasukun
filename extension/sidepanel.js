@@ -1883,6 +1883,19 @@ document.getElementById('review-title').addEventListener('click', () => {
   // 「時刻を決めない」の切り替えで時刻欄⇔目安欄を入れ替える
   document.getElementById('input-anytime').addEventListener('change', syncAnytime);
   // 予告のオン/オフ
+  // 拡張 → iPhone/Mac アプリへの引っ越し用。予定と記録をそのままの形で1ファイルに落とす
+  // （アプリ側は同じ JSON の形を読むので、変換はしない）
+  document.getElementById('export-data').addEventListener('click', async () => {
+    const data = await store.get(['schedule', 'records', 'notes']);
+    const body = { app: 'unagasukun', version: chrome.runtime.getManifest().version, exportedAt: Date.now(),
+                   schedule: data.schedule || [], records: data.records || {}, notes: data.notes || {} };
+    const blob = new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `unagasukun-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
   document.getElementById('input-pre-notice').addEventListener('change', async (e) => {
     settings = { ...settings, preNoticeOn: e.target.checked };
     await saveSettings();

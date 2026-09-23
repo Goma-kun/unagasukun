@@ -26,17 +26,40 @@ public struct Item: Codable, Equatable, Identifiable, Sendable {
     /// やりなおしコピー。記録は元の予定に付くので集計から外す
     public var origId: String?
     public var endTime: String?
+    /// 詳細メモ。拡張機能が持つ項目。アプリではまだ表示しないが、**取り込んで捨てない**
+    public var detail: String?
+
+    /// 拡張機能の JSON は false のときにキーごと省くことがある（`anytime` `archived` `enabled`）。
+    /// 素の Codable だと欠けたキーで丸ごと失敗するので、無ければ既定値で読む
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        label = try c.decodeIfPresent(String.self, forKey: .label) ?? ""
+        time = try c.decodeIfPresent(String.self, forKey: .time)
+        date = try c.decodeIfPresent(String.self, forKey: .date)
+        days = try c.decodeIfPresent([Int].self, forKey: .days)
+        enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
+        anytime = try c.decodeIfPresent(Bool.self, forKey: .anytime) ?? false
+        targetMin = try c.decodeIfPresent(Int.self, forKey: .targetMin)
+        intervalDays = try c.decodeIfPresent(Int.self, forKey: .intervalDays)
+        noticeDays = try c.decodeIfPresent(Int.self, forKey: .noticeDays)
+        anchorDate = try c.decodeIfPresent(String.self, forKey: .anchorDate)
+        archived = try c.decodeIfPresent(Bool.self, forKey: .archived) ?? false
+        origId = try c.decodeIfPresent(String.self, forKey: .origId)
+        endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
+        detail = try c.decodeIfPresent(String.self, forKey: .detail)
+    }
 
     public init(
         id: String, label: String = "", time: String? = nil, date: String? = nil,
         days: [Int]? = nil, enabled: Bool = true, anytime: Bool = false, targetMin: Int? = nil,
         intervalDays: Int? = nil, noticeDays: Int? = nil, anchorDate: String? = nil,
-        archived: Bool = false, origId: String? = nil, endTime: String? = nil
+        archived: Bool = false, origId: String? = nil, endTime: String? = nil, detail: String? = nil
     ) {
         self.id = id; self.label = label; self.time = time; self.date = date
         self.days = days; self.enabled = enabled; self.anytime = anytime; self.targetMin = targetMin
         self.intervalDays = intervalDays; self.noticeDays = noticeDays; self.anchorDate = anchorDate
-        self.archived = archived; self.origId = origId; self.endTime = endTime
+        self.archived = archived; self.origId = origId; self.endTime = endTime; self.detail = detail
     }
 }
 

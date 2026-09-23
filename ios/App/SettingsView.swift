@@ -1,9 +1,12 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
 
     @State private var confirmingRestore = false
+    @State private var importing = false
+    @State private var importResult: String? = nil
 
     private let minuteChoices = [3, 5, 10, 15, 30, 60]
 
@@ -58,6 +61,18 @@ struct SettingsView: View {
                          : "予定の時刻にだけお知らせします。")
                 }
 
+                Section {
+                    Button("拡張機能のデータを取り込む") { importing = true }
+                    if let r = importResult {
+                        Text(r).font(.system(size: 13)).foregroundStyle(Theme.muted)
+                    }
+                } header: {
+                    Text("Chrome 拡張版から")
+                } footer: {
+                    Text("拡張機能の 設定 →「データを書き出す」で作ったファイルを選びます。"
+                         + "同じ予定はこちらを残し、記録は足し合わせます。取り込む前の中身は控えに残ります。")
+                }
+
                 if model.backupCount() > 0 {
                     Section {
                         Button("いちばん新しい控えに戻す") { confirmingRestore = true }
@@ -82,6 +97,12 @@ struct SettingsView: View {
         }
         .background(Theme.bg)
         .task { await model.syncNow() }
+        .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
+            switch result {
+            case .success(let url): importResult = model.importExtensionFile(url)
+            case .failure: importResult = nil
+            }
+        }
         .confirmationDialog("いちばん新しい控えに戻しますか？", isPresented: $confirmingRestore,
                             titleVisibility: .visible) {
             Button("戻す", role: .destructive) { model.restoreNewestBackup() }

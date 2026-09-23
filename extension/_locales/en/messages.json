@@ -784,5 +784,11 @@
   },
   "intervalGapNone": {
     "message": "every day"
+  },
+  "exportButton": {
+    "message": "Export data"
+  },
+  "exportHint": {
+    "message": "Saves your plans and records as one file. Load it from Settings → \"Import from the Chrome extension\" in the iPhone/Mac app."
   }
 }

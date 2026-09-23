@@ -58,6 +58,34 @@ public enum Merge {
     }
 }
 
+/// 拡張機能から書き出したファイルの形。`schedule` と `records` だけ読む（`notes` などは読み飛ばす）
+public struct ExportFile: Codable {
+    public var schedule: [Item]
+    public var records: Records
+}
+
+extension Merge {
+    /// 拡張機能から取り込む。**同期の Merge とは違い、予定は「足す」。**
+    /// 同期は「新しいほうの予定一覧を丸ごと採る」（消した予定を復活させないため）が、
+    /// 取り込みでそれをやると、手元が空でないときに片方が丸ごと消える。
+    /// - 手元に同じ ID があれば手元を残す（手元で直した内容を上書きしない）
+    /// - 記録は同期と同じく足し合わせ、同じ日は「できた」を残す
+    public static func importing(local: Snapshot, imported: ExportFile) -> Snapshot {
+        let have = Set(local.schedule.map(\.id))
+        var schedule = local.schedule
+        schedule += imported.schedule.filter { !have.contains($0.id) }
+
+        var records = local.records
+        for (day, marks) in imported.records {
+            var merged = records[day] ?? [:]
+            for (id, mark) in marks where merged[id] != .done { merged[id] = mark }
+            records[day] = merged
+        }
+        return Snapshot(schedule: schedule, records: records,
+                        updatedAt: Date().timeIntervalSince1970 * 1000)
+    }
+}
+
 /// 端末のディスクに置く。Application Support の中の1ファイル。
 public final class SnapshotStore {
     private let url: URL

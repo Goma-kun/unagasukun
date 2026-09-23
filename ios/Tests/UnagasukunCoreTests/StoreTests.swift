@@ -159,3 +159,42 @@ final class BackupTests: XCTestCase {
         XCTAssertTrue(store.backups().isEmpty, "無い状態でも落ちない")
     }
 }
+
+/// 拡張機能からの取り込み。片方が丸ごと消える形になっていないこと
+final class ImportTests: XCTestCase {
+
+    /// 拡張の JSON は false のキーを省くことがある。それでも読める
+    func testDecodesExtensionJSONWithMissingBools() throws {
+        let json = """
+        {"schedule":[{"id":"a","label":"薬","time":"08:00","days":[]},
+                     {"id":"b","label":"点滴","time":"09:00","intervalDays":4,"anchorDate":"2026-09-21","detail":"左脚"}],
+         "records":{"2026-09-22":{"a":"done"}},
+         "notes":{"2026-09-22":{"a":"ok"}}}
+        """
+        let f = try JSONDecoder().decode(ExportFile.self, from: Data(json.utf8))
+        XCTAssertEqual(f.schedule.count, 2)
+        XCTAssertTrue(f.schedule[0].enabled, "無ければ有効")
+        XCTAssertFalse(f.schedule[0].anytime)
+        XCTAssertEqual(f.schedule[1].intervalDays, 4)
+        XCTAssertEqual(f.schedule[1].detail, "左脚", "詳細メモを捨てない")
+    }
+
+    func testImportAddsMissingItemsAndKeepsLocalOnes() {
+        let local = Snapshot(schedule: [Item(id: "a", label: "手元で直した名前")],
+                             records: ["2026-09-20": ["a": .skip]], updatedAt: 1)
+        let imported = ExportFile(schedule: [Item(id: "a", label: "拡張の名前"), Item(id: "b", label: "点滴")],
+                                  records: ["2026-09-20": ["a": .done], "2026-09-21": ["b": .done]])
+        let m = Merge.importing(local: local, imported: imported)
+        XCTAssertEqual(m.schedule.map(\.id), ["a", "b"])
+        XCTAssertEqual(m.schedule[0].label, "手元で直した名前", "同じIDは手元を残す")
+        XCTAssertEqual(m.records["2026-09-20"]?["a"], .done, "同じ日は「できた」が残る")
+        XCTAssertEqual(m.records["2026-09-21"]?["b"], .done)
+    }
+
+    func testImportIntoEmptyTakesEverything() {
+        let imported = ExportFile(schedule: [Item(id: "x"), Item(id: "y")], records: ["d": ["x": .done]])
+        let m = Merge.importing(local: Snapshot(), imported: imported)
+        XCTAssertEqual(m.schedule.count, 2)
+        XCTAssertEqual(m.records.count, 1)
+    }
+}
