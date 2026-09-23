@@ -2,8 +2,14 @@ import SwiftUI
 
 struct TodayView: View {
     @EnvironmentObject private var model: AppModel
-    @State private var showingAdd = false
-    @State private var editing: Item? = nil
+    /// 開くフォーム。追加と編集で .sheet を2つ付けると、片方が開いた瞬間に閉じることがあるので1つにまとめる
+    enum FormTarget: Identifiable {
+        case add
+        case edit(Item)
+        var id: String { if case .edit(let i) = self { return i.id } else { return "add" } }
+        var item: Item? { if case .edit(let i) = self { return i } else { return nil } }
+    }
+    @State private var form: FormTarget? = nil
     @State private var now = Date()
     /// 操作の結果を短く知らせる帯（「前にできていた」で次の目安日を言い切るのに使う）
     @State private var notice: String? = nil
@@ -29,7 +35,7 @@ struct TodayView: View {
                         if !todo.isEmpty {
                             sectionTitle("今日の予定", count: todo.count)
                             ForEach(todo, id: \.item.id) { entry in
-                                TodoCard(entry: entry, now: now, onEdit: { editing = $0 },
+                                TodoCard(entry: entry, now: now, onEdit: { form = .edit($0) },
                                          onNotice: { show($0) })
                             }
                         }
@@ -49,7 +55,7 @@ struct TodayView: View {
                             .foregroundStyle(Theme.skip)
                         ForEach(registered, id: \.id) { item in
                             RegisteredRow(item: item, detail: model.describe(item, now: now)) {
-                                editing = item
+                                form = .edit(item)
                             }
                         }
                     }
@@ -72,8 +78,7 @@ struct TodayView: View {
         }
         .onReceive(tick) { now = $0 }
         .task { await model.refreshNotificationState() }
-        .sheet(isPresented: $showingAdd) { PlanFormView() }
-        .sheet(item: $editing) { PlanFormView(editing: $0) }
+        .sheet(item: $form) { PlanFormView(editing: $0.item) }
     }
 
     private func show(_ text: String) {
@@ -110,7 +115,7 @@ struct TodayView: View {
             Text("うながすくん")
                 .font(.system(size: 17, weight: .semibold))
             Spacer()
-            Button { showingAdd = true } label: {
+            Button { form = .add } label: {
                 Label("追加", systemImage: "plus")
                     .labelStyle(.titleAndIcon)
                     .font(.system(size: 14, weight: .medium))
@@ -169,24 +174,27 @@ private struct TodoCard: View {
         let pastCandidates = Logic.isInterval(entry.item) ? model.pastDoneCandidates(for: entry.item, now: now) : []
 
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(timeText)
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Theme.tint)
-                    .monospacedDigit()
-                Text(entry.item.label)
-                    .font(.system(size: 16))
-                    .foregroundStyle(Theme.text)
-                Spacer(minLength: 0)
-                Button { onEdit(entry.item) } label: {
+            // 見出し（時刻＋名前）を押しても編集に入れる。⋯ だけだと当たりが小さく、
+            // 押したつもりで押せていないことがあった（本人報告・2026-09-23）
+            Button { onEdit(entry.item) } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Text(timeText)
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Theme.tint)
+                        .monospacedDigit()
+                    Text(entry.item.label)
+                        .font(.system(size: 16))
+                        .foregroundStyle(Theme.text)
+                    Spacer(minLength: 0)
                     Image(systemName: "ellipsis")
                         .font(.system(size: 15))
                         .foregroundStyle(Theme.muted)
-                        .frame(width: 32, height: 28)
+                        .frame(width: 44, height: 44)   // Apple の最小の当たり
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("この予定を編集")
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("この予定を編集")
 
             if !subtitles.isEmpty || !pastCandidates.isEmpty {
                 HStack(spacing: 8) {

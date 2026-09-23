@@ -46,8 +46,9 @@ function T(key, subs) {
 
 // 英語の複数形（1 day / 2 days）を正しく出すための引き分け。
 // n=1 のときだけ「◯◯1」という単数形キーを使う（ja は両方同じ文言）
-function Tn(key, n) {
-  return n === 1 ? T(key + '1') : T(key, [n]);
+function Tn(key, n, extra = []) {
+  // 単数形のキーでは $1 から extra が入る。複数形では n が $1、extra は $2 以降
+  return n === 1 ? T(key + '1', extra) : T(key, [n, ...extra]);
 }
 
 // 月名などを出すときの言語。拡張なら Chrome の表示言語、プレビューなら ?lang= に合わせる
@@ -600,13 +601,15 @@ function isTodayItem(item) {
 function buildIntervalBadge(item, now) {
   const info = intervalDueInfo(item, records, now);
   const s = document.createElement('span');
+  // 「あと2日」だけでは次がいつか分からないので、日付を先に出す（本人指摘・2026-09-23）
+  const dueText = shortDateText(dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + info.daysUntil)));
   if (info.daysUntil > intervalNoticeDays(item)) {
-    // まだ先（お知らせ期間の外）は「そろそろ」と言わず、日数だけ淡く出す
+    // まだ先（お知らせ期間の外）は「そろそろ」と言わず、日付と日数だけ淡く出す
     s.className = 'status since';
-    s.textContent = Tn('inDays', info.daysUntil);
+    s.textContent = Tn('inDays', info.daysUntil, [dueText]);
   } else if (info.daysUntil > 0) {
     s.className = 'status soon';
-    s.textContent = Tn('dueSoon', info.daysUntil);
+    s.textContent = Tn('dueSoon', info.daysUntil, [dueText]);
   } else if (info.daysUntil === 0) {
     s.className = 'status soon';
     s.textContent = T('dueToday');

@@ -452,10 +452,13 @@
     }
   },
   "dueSoon": {
-    "message": "そろそろ（あと$N$日）",
+    "message": "そろそろ（$DATE$・あと$N$日）",
     "placeholders": {
       "n": {
         "content": "$1"
+      },
+      "date": {
+        "content": "$2"
       }
     }
   },
@@ -474,10 +477,13 @@
     "message": "「最後にやった日」は今日までの日付を選んでください"
   },
   "inDays": {
-    "message": "あと$N$日",
+    "message": "$DATE$・あと$N$日",
     "placeholders": {
       "n": {
         "content": "$1"
+      },
+      "date": {
+        "content": "$2"
       }
     }
   },
@@ -485,10 +491,20 @@
     "message": "1日前"
   },
   "dueSoon1": {
-    "message": "そろそろ（あと1日）"
+    "message": "そろそろ（$DATE$・あと1日）",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
   },
   "inDays1": {
-    "message": "あと1日"
+    "message": "$DATE$・あと1日",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
   },
   "sinceDone1": {
     "message": "最後にやってから1日"

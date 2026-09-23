@@ -452,10 +452,13 @@
     }
   },
   "dueSoon": {
-    "message": "Coming up (in $N$ days)",
+    "message": "Coming up ($DATE$ · in $N$ days)",
     "placeholders": {
       "n": {
         "content": "$1"
+      },
+      "date": {
+        "content": "$2"
       }
     }
   },
@@ -474,10 +477,13 @@
     "message": "“Last done on” must be today or earlier"
   },
   "inDays": {
-    "message": "in $N$ days",
+    "message": "$DATE$ · in $N$ days",
     "placeholders": {
       "n": {
         "content": "$1"
+      },
+      "date": {
+        "content": "$2"
       }
     }
   },
@@ -485,10 +491,20 @@
     "message": "1 day before"
   },
   "dueSoon1": {
-    "message": "Coming up (in 1 day)"
+    "message": "Coming up ($DATE$ · in 1 day)",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
   },
   "inDays1": {
-    "message": "in 1 day"
+    "message": "$DATE$ · in 1 day",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
   },
   "sinceDone1": {
     "message": "1 day since last done"

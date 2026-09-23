@@ -156,7 +156,10 @@ final class AppModel: ObservableObject {
     func nextDueText(for item: Item, now: Date = Date()) -> String? {
         guard Logic.isInterval(item), let info = Logic.intervalDueInfo(item, snapshot.records, now)
         else { return nil }
-        if info.daysUntil > 0 { return "あと\(info.daysUntil)日" }
+        // 「あと2日」だけでは次がいつか分からないので、日付を先に出す（拡張と同じ並び）
+        if info.daysUntil > 0 {
+            return "\(Describe.short(Logic.day(now, plus: info.daysUntil)))・あと\(info.daysUntil)日"
+        }
         if info.daysUntil == 0 { return "今日が目安" }
         return "\(-info.daysUntil)日すぎています"
     }
