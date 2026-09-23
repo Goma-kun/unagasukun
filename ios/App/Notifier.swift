@@ -45,16 +45,10 @@ struct Notifier {
             case .pre:
                 content.title = "まもなく「\(p.title)」の時間です"
             }
-            // 本人が選んだのは macOS 内蔵の「Glass」。Mac はそのまま使う（システムの音は名前で引ける）。
-            // Apple の音ファイルをアプリに同梱して配ることはできないので、iPhone は Glass に似せた自作（App/unagasu.caf）。
-            // 予告は同じ音色で短く控えめ（本番と聞き分けられるように）
-            #if os(macOS)
-            let mainSound = "Glass.aiff"
-            #else
-            let mainSound = "unagasu.caf"
-            #endif
-            content.sound = UNNotificationSound(named: UNNotificationSoundName(
-                p.kind == .pre ? "unagasu-pre.caf" : mainSound))
+            // うながすくん独自の音（App/unagasu.caf・自作）。G・D・F・C の和音を12弦ギター風＋ピアノ風で合成し、
+            // 共鳴しない残響を薄くかけたもの。本人が「これがいい」と選んだ（2026-09-23）。
+            // 予告も同じ音（短い版は「短かった」とのことで、同じにした）
+            content.sound = UNNotificationSound(named: UNNotificationSoundName("unagasu.caf"))
 
             let parts = Calendar.current.dateComponents(
                 [.year, .month, .day, .hour, .minute], from: p.fireAt
