@@ -59,7 +59,7 @@ struct PlanFormView: View {
                 Section {
                     Text(preview)
                         .font(.system(size: 14))
-                        .foregroundStyle(Theme.navy)
+                        .foregroundStyle(Theme.tint)
                 }
 
                 if editing != nil {

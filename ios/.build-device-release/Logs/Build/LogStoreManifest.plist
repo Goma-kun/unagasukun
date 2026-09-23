@@ -6,7 +6,7 @@
 	<integer>12</integer>
 	<key>logs</key>
 	<dict>
-		<key>9D2865F8-6D7A-4E2E-9DB5-FA4B0F933729</key>
+		<key>C1EC1E92-3488-4AD2-935F-4A0C9AFBFE5A</key>
 		<dict>
 			<key>className</key>
 			<string>IDECommandLineBuildLog</string>
@@ -15,7 +15,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
 			<key>fileName</key>
-			<string>9D2865F8-6D7A-4E2E-9DB5-FA4B0F933729.xcactivitylog</string>
+			<string>C1EC1E92-3488-4AD2-935F-4A0C9AFBFE5A.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -40,13 +40,13 @@
 			<key>signature</key>
 			<string>Building project Unagasukun with scheme Unagasukun and configuration Release</string>
 			<key>timeStartedRecording</key>
-			<real>811844466.17571199</real>
+			<real>811845259.85267603</real>
 			<key>timeStoppedRecording</key>
-			<real>811844496.798738</real>
+			<real>811845267.55209994</real>
 			<key>title</key>
 			<string>Building project Unagasukun with scheme Unagasukun and configuration Release</string>
 			<key>uniqueIdentifier</key>
-			<string>9D2865F8-6D7A-4E2E-9DB5-FA4B0F933729</string>
+			<string>C1EC1E92-3488-4AD2-935F-4A0C9AFBFE5A</string>
 		</dict>
 		<key>F898A793-DE30-479D-B948-9559ABD4A183</key>
 		<dict>

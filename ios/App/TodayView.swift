@@ -172,7 +172,7 @@ private struct TodoCard: View {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(timeText)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Theme.navy)
+                    .foregroundStyle(Theme.tint)
                     .monospacedDigit()
                 Text(entry.item.label)
                     .font(.system(size: 16))

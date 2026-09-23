@@ -92,7 +92,7 @@
       },
       {
         "comment": "",
-        "key": "通知の設定を開く",
+        "key": "通知をオンにする",
         "location": {
           "startingColumn": 32,
           "startingLine": 76

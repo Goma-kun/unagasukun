@@ -20,7 +20,7 @@
       },
       {
         "comment": "",
-        "key": "設定を開く",
+        "key": "通知をオンにする",
         "location": {
           "startingColumn": 22,
           "startingLine": 99

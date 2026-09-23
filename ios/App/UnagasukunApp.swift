@@ -24,7 +24,7 @@ struct UnagasukunApp: App {
                     .tabItem { Label("設定", systemImage: "gearshape") }
             }
                 .environmentObject(model)
-                .tint(Theme.navy)
+                .tint(Theme.tint)
                 #if os(macOS)
                 .frame(minWidth: 380, minHeight: 560)
                 #endif

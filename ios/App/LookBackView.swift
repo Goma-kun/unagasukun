@@ -55,7 +55,7 @@ struct LookBackView: View {
                 .disabled(isCurrentMonth)
                 .opacity(isCurrentMonth ? 0.25 : 1)
             }
-            .foregroundStyle(Theme.navy)
+            .foregroundStyle(Theme.tint)
 
             HStack(spacing: 0) {
                 ForEach(0..<7, id: \.self) { i in
@@ -92,7 +92,7 @@ struct LookBackView: View {
                 .background(cellBackground(mark: mark), in: RoundedRectangle(cornerRadius: 8))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Theme.navy, lineWidth: isSelected ? 2 : 0)
+                        .stroke(Theme.tint, lineWidth: isSelected ? 2 : 0)
                 )
         }
         .buttonStyle(.plain)
@@ -258,7 +258,7 @@ struct LookBackView: View {
                                     .frame(width: tileSize, height: tileSize)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 2)
-                                            .stroke(key == todayKey ? Theme.accent : (key == selected ? Theme.navy : .clear),
+                                            .stroke(key == todayKey ? Theme.accent : (key == selected ? Theme.tint : .clear),
                                                     lineWidth: 1.5)
                                     )
                             }
