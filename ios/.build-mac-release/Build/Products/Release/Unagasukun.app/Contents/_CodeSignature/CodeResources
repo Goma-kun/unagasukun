@@ -3,9 +3,32 @@
 <plist version="1.0">
 <dict>
 	<key>files</key>
-	<dict/>
+	<dict>
+		<key>Resources/unagasu-pre.caf</key>
+		<data>
+		qhvGXl6ir/jNLeBjN3heOnUvAkM=
+		</data>
+		<key>Resources/unagasu.caf</key>
+		<data>
+		bkiU+e5SCxuVu5f8TuD0pUmw7tU=
+		</data>
+	</dict>
 	<key>files2</key>
 	<dict>
+		<key>Resources/unagasu-pre.caf</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			vg4t7/m1TX/lxlRJVyRr8QV3k21DM97RFK97kvieJAk=
+			</data>
+		</dict>
+		<key>Resources/unagasu.caf</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			TxL8WMTIGsY/ociMu4AcPj/qTbAkeGZhb/zoOchArws=
+			</data>
+		</dict>
 		<key>embedded.provisionprofile</key>
 		<dict>
 			<key>hash2</key>

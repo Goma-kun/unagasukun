@@ -45,7 +45,10 @@ struct Notifier {
             case .pre:
                 content.title = "まもなく「\(p.title)」の時間です"
             }
-            content.sound = .default
+            // 既定の「ピコン」だと、ほかのアプリと聞き分けられない。
+            // うながすくん専用の音（App/unagasu*.caf・自作）。本番は上がる2音、予告は1音
+            content.sound = UNNotificationSound(named: UNNotificationSoundName(
+                p.kind == .pre ? "unagasu-pre.caf" : "unagasu.caf"))
 
             let parts = Calendar.current.dateComponents(
                 [.year, .month, .day, .hour, .minute], from: p.fireAt

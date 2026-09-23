@@ -28,6 +28,14 @@
 		<data>
 		KulCjXB2Cf+uHpKv2W/tZ+dL4FY=
 		</data>
+		<key>unagasu-pre.caf</key>
+		<data>
+		qhvGXl6ir/jNLeBjN3heOnUvAkM=
+		</data>
+		<key>unagasu.caf</key>
+		<data>
+		bkiU+e5SCxuVu5f8TuD0pUmw7tU=
+		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
@@ -57,6 +65,20 @@
 			<key>hash2</key>
 			<data>
 			obrDmYsnuR60SzBGgc/jTy24bW68uaXjxd8TSVZJwss=
+			</data>
+		</dict>
+		<key>unagasu-pre.caf</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			vg4t7/m1TX/lxlRJVyRr8QV3k21DM97RFK97kvieJAk=
+			</data>
+		</dict>
+		<key>unagasu.caf</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			TxL8WMTIGsY/ociMu4AcPj/qTbAkeGZhb/zoOchArws=
 			</data>
 		</dict>
 	</dict>
