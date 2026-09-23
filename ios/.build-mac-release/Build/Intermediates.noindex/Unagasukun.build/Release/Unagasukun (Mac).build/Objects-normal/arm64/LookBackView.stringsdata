@@ -1,0 +1,88 @@
+{
+  "source": "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/LookBackView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "ふりかえり",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 15
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "この日の予定はありません",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "押すと記録が付き、もう一度押すと取り消せます。",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "ここには、できた日が色で並びます。",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "これまで（今週までの13週）",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "マス1つが1日。縦が日〜土、横が週で、右端の列が今週です。色が付いた日が「できた」日。マスを押すと、その日の記録を上のカレンダーで付け直せます。",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld回",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld月",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "これから",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 283
+        }
+      }
+    ]
+  },
+  "version": 1
+}

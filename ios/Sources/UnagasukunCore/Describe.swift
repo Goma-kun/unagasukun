@@ -13,7 +13,7 @@ public enum Describe {
         var parts: [String] = []
 
         if Logic.isInterval(item) {
-            parts.append("\(item.intervalDays ?? 0)日ごと")
+            parts.append(rhythm(item.intervalDays ?? 0))
             if let info = Logic.intervalDueInfo(item, records, now) {
                 let due = Logic.day(now, plus: max(0, info.daysUntil))
                 parts.append("次は \(short(due))")
@@ -39,6 +39,13 @@ public enum Describe {
         }
 
         return parts.joined(separator: "・")
+    }
+
+    /// 「3日に1回（間は2日空きます）」。
+    /// 「3日ごと」は読みが1つでも、「3日おき」「3日空けて」で考える人には1日ずれて伝わる。
+    /// **拡張機能の `intervalText` / `intervalGap` と同じ言い方**にしてある
+    public static func rhythm(_ n: Int) -> String {
+        n > 1 ? "\(n)日に1回（間は\(n - 1)日空きます）" : "1日に1回（毎日）"
     }
 
     /// 「9/24(木)」

@@ -120,3 +120,19 @@ final class LookBackTests: XCTestCase {
         XCTAssertEqual(LookBack.tileItems(schedule).map(\.id), ["daily"])
     }
 }
+
+/// 「◯日ごと」の言い方。間の日数で数える人にもずれて伝わらないこと
+final class DescribeTests: XCTestCase {
+    func testRhythmSaysOncePerNDaysAndGap() {
+        XCTAssertEqual(Describe.rhythm(4), "4日に1回（間は3日空きます）", "ごまくんの点滴：月→金")
+        XCTAssertEqual(Describe.rhythm(3), "3日に1回（間は2日空きます）")
+        XCTAssertEqual(Describe.rhythm(1), "1日に1回（毎日）")
+    }
+
+    func testScheduleTextUsesRhythm() {
+        let item = Item(id: "a", label: "点滴", time: "09:00", intervalDays: 4, anchorDate: "2026-09-21")
+        var c = DateComponents(); c.year = 2026; c.month = 9; c.day = 22; c.hour = 10
+        let now = Calendar.current.date(from: c)!
+        XCTAssertEqual(Describe.schedule(item, now: now), "4日に1回（間は3日空きます）・次は 9/25(金)・09:00")
+    }
+}

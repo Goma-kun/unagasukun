@@ -1,0 +1,168 @@
+{
+  "source": "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/PlanFormView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "予定を追加",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "予定を編集",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "この予定を削除しますか？",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "繰り返し",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "時刻",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "やること",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "日付",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "時刻を決めない",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "時刻",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "しばらく休む",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "一覧と通知から外れます。記録はそのまま残ります。",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "この予定を削除する",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "やめる",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "追加",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "削除する",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "やめる",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "これまでの記録は残ります。",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld日",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 150
+        }
+      }
+    ]
+  },
+  "version": 1
+}

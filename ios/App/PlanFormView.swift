@@ -170,9 +170,12 @@ struct PlanFormView: View {
                                                             .joined(separator: "・")
             return "→ \(how) に繰り返します。" + timeSentence
         case .interval:
+            // 「3日ごと」は、間の日数で数える人（「3日空けて」）には1日ずれて伝わる。
+            // 「3日に1回」＋「間は2日空きます」＋実際の日付3つ、で読み違えの余地を消す
             let base = editing?.anchorDate.flatMap(Logic.parseDateKey) ?? Date()
-            let due = Logic.day(base, plus: intervalDays)
-            return "→ \(intervalDays)日ごと。次の目安日は \(dateText(due)) です。"
+            let dates = (1...3).map { dateText(Logic.day(base, plus: intervalDays * $0)) }
+            return "→ \(Describe.rhythm(intervalDays))。"
+                + dates.joined(separator: " → ") + " と続きます。"
                 + "「できた」を押した日から数え直します。" + timeSentence
         }
     }

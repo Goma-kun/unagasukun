@@ -1,0 +1,136 @@
+{
+  "source": "/Users/nishitoyomitsu/Claude code/unagasukun/ios/App/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "いちばん新しい控えに戻しますか？",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "設定",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "iCloud で揃える",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "ほかの端末と",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "早めにお知らせする",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld分前",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 41
+        }
+      },
+      {
+        "comment": "",
+        "key": "お知らせ",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "予定の時刻より前に、一度お知らせします。済ませたものには出しません。",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "予定の時刻にだけお知らせします。",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "いちばん新しい控えに戻す",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "もしものとき",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知の設定を開く",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知がオフのため、時間が来てもお知らせできません。",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "戻す",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "やめる",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "いまの中身も控えに残すので、やり直せます。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 90
+        }
+      }
+    ]
+  },
+  "version": 1
+}

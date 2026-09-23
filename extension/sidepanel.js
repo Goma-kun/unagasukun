@@ -1465,14 +1465,18 @@ function syncRepeatPreview() {
     const n = Number(document.getElementById('input-interval-days').value);
     const anchor = document.getElementById('input-anchor-date').value;
     hint.textContent = T('intervalHint', [n]);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(anchor)) { el.textContent = T('previewInterval', [n]); return; }
+    // 「3日ごと」は、間の日数で数える人（「3日空けて」）には1日ずれて伝わる。
+    // 「3日に1回」＋「間は2日空きます」＋実際の日付3つ、で読み違えの余地を消す
+    const gap = n > 1 ? T('intervalGap', [n - 1]) : T('intervalGapNone');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(anchor)) { el.textContent = T('previewInterval', [n, gap]); return; }
     // 登録直後の状態をそのまま計算する（records は使わない＝フォームの値だけで決まる）
     const info = intervalDueInfo({ intervalDays: n, anchorDate: anchor }, {}, new Date());
     const today = new Date();
-    const due = dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + info.daysUntil));
+    const dayAt = (add) => dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + add));
+    const due = dayAt(info.daysUntil);
     el.textContent = info.daysUntil > 0
-      ? T('previewIntervalNext', [n, shortDateText(due)])
-      : T('previewIntervalDue', [n, shortDateText(due)]);
+      ? T('previewIntervalNext', [n, gap, shortDateText(due), shortDateText(dayAt(info.daysUntil + n)), shortDateText(dayAt(info.daysUntil + 2 * n))])
+      : T('previewIntervalDue', [n, gap, shortDateText(due)]);
     return;
   }
   const v = document.getElementById('input-date').value;

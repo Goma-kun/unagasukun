@@ -444,7 +444,7 @@
     "message": "Last done on"
   },
   "intervalText": {
-    "message": "Every $N$ days",
+    "message": "Once every $N$ days",
     "placeholders": {
       "n": {
         "content": "$1"
@@ -624,32 +624,47 @@
     "message": "→ Pick the days of the week to repeat on"
   },
   "previewInterval": {
-    "message": "→ Repeats every $N$ days",
+    "message": "→ Once every $N$ days ($GAP$)",
     "placeholders": {
       "n": {
         "content": "$1"
+      },
+      "gap": {
+        "content": "$2"
       }
     }
   },
   "previewIntervalNext": {
-    "message": "→ Every $N$ days. Next due: $DATE$",
+    "message": "→ Once every $N$ days ($GAP$). $D1$ → $D2$ → $D3$ and so on",
     "placeholders": {
       "n": {
         "content": "$1"
       },
-      "date": {
+      "gap": {
         "content": "$2"
+      },
+      "d1": {
+        "content": "$3"
+      },
+      "d2": {
+        "content": "$4"
+      },
+      "d3": {
+        "content": "$5"
       }
     }
   },
   "previewIntervalDue": {
-    "message": "→ Every $N$ days. The due date ($DATE$) has come, so it shows in Today's plan right away",
+    "message": "→ Once every $N$ days ($GAP$). The due date ($DATE$) has arrived, so it shows up in today's plan right away",
     "placeholders": {
       "n": {
         "content": "$1"
       },
-      "date": {
+      "gap": {
         "content": "$2"
+      },
+      "date": {
+        "content": "$3"
       }
     }
   },
@@ -742,5 +757,16 @@
   },
   "legendFuture": {
     "message": "upcoming"
+  },
+  "intervalGap": {
+    "message": "$GAP$ days in between",
+    "placeholders": {
+      "gap": {
+        "content": "$1"
+      }
+    }
+  },
+  "intervalGapNone": {
+    "message": "every day"
   }
 }

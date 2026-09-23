@@ -444,7 +444,7 @@
     "message": "最後にやった日"
   },
   "intervalText": {
-    "message": "$N$日ごと",
+    "message": "$N$日に1回",
     "placeholders": {
       "n": {
         "content": "$1"
@@ -624,32 +624,47 @@
     "message": "→ 曜日を選んでください（選んだ曜日に毎週繰り返します）"
   },
   "previewInterval": {
-    "message": "→ $N$日ごとに繰り返します",
+    "message": "→ $N$日に1回（$GAP$）",
     "placeholders": {
       "n": {
         "content": "$1"
+      },
+      "gap": {
+        "content": "$2"
       }
     }
   },
   "previewIntervalNext": {
-    "message": "→ $N$日ごと。次の目安日は $DATE$ です",
+    "message": "→ $N$日に1回（$GAP$）。$D1$ → $D2$ → $D3$ と続きます",
     "placeholders": {
       "n": {
         "content": "$1"
       },
-      "date": {
+      "gap": {
         "content": "$2"
+      },
+      "d1": {
+        "content": "$3"
+      },
+      "d2": {
+        "content": "$4"
+      },
+      "d3": {
+        "content": "$5"
       }
     }
   },
   "previewIntervalDue": {
-    "message": "→ $N$日ごと。目安日（$DATE$）が来ているので、すぐ「今日の予定」に出ます",
+    "message": "→ $N$日に1回（$GAP$）。目安日（$DATE$）が来ているので、すぐ「今日の予定」に出ます",
     "placeholders": {
       "n": {
         "content": "$1"
       },
-      "date": {
+      "gap": {
         "content": "$2"
+      },
+      "date": {
+        "content": "$3"
       }
     }
   },
@@ -742,5 +757,16 @@
   },
   "legendFuture": {
     "message": "これから"
+  },
+  "intervalGap": {
+    "message": "間は$GAP$日空きます",
+    "placeholders": {
+      "gap": {
+        "content": "$1"
+      }
+    }
+  },
+  "intervalGapNone": {
+    "message": "毎日"
   }
 }
