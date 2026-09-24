@@ -35,7 +35,11 @@ public enum Describe {
             parts.append("いつでも")
             if let m = item.targetMin { parts.append("目安 \(m)分") }
         } else if let t = item.time {
-            parts.append(t)
+            if let e = item.endTime, Logic.isValidEndTime(t, e) {
+                parts.append("\(t)〜\(e)")
+            } else {
+                parts.append(t)
+            }
         }
 
         return parts.joined(separator: "・")

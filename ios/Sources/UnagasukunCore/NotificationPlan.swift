@@ -7,6 +7,8 @@ public struct PlannedNotification: Equatable, Sendable {
         case main
         /// 時間が近づいたときの予告（拡張の v1.7.0 と同じ考え方）
         case pre
+        /// 時間帯（終了時刻つき）の終わり。「できましたか？」と聞く（拡張の時間帯ブロックと同じ）
+        case end
     }
     public var id: String
     public var itemId: String
@@ -70,6 +72,18 @@ public enum NotificationPlan {
                             fireAt: Date(timeIntervalSince1970: preMs / 1000), title: item.label,
                             detail: item.detail
                         ))
+                    }
+                    // 時間帯なら、終わりにもう1回。記録が付けば張り直しで消える
+                    if let end = item.endTime, Logic.isValidEndTime(item.time, end) {
+                        let endMs = Logic.blockEndMs(end, next)
+                        if endMs > Logic.ms(now) {
+                            out.append(PlannedNotification(
+                                id: "end:\(item.id):\(Int(endMs))",
+                                itemId: item.id, kind: .end,
+                                fireAt: Date(timeIntervalSince1970: endMs / 1000), title: item.label,
+                                detail: item.detail
+                            ))
+                        }
                     }
                 }
 

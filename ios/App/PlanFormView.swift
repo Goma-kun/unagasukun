@@ -18,6 +18,9 @@ struct PlanFormView: View {
     @State private var mode: Repeat = .once
     @State private var time = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
     @State private var noTime = false
+    /// 終了時刻も決める（「14〜16時の集荷」のような時間帯。2026-09-24 本人要望）
+    @State private var hasEnd = false
+    @State private var endTime = Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: Date())!
     @State private var date = Date()
     @State private var days: Set<Int> = []
     @State private var intervalDays = 3
@@ -61,10 +64,25 @@ struct PlanFormView: View {
                     }
                 }
 
-                Section("時刻") {
+                Section {
                     Toggle("時刻を決めない", isOn: $noTime)
                     if !noTime {
-                        DatePicker("時刻", selection: $time, displayedComponents: .hourAndMinute)
+                        DatePicker(hasEnd ? "開始" : "時刻", selection: $time, displayedComponents: .hourAndMinute)
+                        Toggle("終了時刻も決める", isOn: $hasEnd)
+                        if hasEnd {
+                            DatePicker("終了", selection: $endTime, displayedComponents: .hourAndMinute)
+                            if !endValid {
+                                Text("終了は開始より後の時刻にしてください。")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(Theme.danger)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("時刻")
+                } footer: {
+                    if !noTime && hasEnd {
+                        Text("時間帯のあいだは「進行中」と出ます。終わりに「できましたか？」とお知らせします。")
                     }
                 }
 
@@ -120,6 +138,10 @@ struct PlanFormView: View {
         noTime = Logic.isAnytime(item)
         if let t = item.time, let d = Logic.parseTime(t) {
             time = Logic.at(Date(), hour: d.0, minute: d.1)
+        }
+        if let e = item.endTime, let d = Logic.parseTime(e) {
+            hasEnd = true
+            endTime = Logic.at(Date(), hour: d.0, minute: d.1)
         }
         if Logic.isInterval(item) {
             mode = .interval
@@ -194,13 +216,17 @@ struct PlanFormView: View {
     }
 
     private var timeSentence: String {
-        noTime
-            ? "時刻は決めません。済ませるまで今日の予定に残ります。"
-            : "\(hhmm) にお知らせします。"
+        if noTime { return "時刻は決めません。済ませるまで今日の予定に残ります。" }
+        if hasEnd { return "\(hhmm)〜\(endHHMM) の時間帯。始まりと終わりにお知らせします。" }
+        return "\(hhmm) にお知らせします。"
     }
 
-    private var hhmm: String {
-        let c = Calendar.current.dateComponents([.hour, .minute], from: time)
+    private var hhmm: String { Self.hhmm(time) }
+    private var endHHMM: String { Self.hhmm(endTime) }
+    private var endValid: Bool { !hasEnd || Logic.isValidEndTime(hhmm, endHHMM) }
+
+    private static func hhmm(_ d: Date) -> String {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: d)
         return String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
     }
 
@@ -212,6 +238,7 @@ struct PlanFormView: View {
     private var canSave: Bool {
         guard !label.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
         if mode == .weekly && days.isEmpty { return false }
+        if !noTime && !endValid { return false }
         return true
     }
 
@@ -221,7 +248,6 @@ struct PlanFormView: View {
         item.enabled = enabled
         item.origId = editing?.origId
         item.archived = editing?.archived ?? false
-        item.endTime = editing?.endTime
         item.targetMin = editing?.targetMin
         let memo = detail.trimmingCharacters(in: .whitespacesAndNewlines)
         item.detail = memo.isEmpty ? nil : memo
@@ -229,6 +255,7 @@ struct PlanFormView: View {
             item.anytime = true
         } else {
             item.time = hhmm
+            item.endTime = hasEnd ? endHHMM : nil
         }
         switch mode {
         case .once:

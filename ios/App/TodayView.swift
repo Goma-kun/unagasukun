@@ -272,7 +272,10 @@ private struct TodoCard: View {
 
     private var timeText: String {
         if Logic.isAnytime(entry.item) { return "いつでも" }
-        return entry.item.time ?? "—"
+        guard let t = entry.item.time else { return "—" }
+        // 時間帯は「14:00〜16:00」（拡張機能の timeText() と同じ書き方）
+        if let e = entry.item.endTime, Logic.isValidEndTime(t, e) { return "\(t)〜\(e)" }
+        return t
     }
 
     private var subtitles: [String] {

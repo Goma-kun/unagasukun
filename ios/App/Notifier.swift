@@ -44,6 +44,8 @@ struct Notifier {
                 content.title = "いまは「\(p.title)」の時間です"
             case .pre:
                 content.title = "まもなく「\(p.title)」の時間です"
+            case .end:
+                content.title = "「\(p.title)」の時間が終わりました。できましたか？"
             }
             // 詳細メモは本文に（拡張機能の contextMessage と同じく 120 字まで）
             if let d = p.detail, !d.isEmpty { content.body = String(d.prefix(120)) }

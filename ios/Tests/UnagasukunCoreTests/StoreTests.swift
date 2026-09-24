@@ -67,6 +67,25 @@ final class NotificationPlanTests: XCTestCase {
         XCTAssertGreaterThan(withoutRecord.count, withDone.count)
     }
 
+    /// 時間帯（終了時刻つき）は、始まりと終わりの2回。済ませたら両方消える
+    func testBlockGetsStartAndEndNotifications() {
+        let item = Item(id: "i1", label: "ヤマト集荷", time: "14:00", endTime: "16:00")
+        let plan = NotificationPlan.build(schedule: [item], records: [:], now: now(),
+                                          preNoticeOn: false, horizonDays: 1)
+        XCTAssertEqual(plan.map(\.kind), [.main, .end])
+        let c = Calendar.current.dateComponents([.hour, .minute], from: plan[1].fireAt)
+        XCTAssertEqual([c.hour, c.minute], [16, 0])
+
+        let done = NotificationPlan.build(schedule: [item], records: [Logic.dateKey(now()): ["i1": .done]],
+                                          now: now(), preNoticeOn: false, horizonDays: 1)
+        XCTAssertTrue(done.isEmpty)
+
+        // 終了が開始より前なら時間帯として扱わない（拡張機能と同じ）
+        let bad = Item(id: "i2", label: "x", time: "14:00", endTime: "13:00")
+        XCTAssertEqual(NotificationPlan.build(schedule: [bad], records: [:], now: now(),
+                                              preNoticeOn: false, horizonDays: 1).map(\.kind), [.main])
+    }
+
     /// 「◯日ごと」は済ませた日で目安日が動くので、先の回を決め打たない
     func testIntervalItemPlansOnlyOneOccurrence() {
         let item = Item(id: "i1", label: "点滴", time: "09:00",
