@@ -69,6 +69,10 @@ struct PlanFormView: View {
                     if !noTime {
                         DatePicker(hasEnd ? "開始" : "時刻", selection: $time, displayedComponents: .hourAndMinute)
                         Toggle("終了時刻も決める", isOn: $hasEnd)
+                            // チェックを入れた瞬間から意味のある値に。初期値のままだと開始より前で
+                            // 赤字が出る（2026-09-24 本人指摘）
+                            .onChange(of: hasEnd) { _, on in if on { ensureEndAfterStart() } }
+                            .onChange(of: time) { _, _ in if hasEnd { ensureEndAfterStart() } }
                         if hasEnd {
                             DatePicker("終了", selection: $endTime, displayedComponents: .hourAndMinute)
                             if !endValid {
@@ -224,6 +228,14 @@ struct PlanFormView: View {
     private var hhmm: String { Self.hhmm(time) }
     private var endHHMM: String { Self.hhmm(endTime) }
     private var endValid: Bool { !hasEnd || Logic.isValidEndTime(hhmm, endHHMM) }
+
+    /// 終了が開始以前なら「開始の1時間後」にする。日をまたぐなら 23:59 で止める
+    private func ensureEndAfterStart() {
+        guard !endValid || endHHMM <= hhmm else { return }
+        let c = Calendar.current.dateComponents([.hour, .minute], from: time)
+        let h = c.hour ?? 0, m = c.minute ?? 0
+        endTime = h < 23 ? Logic.at(Date(), hour: h + 1, minute: m) : Logic.at(Date(), hour: 23, minute: 59)
+    }
 
     private static func hhmm(_ d: Date) -> String {
         let c = Calendar.current.dateComponents([.hour, .minute], from: d)
