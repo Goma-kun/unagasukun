@@ -32,7 +32,10 @@ struct PlanFormView: View {
                 Section {
                     TextField("やること", text: $label)
                         .font(.system(size: 16))
-                    TextField("詳細（任意）メモや手順など。今日の予定と通知に出ます", text: $detail, axis: .vertical)
+                    // Mac の Form はタイトルを左のラベル列に出す。長い説明はプレースホルダ（prompt）側に
+                    TextField("詳細", text: $detail,
+                              prompt: Text("詳細（任意）メモや手順など。今日の予定と通知に出ます"),
+                              axis: .vertical)
                         .font(.system(size: 14))
                         .lineLimit(2...5)
                         .onChange(of: detail) { _, v in

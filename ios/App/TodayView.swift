@@ -59,6 +59,19 @@ struct TodayView: View {
                             }
                         }
                     }
+
+                    // 日付が過ぎた1回だけの予定。登録済みに混ざると「まだやっていない」に見えるので
+                    // 分けて出し、できたかどうかをここで付けられるようにする
+                    let past = model.pastOneOffs(now: now)
+                    if !past.isEmpty {
+                        sectionTitle("過ぎた予定", count: past.count)
+                        Text("日付が過ぎた1回だけの予定（2週間ぶん）。できたかどうかをここで付けられます。それより前はふりかえりのカレンダーで見られます。")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.skip)
+                        ForEach(past, id: \.id) { item in
+                            PastOneOffRow(item: item) { form = .edit(item) }
+                        }
+                    }
                 }
                 .padding(16)
             }
@@ -393,6 +406,59 @@ struct OutlineButton: ButtonStyle {
     }
 }
 
+
+/// 日付が過ぎた1回だけの予定の1行。名前を押すと編集、右の2つで記録を付け直す
+/// （ふりかえりの日別リストと同じ押し心地）
+private struct PastOneOffRow: View {
+    @EnvironmentObject private var model: AppModel
+    let item: Item
+    var onEdit: () -> Void
+
+    private var key: String { item.date ?? "" }
+    private var dateText: String { Logic.parseDateKey(item.date).map(Describe.short) ?? key }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Button(action: onEdit) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.label)
+                        .font(.system(size: 15))
+                        .foregroundStyle(Theme.text)
+                    Text(statusText)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.muted)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            Spacer(minLength: 0)
+            markButton(.done, "できた", Theme.done)
+            markButton(.skip, "休んだ", Theme.skip)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var statusText: String {
+        switch model.mark(item, on: key) {
+        case .done: return "\(dateText)・できた"
+        case .skip: return "\(dateText)・休んだ"
+        case nil: return "\(dateText)・記録なし"
+        }
+    }
+
+    private func markButton(_ mark: Mark, _ title: String, _ color: Color) -> some View {
+        let on = model.mark(item, on: key) == mark
+        return Button { model.toggle(item, mark, on: key) } label: {
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(on ? .white : Theme.muted)
+                .padding(.horizontal, 12).padding(.vertical, 7)
+                .background(on ? color : Theme.bg, in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
 
 /// 登録済み一覧の1行。今日の画面に出ていないものだけが並ぶ
 private struct RegisteredRow: View {

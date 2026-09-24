@@ -131,9 +131,26 @@ final class AppModel: ObservableObject {
     func registered(now: Date = Date()) -> [Item] {
         let shown = Set((today(now: now).todo + today(now: now).done).map(\.item.id))
         return snapshot.schedule
-            .filter { !shown.contains($0.id) && $0.origId == nil && !Logic.isArchived($0) }
+            .filter { !shown.contains($0.id) && $0.origId == nil && !Logic.isArchived($0)
+                      && !isPastOneOff($0, now: now) }
             .sorted { Logic.listSortMs($0, now, snapshot.records)
                         < Logic.listSortMs($1, now, snapshot.records) }
+    }
+
+    /// 日付が過ぎた「1回だけ」の予定か。拡張機能はこれを SW で「保管」に回して一覧から外す
+    private func isPastOneOff(_ item: Item, now: Date) -> Bool {
+        guard Logic.isOneOff(item), let d = item.date else { return false }
+        return d < Logic.dateKey(now)
+    }
+
+    /// 日付が過ぎた「1回だけ」の予定（直近 `days` 日ぶん・新しい順）。
+    /// 登録済みに残り続けると「まだやっていない」に見えるので別の欄に出し、
+    /// できたかどうかをその場で付けられるようにする（2026-09-24 本人指摘）。それより前はカレンダーで
+    func pastOneOffs(now: Date = Date(), days: Int = 14) -> [Item] {
+        let floor = Logic.dateKey(Logic.day(now, plus: -days))
+        return snapshot.schedule
+            .filter { isPastOneOff($0, now: now) && $0.origId == nil && ($0.date ?? "") >= floor }
+            .sorted { ($0.date ?? "") > ($1.date ?? "") }
     }
 
     // MARK: - ふりかえり
