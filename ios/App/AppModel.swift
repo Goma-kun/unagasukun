@@ -251,6 +251,11 @@ final class AppModel: ObservableObject {
         commit()
     }
 
+    /// 「できた」を付けたあとの一言（こっそりお祝い）。記録を付けてから呼ぶ
+    func cheerAfterDone(_ item: Item, now: Date = Date()) -> Cheer {
+        CheerLogic.afterDone(item, schedule: snapshot.schedule, records: snapshot.records, now: now)
+    }
+
     /// 「◯日ごと」で、済ませたのに付け忘れた日を選べる候補（昨日から新しい順・最大7日）
     func pastDoneCandidates(for item: Item, now: Date = Date()) -> [String] {
         Logic.pastDoneCandidates(item, snapshot.records, now)

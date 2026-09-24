@@ -65,7 +65,7 @@ struct PlanFormView: View {
                 }
 
                 Section {
-                    Toggle("時刻を決めない", isOn: $noTime)
+                    Toggle("いつでも大丈夫（時刻は決めない）", isOn: $noTime)
                     if !noTime {
                         TimeField(title: hasEnd ? "開始" : "時刻", date: $time)
                         Toggle("終了時刻も決める", isOn: $hasEnd)
@@ -140,6 +140,9 @@ struct PlanFormView: View {
         detail = item.detail ?? ""
         enabled = item.enabled
         noTime = Logic.isAnytime(item)
+        // 前に開いた予定の状態を引きずらないよう、毎回すべて入れ直す
+        hasEnd = false
+        days = []
         if let t = item.time, let d = Logic.parseTime(t) {
             time = Logic.at(Date(), hour: d.0, minute: d.1)
         }
@@ -220,7 +223,7 @@ struct PlanFormView: View {
     }
 
     private var timeSentence: String {
-        if noTime { return "時刻は決めません。済ませるまで今日の予定に残ります。" }
+        if noTime { return "いつでも大丈夫。済ませるまで今日の予定に残ります。" }
         if hasEnd { return "\(hhmm)〜\(endHHMM) の時間帯。始まりと終わりにお知らせします。" }
         return "\(hhmm) にお知らせします。"
     }

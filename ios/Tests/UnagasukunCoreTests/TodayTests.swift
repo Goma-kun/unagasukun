@@ -155,3 +155,69 @@ final class DescribeTests: XCTestCase {
         XCTAssertEqual(Describe.schedule(item, now: now), "4日に1回（間は3日空きます）・次は 9/25(金)・09:00")
     }
 }
+
+/// こっそりお祝い。優先順位は ぜんぶ済み > 節目 > ふだん（拡張機能 v1.5.0 と同じ）
+final class CheerTests: XCTestCase {
+    /// 答えを固定するための乱数（SplitMix64）。
+    /// **同じ値を返し続ける生成器は使えない**：`randomElement(using:)` は棄却サンプリングで回り続け、
+    /// テストが永遠に終わらない（2026-09-24 に実際に踏んだ）
+    struct Fixed: RandomNumberGenerator {
+        var state: UInt64
+        init(values: [UInt64]) { state = values.first ?? 1 }
+        mutating func next() -> UInt64 {
+            state &+= 0x9E3779B97F4A7C15
+            var z = state
+            z = (z ^ (z >> 30)) &* 0xBF58476D1CE4E5B9
+            z = (z ^ (z >> 27)) &* 0x94D049BB133111EB
+            return z ^ (z >> 31)
+        }
+    }
+    private func at(_ y: Int, _ m: Int, _ d: Int) -> Date {
+        var c = DateComponents(); c.year = y; c.month = m; c.day = d; c.hour = 12
+        return Calendar.current.date(from: c)!
+    }
+
+    func testAllDoneWinsAndThrowsParty() {
+        let a = Item(id: "a", time: "07:00"), b = Item(id: "b", time: "20:00")
+        let now = at(2026, 9, 24)
+        let records: Records = [Logic.dateKey(now): ["a": .done, "b": .done]]
+        var g = Fixed(values: [0])
+        let c = CheerLogic.afterDone(b, schedule: [a, b], records: records, now: now, using: &g)
+        XCTAssertTrue(c.party)
+        XCTAssertNotNil(c.emoji)
+        XCTAssertTrue(c.text.contains("ぜんぶできました"))
+    }
+
+    /// スキップが混ざった日は祝わない（何も責めない、ただ静か）
+    func testSkipMixedDayIsNotAParty() {
+        let a = Item(id: "a", time: "07:00"), b = Item(id: "b", time: "20:00")
+        let now = at(2026, 9, 24)
+        let records: Records = [Logic.dateKey(now): ["a": .skip, "b": .done]]
+        var g = Fixed(values: [7])
+        let c = CheerLogic.afterDone(b, schedule: [a, b], records: records, now: now, using: &g)
+        XCTAssertFalse(c.party)
+        XCTAssertTrue(CheerLogic.praises.contains(c.text))
+    }
+
+    func testStreakMilestone() {
+        let a = Item(id: "a", time: "07:00"), other = Item(id: "o", time: "21:00")
+        let now = at(2026, 9, 24)
+        var records: Records = [:]
+        for i in 0..<3 { records[Logic.dateKey(Logic.day(now, plus: -i))] = ["a": .done] }
+        var g = Fixed(values: [0])
+        let c = CheerLogic.afterDone(a, schedule: [a, other], records: records, now: now, using: &g)
+        XCTAssertEqual(c.text, "3日つづいています。おめでとう！")
+        XCTAssertFalse(c.party, "other が未対応なので、ぜんぶ済みではない")
+    }
+
+    /// 1回だけの予定は節目を数えない
+    func testOneOffHasNoMilestone() {
+        let a = Item(id: "a", time: "07:00", date: "2026-09-24"), other = Item(id: "o", time: "21:00")
+        let now = at(2026, 9, 24)
+        var records: Records = [:]
+        for i in 0..<3 { records[Logic.dateKey(Logic.day(now, plus: -i))] = ["a": .done] }
+        var g = Fixed(values: [7])
+        let c = CheerLogic.afterDone(a, schedule: [a, other], records: records, now: now, using: &g)
+        XCTAssertTrue(CheerLogic.praises.contains(c.text), "節目ではなく、ふだんの一言")
+    }
+}

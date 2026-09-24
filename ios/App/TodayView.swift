@@ -13,7 +13,12 @@ struct TodayView: View {
     @State private var now = Date()
     /// 操作の結果を短く知らせる帯（「前にできていた」で次の目安日を言い切るのに使う）
     @State private var notice: String? = nil
+    /// 帯の左に顔を出す動物（こっそりお祝い）
+    @State private var noticeEmoji: String? = nil
     @State private var noticeTask: Task<Void, Never>? = nil
+    /// 動物6匹がふわっと浮かぶ演出。値が変わるたびに出し直す
+    @State private var party: UUID? = nil
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let tick = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
@@ -36,7 +41,7 @@ struct TodayView: View {
                             sectionTitle("今日の予定", count: todo.count)
                             ForEach(todo, id: \.item.id) { entry in
                                 TodoCard(entry: entry, now: now, onEdit: { form = .edit($0) },
-                                         onNotice: { show($0) })
+                                         onNotice: { show($0) }, onDone: { cheer($0) })
                             }
                         }
                         if !done.isEmpty {
@@ -77,16 +82,27 @@ struct TodayView: View {
             }
         }
         .background(Theme.bg)
+        .overlay {
+            if let party, !reduceMotion {
+                PetPartyView().id(party).allowsHitTesting(false)
+            }
+        }
         .overlay(alignment: .bottom) {
             if let notice {
-                Text(notice)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    .background(Theme.navy, in: RoundedRectangle(cornerRadius: 10))
-                    .padding(.horizontal, 24).padding(.bottom, 16)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                HStack(spacing: 8) {
+                    if let noticeEmoji {
+                        Text(noticeEmoji).font(.system(size: 22))
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                    Text(notice)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(Theme.navy, in: RoundedRectangle(cornerRadius: 10))
+                .padding(.horizontal, 24).padding(.bottom, 16)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .onReceive(tick) { now = $0 }
@@ -94,14 +110,21 @@ struct TodayView: View {
         .sheet(item: $form) { PlanFormView(editing: $0.item) }
     }
 
-    private func show(_ text: String) {
+    private func show(_ text: String, emoji: String? = nil) {
         noticeTask?.cancel()
-        withAnimation { notice = text }
+        withAnimation { notice = text; noticeEmoji = emoji }
         noticeTask = Task {
             try? await Task.sleep(for: .seconds(4))
             guard !Task.isCancelled else { return }
-            withAnimation { notice = nil }
+            withAnimation { notice = nil; noticeEmoji = nil }
         }
+    }
+
+    /// 「できた」のあとの一言。ぜんぶ済みなら動物が浮かぶ（3.4秒で跡形なし・記録に残さない）
+    private func cheer(_ item: Item) {
+        let c = model.cheerAfterDone(item, now: now)
+        show(c.text, emoji: c.emoji)
+        if c.party { party = UUID() }
     }
 
     /// 通知が届かない状態を黙っていない。**責めずに、直し方だけ示す**
@@ -180,6 +203,8 @@ private struct TodoCard: View {
     /// 毎日の予定は登録済み一覧に出ないので、**今日のカードが編集の唯一の入口**になる
     var onEdit: (Item) -> Void
     var onNotice: (String) -> Void = { _ in }
+    /// 「できた」を押したあと（お祝いの一言を出す）
+    var onDone: (Item) -> Void = { _ in }
     /// 「前にできていた」の候補日を開いているか
     @State private var pastOpen = false
 
@@ -241,7 +266,10 @@ private struct TodoCard: View {
             }
 
             HStack(spacing: 10) {
-                Button { model.record(entry.item, .done, now: now) } label: {
+                Button {
+                    model.record(entry.item, .done, now: now)
+                    onDone(entry.item)
+                } label: {
                     Text("できた").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(FilledButton(color: Theme.done))
@@ -500,5 +528,30 @@ private struct RegisteredRow: View {
         .padding(.horizontal, 14).padding(.vertical, 11)
         .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.skip.opacity(0.35), lineWidth: 1))
+    }
+}
+
+
+/// 今日の予定がぜんぶ済んだときだけ、動物6匹が下からふわっと浮かんで消える（拡張機能の pet-party）。
+/// 3.4秒で跡形なく消え、記録には残さない
+private struct PetPartyView: View {
+    private let pets: [(emoji: String, x: CGFloat, delay: Double)] = (0..<6).map { i in
+        (CheerLogic.animals.randomElement() ?? "🐶", CGFloat.random(in: 0.08...0.92), Double(i) * 0.18)
+    }
+    @State private var flying = false
+
+    var body: some View {
+        GeometryReader { geo in
+            ForEach(Array(pets.enumerated()), id: \.offset) { _, p in
+                Text(p.emoji)
+                    .font(.system(size: 26))
+                    .position(x: geo.size.width * p.x,
+                              y: flying ? geo.size.height * 0.22 : geo.size.height + 20)
+                    .rotationEffect(.degrees(flying ? 12 : 0))
+                    .opacity(flying ? 0 : 1)
+                    .animation(.easeOut(duration: 2.6).delay(p.delay), value: flying)
+            }
+        }
+        .onAppear { flying = true }
     }
 }
