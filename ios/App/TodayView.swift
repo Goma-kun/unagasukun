@@ -19,6 +19,10 @@ struct TodayView: View {
     /// 動物6匹がふわっと浮かぶ演出。値が変わるたびに出し直す
     @State private var party: UUID? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 「登録済み」「過ぎた予定」を畳んでいるか。端末ごとに覚える（2026-09-24 本人要望）。
+    /// 過ぎた予定は見返すことが少ないので、はじめは畳んでおく
+    @AppStorage("collapseRegistered") private var collapseRegistered = false
+    @AppStorage("collapsePast") private var collapsePast = true
 
     private let tick = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
@@ -54,13 +58,15 @@ struct TodayView: View {
 
                     let registered = model.registered(now: now)
                     if !registered.isEmpty {
-                        sectionTitle("登録済み", count: registered.count)
-                        Text("今日の予定に出ているものは、ここには出しません。")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Theme.skip)
-                        ForEach(registered, id: \.id) { item in
-                            RegisteredRow(item: item, detail: model.describe(item, now: now)) {
-                                form = .edit(item)
+                        collapsibleTitle("登録済み", count: registered.count, collapsed: $collapseRegistered)
+                        if !collapseRegistered {
+                            Text("今日の予定に出ているものは、ここには出しません。")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.skip)
+                            ForEach(registered, id: \.id) { item in
+                                RegisteredRow(item: item, detail: model.describe(item, now: now)) {
+                                    form = .edit(item)
+                                }
                             }
                         }
                     }
@@ -69,12 +75,14 @@ struct TodayView: View {
                     // 分けて出し、できたかどうかをここで付けられるようにする
                     let past = model.pastOneOffs(now: now)
                     if !past.isEmpty {
-                        sectionTitle("過ぎた予定", count: past.count)
-                        Text("日付が過ぎた1回だけの予定（2週間ぶん）。できたかどうかをここで付けられます。それより前はふりかえりのカレンダーで見られます。")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Theme.skip)
-                        ForEach(past, id: \.id) { item in
-                            PastOneOffRow(item: item) { form = .edit(item) }
+                        collapsibleTitle("過ぎた予定", count: past.count, collapsed: $collapsePast)
+                        if !collapsePast {
+                            Text("日付が過ぎた1回だけの予定（2週間ぶん）。できたかどうかをここで付けられます。それより前はふりかえりのカレンダーで見られます。")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.skip)
+                            ForEach(past, id: \.id) { item in
+                                PastOneOffRow(item: item) { form = .edit(item) }
+                            }
                         }
                     }
                 }
@@ -162,6 +170,25 @@ struct TodayView: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 16).padding(.vertical, 12)
         .background(Theme.navy)
+    }
+
+    /// 押すと畳める見出し。右端の山形で開閉が分かる
+    private func collapsibleTitle(_ title: String, count: Int, collapsed: Binding<Bool>) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) { collapsed.wrappedValue.toggle() }
+        } label: {
+            HStack(spacing: 6) {
+                sectionTitle(title, count: count)
+                Spacer(minLength: 0)
+                Image(systemName: collapsed.wrappedValue ? "chevron.down" : "chevron.up")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Theme.muted)
+            }
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(collapsed.wrappedValue ? "\(title)を開く" : "\(title)を畳む")
     }
 
     private func sectionTitle(_ title: String, count: Int) -> some View {
