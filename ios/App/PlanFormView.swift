@@ -56,7 +56,7 @@ struct PlanFormView: View {
 
                     switch mode {
                     case .once:
-                        DatePicker("日付", selection: $date, displayedComponents: .date)
+                        DateField(title: "日付", date: $date)
                     case .weekly:
                         weekdayChips
                     case .interval:
