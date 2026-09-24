@@ -67,14 +67,14 @@ struct PlanFormView: View {
                 Section {
                     Toggle("時刻を決めない", isOn: $noTime)
                     if !noTime {
-                        DatePicker(hasEnd ? "開始" : "時刻", selection: $time, displayedComponents: .hourAndMinute)
+                        TimeField(title: hasEnd ? "開始" : "時刻", date: $time)
                         Toggle("終了時刻も決める", isOn: $hasEnd)
                             // チェックを入れた瞬間から意味のある値に。初期値のままだと開始より前で
                             // 赤字が出る（2026-09-24 本人指摘）
                             .onChange(of: hasEnd) { _, on in if on { ensureEndAfterStart() } }
                             .onChange(of: time) { _, _ in if hasEnd { ensureEndAfterStart() } }
                         if hasEnd {
-                            DatePicker("終了", selection: $endTime, displayedComponents: .hourAndMinute)
+                            TimeField(title: "終了", date: $endTime)
                             if !endValid {
                                 Text("終了は開始より後の時刻にしてください。")
                                     .font(.system(size: 13))
