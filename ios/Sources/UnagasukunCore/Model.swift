@@ -26,7 +26,7 @@ public struct Item: Codable, Equatable, Identifiable, Sendable {
     /// やりなおしコピー。記録は元の予定に付くので集計から外す
     public var origId: String?
     public var endTime: String?
-    /// 詳細メモ。拡張機能が持つ項目。アプリではまだ表示しないが、**取り込んで捨てない**
+    /// 詳細メモ（任意）。拡張機能と同じ項目。今日のカードと通知の本文に出す（2026-09-24 本人指摘で追加）
     public var detail: String?
 
     /// 拡張機能の JSON は false のときにキーごと省くことがある（`anytime` `archived` `enabled`）。

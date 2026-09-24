@@ -13,6 +13,8 @@ public struct PlannedNotification: Equatable, Sendable {
     public var kind: Kind
     public var fireAt: Date
     public var title: String
+    /// 詳細メモ。通知の本文に出す（無ければ本文なし）
+    public var detail: String? = nil
 }
 
 public enum NotificationPlan {
@@ -57,14 +59,16 @@ public enum NotificationPlan {
                 if !alreadyDone {
                     out.append(PlannedNotification(
                         id: "main:\(item.id):\(Int(Logic.ms(next)))",
-                        itemId: item.id, kind: .main, fireAt: next, title: item.label
+                        itemId: item.id, kind: .main, fireAt: next, title: item.label,
+                        detail: item.detail
                     ))
                     if let preMs = Logic.preNoticeAt(Logic.ms(next), on: preNoticeOn,
                                                      minutes: preNoticeMin, nowMs: Logic.ms(now)) {
                         out.append(PlannedNotification(
                             id: "pre:\(item.id):\(Int(preMs))",
                             itemId: item.id, kind: .pre,
-                            fireAt: Date(timeIntervalSince1970: preMs / 1000), title: item.label
+                            fireAt: Date(timeIntervalSince1970: preMs / 1000), title: item.label,
+                            detail: item.detail
                         ))
                     }
                 }

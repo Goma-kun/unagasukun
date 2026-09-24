@@ -45,6 +45,8 @@ struct Notifier {
             case .pre:
                 content.title = "まもなく「\(p.title)」の時間です"
             }
+            // 詳細メモは本文に（拡張機能の contextMessage と同じく 120 字まで）
+            if let d = p.detail, !d.isEmpty { content.body = String(d.prefix(120)) }
             // うながすくん独自の音（App/unagasu.caf・自作）。G・D・F・C の和音を12弦ギター風＋ピアノ風で合成し、
             // 共鳴しない残響を薄くかけたもの。本人が「これがいい」と選んだ（2026-09-23）。
             // 予告も同じ音（短い版は「短かった」とのことで、同じにした）

@@ -13,6 +13,8 @@ struct PlanFormView: View {
     enum Repeat: String, CaseIterable { case once = "1回だけ", weekly = "毎週", interval = "◯日ごと" }
 
     @State private var label = ""
+    /// 詳細メモ（任意）。拡張機能と同じ項目で、今日のカードと通知の本文に出す
+    @State private var detail = ""
     @State private var mode: Repeat = .once
     @State private var time = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
     @State private var noTime = false
@@ -30,6 +32,13 @@ struct PlanFormView: View {
                 Section {
                     TextField("やること", text: $label)
                         .font(.system(size: 16))
+                    TextField("詳細（任意）メモや手順など。今日の予定と通知に出ます", text: $detail, axis: .vertical)
+                        .font(.system(size: 14))
+                        .lineLimit(2...5)
+                        .onChange(of: detail) { _, v in
+                            // 拡張機能と同じ上限（300字）。通知の本文に載せるので長すぎないように
+                            if v.count > 300 { detail = String(v.prefix(300)) }
+                        }
                 }
 
                 Section("繰り返し") {
@@ -103,6 +112,7 @@ struct PlanFormView: View {
     private func load() {
         guard let item = editing else { return }
         label = item.label
+        detail = item.detail ?? ""
         enabled = item.enabled
         noTime = Logic.isAnytime(item)
         if let t = item.time, let d = Logic.parseTime(t) {
@@ -210,6 +220,8 @@ struct PlanFormView: View {
         item.archived = editing?.archived ?? false
         item.endTime = editing?.endTime
         item.targetMin = editing?.targetMin
+        let memo = detail.trimmingCharacters(in: .whitespacesAndNewlines)
+        item.detail = memo.isEmpty ? nil : memo
         if noTime {
             item.anytime = true
         } else {

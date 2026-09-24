@@ -196,6 +196,14 @@ private struct TodoCard: View {
             .buttonStyle(.plain)
             .accessibilityLabel("この予定を編集")
 
+            // 詳細メモ（メモや手順）。名前の下に控えめに
+            if let d = entry.item.detail, !d.isEmpty {
+                Text(d)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             if !subtitles.isEmpty || !pastCandidates.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(subtitles, id: \.self) { chip($0) }
