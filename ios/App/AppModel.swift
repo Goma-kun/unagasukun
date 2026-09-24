@@ -166,13 +166,8 @@ final class AppModel: ObservableObject {
 
     /// カレンダーから記録を付け直す。同じものをもう一度押したら取り消し
     func toggle(_ item: Item, _ mark: Mark, on key: String) {
-        var day = snapshot.records[key] ?? [:]
-        if day[item.id] == mark {
-            day.removeValue(forKey: item.id)
-        } else {
-            day[item.id] = mark
-        }
-        if day.isEmpty { snapshot.records.removeValue(forKey: key) } else { snapshot.records[key] = day }
+        let cleared = snapshot.records[key]?[item.id] == mark
+        snapshot.setMark(cleared ? nil : mark, item: item.id, on: key)
         commit()
     }
 
@@ -252,10 +247,7 @@ final class AppModel: ObservableObject {
     }
 
     func record(_ item: Item, _ mark: Mark, now: Date = Date()) {
-        let key = Logic.dateKey(now)
-        var day = snapshot.records[key] ?? [:]
-        day[item.id] = mark
-        snapshot.records[key] = day
+        snapshot.setMark(mark, item: item.id, on: Logic.dateKey(now))
         commit()
     }
 
@@ -268,9 +260,7 @@ final class AppModel: ObservableObject {
     /// （カードが今日の予定から消えることがあり、黙って消えると「無くなった」に見える）
     @discardableResult
     func recordPastDone(_ item: Item, on key: String, now: Date = Date()) -> String {
-        var day = snapshot.records[key] ?? [:]
-        day[item.id] = .done
-        snapshot.records[key] = day
+        snapshot.setMark(.done, item: item.id, on: key)
         commit()
 
         let dayText = Logic.parseDateKey(key).map(Describe.short) ?? key
@@ -288,9 +278,7 @@ final class AppModel: ObservableObject {
 
     /// 押し間違いを戻す。**記録を消すのは取り消しのときだけ**
     func undo(_ item: Item, now: Date = Date()) {
-        let key = Logic.dateKey(now)
-        snapshot.records[key]?.removeValue(forKey: item.id)
-        if snapshot.records[key]?.isEmpty == true { snapshot.records.removeValue(forKey: key) }
+        snapshot.setMark(nil, item: item.id, on: Logic.dateKey(now))
         commit()
     }
 

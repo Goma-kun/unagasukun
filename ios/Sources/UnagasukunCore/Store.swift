@@ -10,17 +10,63 @@ public struct Snapshot: Codable, Equatable, Sendable {
     public var records: Records
     /// 同期で「新しいほう」を選ぶのに使う（拡張側にも同じものを足す）
     public var updatedAt: Double
+    /// 記録の操作履歴。"YYYY-MM-DD|予定ID" → 最後の操作。
+    ///
+    /// `records` は同期で足し合わせるので、**手元で消した記録は向こうの写しで戻ってしまう**
+    /// （「できた」を押し直したらすぐ戻る・2026-09-24 本人報告）。「消した」も伝わるよう、
+    /// 操作の時刻つきで残し、混ぜるときは新しい操作を採る。拡張機能から取り込んだ古い記録には
+    /// 履歴が無いので、そこは従来どおり足し合わせ
+    public var recordLog: [String: RecordEntry]
 
     /// 中身が同じか。`updatedAt` は見ない。
     /// 同期で「上げ直す必要があるか」を決めるのに使う（時刻だけ違うものを上げ続けないため）
     public func sameContent(as other: Snapshot) -> Bool {
-        schedule == other.schedule && records == other.records
+        schedule == other.schedule && records == other.records && recordLog == other.recordLog
     }
 
-    public init(schedule: [Item] = [], records: Records = [:], updatedAt: Double = 0) {
+    public init(schedule: [Item] = [], records: Records = [:], updatedAt: Double = 0,
+                recordLog: [String: RecordEntry] = [:]) {
         self.schedule = schedule
         self.records = records
         self.updatedAt = updatedAt
+        self.recordLog = recordLog
+    }
+
+    /// 履歴を足す前に保存したファイルにはキーが無いので、無ければ空で読む
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schedule = try c.decode([Item].self, forKey: .schedule)
+        records = try c.decode(Records.self, forKey: .records)
+        updatedAt = try c.decodeIfPresent(Double.self, forKey: .updatedAt) ?? 0
+        recordLog = try c.decodeIfPresent([String: RecordEntry].self, forKey: .recordLog) ?? [:]
+    }
+
+    /// 記録を付ける・付け直す・消す入口。**アプリからの記録の変更は必ずここを通す**
+    /// （`records` を直接いじると履歴が残らず、同期で戻される）。`mark` が nil なら消す
+    public mutating func setMark(_ mark: Mark?, item id: String, on day: String,
+                                 at: Double = Date().timeIntervalSince1970 * 1000) {
+        var d = records[day] ?? [:]
+        if let mark { d[id] = mark } else { d.removeValue(forKey: id) }
+        if d.isEmpty { records.removeValue(forKey: day) } else { records[day] = d }
+        recordLog[Self.logKey(day, id)] = RecordEntry(mark: mark, at: at)
+    }
+
+    static func logKey(_ day: String, _ id: String) -> String { "\(day)|\(id)" }
+}
+
+/// 記録の1操作。`mark` が nil なら「消した」
+public struct RecordEntry: Codable, Equatable, Sendable {
+    public var mark: Mark?
+    /// 操作した時刻（ms）
+    public var at: Double
+
+    public init(mark: Mark?, at: Double) { self.mark = mark; self.at = at }
+
+    /// `mark` が nil のときもキーを書く（無いキーと区別しなくてよいが、読みやすさのため）
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(mark, forKey: .mark)
+        try c.encode(at, forKey: .at)
     }
 }
 
@@ -50,11 +96,39 @@ public enum Merge {
             records[day] = merged
         }
 
+        // 操作履歴があるものは、足し合わせより履歴を信じる（新しい操作が勝つ。「消した」も伝わる）
+        var log = a.recordLog
+        for (k, e) in b.recordLog where log[k].map({ RecordEntry.isNewer(e, than: $0) }) ?? true {
+            log[k] = e
+        }
+        for (k, e) in log {
+            guard let sep = k.firstIndex(of: "|") else { continue }
+            let day = String(k[..<sep]), id = String(k[k.index(after: sep)...])
+            var d = records[day] ?? [:]
+            if let m = e.mark { d[id] = m } else { d.removeValue(forKey: id) }
+            if d.isEmpty { records.removeValue(forKey: day) } else { records[day] = d }
+        }
+        // 1年より古い履歴は捨てる（その頃には全端末に行き渡っている）
+        let cutoff = max(a.updatedAt, b.updatedAt) - 365 * 86_400_000
+        log = log.filter { $0.value.at >= cutoff }
+
         return Snapshot(
             schedule: newer.schedule,
             records: records,
-            updatedAt: max(a.updatedAt, b.updatedAt)
+            updatedAt: max(a.updatedAt, b.updatedAt),
+            recordLog: log
         )
+    }
+}
+
+extension RecordEntry {
+    /// 新しい操作が勝つ。同時刻なら「できた」＞「休んだ」＞「消した」（どちらから混ぜても同じ答えにするため）
+    static func isNewer(_ e: RecordEntry, than cur: RecordEntry) -> Bool {
+        if e.at != cur.at { return e.at > cur.at }
+        return rank(e.mark) > rank(cur.mark)
+    }
+    private static func rank(_ m: Mark?) -> Int {
+        switch m { case .done: return 2; case .skip: return 1; case nil: return 0 }
     }
 }
 
@@ -82,7 +156,8 @@ extension Merge {
             records[day] = merged
         }
         return Snapshot(schedule: schedule, records: records,
-                        updatedAt: Date().timeIntervalSince1970 * 1000)
+                        updatedAt: Date().timeIntervalSince1970 * 1000,
+                        recordLog: local.recordLog)
     }
 }
 

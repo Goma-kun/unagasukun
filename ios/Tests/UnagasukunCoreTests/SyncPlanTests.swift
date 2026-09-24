@@ -68,6 +68,55 @@ final class SyncPlanTests: XCTestCase {
         XCTAssertTrue(d.updateLocal, "手元の skip を done に直す")
     }
 
+    /// 手元で消した記録は、向こうの写しで戻ってはいけない
+    /// （「できた」を押し直したらすぐ戻った・2026-09-24 本人報告）
+    func testClearedRecordStaysCleared() {
+        var local = snap(["2026-09-23": ["a": .done]], 100)
+        local.setMark(nil, item: "a", on: "2026-09-23", at: 200)
+        local.updatedAt = 200
+        let remote = snap(["2026-09-23": ["a": .done]], 100)   // 向こうにはまだ「できた」がある
+
+        let d = SyncPlan.decide(local: local, remote: remote)
+        XCTAssertNil(d.merged.records["2026-09-23"]?["a"])
+        XCTAssertFalse(d.updateLocal)
+        XCTAssertTrue(d.push, "消したことを上げる")
+        XCTAssertEqual(SyncPlan.decide(local: remote, remote: local).merged.records, d.merged.records,
+                       "どちらから混ぜても同じ")
+    }
+
+    /// 消したあとに付け直したら、新しいほうが勝つ
+    func testReMarkAfterClearWins() {
+        var a = snap([:], 0)
+        a.setMark(nil, item: "a", on: "2026-09-23", at: 300)
+        var b = snap([:], 0)
+        b.setMark(.skip, item: "a", on: "2026-09-23", at: 400)
+
+        XCTAssertEqual(SyncPlan.decide(local: a, remote: b).merged.records["2026-09-23"]?["a"], .skip)
+        XCTAssertEqual(SyncPlan.decide(local: b, remote: a).merged.records["2026-09-23"]?["a"], .skip)
+    }
+
+    /// 履歴の無い古い記録（拡張機能からの取り込み）は、これまでどおり足し合わせで残る
+    func testLegacyRecordsStillMerge() {
+        let local = snap(["2026-09-20": ["a": .done]], 100)
+        let remote = snap(["2026-09-21": ["a": .skip]], 100)
+        let m = SyncPlan.decide(local: local, remote: remote).merged
+        XCTAssertEqual(m.records["2026-09-20"]?["a"], .done)
+        XCTAssertEqual(m.records["2026-09-21"]?["a"], .skip)
+    }
+
+    /// 履歴を足す前に保存したファイルも読める
+    func testDecodesSnapshotWithoutLog() throws {
+        let json = #"{"schedule":[],"records":{"2026-09-20":{"a":"done"}},"updatedAt":5}"#
+        let s = try JSONDecoder().decode(Snapshot.self, from: Data(json.utf8))
+        XCTAssertTrue(s.recordLog.isEmpty)
+        XCTAssertEqual(s.records["2026-09-20"]?["a"], .done)
+
+        var t = s
+        t.setMark(nil, item: "a", on: "2026-09-20", at: 9)
+        let back = try JSONDecoder().decode(Snapshot.self, from: JSONEncoder().encode(t))
+        XCTAssertEqual(back, t, "「消した」の履歴も往復で残る")
+    }
+
     /// どちらから見ても同じ結果になる（順番で答えが変わってはいけない）
     func testMergeIsSymmetric() {
         let a = snap(["d1": ["x": .done]], 100, [Item(id: "x")])
