@@ -238,38 +238,27 @@ private struct TodoCard: View {
     var body: some View {
         let pastCandidates = Logic.isInterval(entry.item) ? model.pastDoneCandidates(for: entry.item, now: now) : []
 
+        // 印（🔥 3日 など）は名前の右の空きに入れ、その行のぶんカードを低くする（2026-09-24 本人要望）。
+        // 名前が長くて1行に収まらないカードだけ、今までどおり下の行に出す
+        let chipsInHeader = pastCandidates.isEmpty && !subtitles.isEmpty
+
         VStack(alignment: .leading, spacing: 10) {
-            // 見出し（時刻＋名前）を押しても編集に入れる。⋯ だけだと当たりが小さく、
-            // 押したつもりで押せていないことがあった（本人報告・2026-09-23）
-            Button { onEdit(entry.item) } label: {
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Text(timeText)
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Theme.tint)
-                        .monospacedDigit()
-                    Text(entry.item.label)
-                        .font(.system(size: 16))
-                        .foregroundStyle(Theme.text)
-                    Spacer(minLength: 0)
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Theme.muted)
-                        .frame(width: 44, height: 44)   // Apple の最小の当たり
+            if chipsInHeader {
+                // 1行に収まるなら見出しに印を入れる。収まらなければ見出しの下に印の行
+                ViewThatFits(in: .horizontal) {
+                    header(withChips: true)
+                    VStack(alignment: .leading, spacing: 10) {
+                        header(withChips: false)
+                        HStack(spacing: 8) { ForEach(subtitles, id: \.self) { chip($0) } }
+                    }
                 }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("この予定を編集")
-
-            // 詳細メモ（メモや手順）。名前の下に控えめに
-            if let d = entry.item.detail, !d.isEmpty {
-                Text(d)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.muted)
-                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                header(withChips: false)
             }
 
-            if !subtitles.isEmpty || !pastCandidates.isEmpty {
+            detailText
+
+            if !chipsInHeader && (!subtitles.isEmpty || !pastCandidates.isEmpty) {
                 HStack(spacing: 8) {
                     ForEach(subtitles, id: \.self) { chip($0) }
                     Spacer(minLength: 0)
@@ -322,6 +311,44 @@ private struct TodoCard: View {
         case .active: return Theme.done
         case .overdue: return Theme.accent
         default: return Theme.skip.opacity(0.4)
+        }
+    }
+
+    /// 見出し（時刻＋名前）。押しても編集に入れる。⋯ だけだと当たりが小さく、
+    /// 押したつもりで押せていないことがあった（本人報告・2026-09-23）
+    private func header(withChips: Bool) -> some View {
+        Button { onEdit(entry.item) } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(timeText)
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Theme.tint)
+                    .monospacedDigit()
+                Text(entry.item.label)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Theme.text)
+                Spacer(minLength: 0)
+                if withChips {
+                    ForEach(subtitles, id: \.self) { chip($0) }
+                }
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Theme.muted)
+                    .frame(width: 44, height: 44)   // Apple の最小の当たり
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("この予定を編集")
+    }
+
+    /// 詳細メモ（メモや手順）。名前の下に控えめに
+    @ViewBuilder
+    private var detailText: some View {
+        if let d = entry.item.detail, !d.isEmpty {
+            Text(d)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.muted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
