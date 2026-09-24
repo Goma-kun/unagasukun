@@ -117,7 +117,8 @@ public enum Logic {
     /// 保管済みの予定か（日付が過ぎた1回だけ。一覧・通知には出さないが名前を引ける）
     public static func isArchived(_ item: Item) -> Bool { item.archived }
 
-    /// 何日前から「今日の予定」に出すか（未設定は3日前から）
+    /// 何日前から「今日の予定」に出すか（未設定は3日前から）。
+    /// 拡張機能の設定。アプリの今日の予定は目安日の当日から出すので、これは見ない（Today.swift）
     public static func intervalNoticeDays(_ item: Item) -> Int {
         guard let n = item.noticeDays, n >= 0 else { return 3 }
         return n

@@ -12,6 +12,7 @@ public enum TodayGroup: Int, Comparable, Sendable {
     /// 時間が過ぎたのに記録がない
     case overdue = 3
     /// 「◯日ごと」の予告中。今日の本来の予定を邪魔しないよう一番下
+    /// （アプリでは目安日の当日から出すので、いまは entries() に現れない。拡張機能との並びの対応で残す）
     case heads_up = 4
     /// できた・休んだ
     case resolved = 5
@@ -56,8 +57,11 @@ public enum Today {
             if group != .resolved {
                 let due: Bool
                 if Logic.isInterval(item) {
+                    // 目安日の当日（と過ぎた日）だけ出す。前日から出すと「今日やる」と読めて紛らわしい
+                    // （2026-09-24 本人指摘）。翌日以降のぶんは「登録済み」に次の日付つきで出ている。
+                    // noticeDays（何日前から出すか）は拡張機能の設定で、アプリでは見ない
                     let info = Logic.intervalDueInfo(item, records, now)
-                    due = (info?.daysUntil ?? 0) <= Logic.intervalNoticeDays(item)
+                    due = (info?.daysUntil ?? 0) <= 0
                 } else if Logic.isOneOff(item) {
                     due = item.date == key
                 } else {

@@ -17,14 +17,17 @@ final class TodayTests: XCTestCase {
             Item(id: "future", label: "夜の分", time: "20:00"),
             Item(id: "any", label: "いつでも", anytime: true),
             Item(id: "block", label: "作業", time: "14:00", endTime: "16:00"),
-            Item(id: "soon", label: "点滴", time: "09:00",
-                 intervalDays: 3, noticeDays: 3, anchorDate: "2026-09-20"),
+            Item(id: "due", label: "点滴", time: "09:00",
+                 intervalDays: 3, noticeDays: 3, anchorDate: "2026-09-18"),
+            Item(id: "soon", label: "明日の点滴", time: "09:00",
+                 intervalDays: 3, noticeDays: 3, anchorDate: "2026-09-19"),
         ]
         let (todo, done) = Today.entries(schedule: schedule, records: [:], now: now)
 
         XCTAssertTrue(done.isEmpty)
-        XCTAssertEqual(todo.map(\.item.id), ["block", "any", "future", "past", "soon"],
-                       "進行中 → いつでも → これから → 未対応 → 予告中")
+        XCTAssertEqual(todo.map(\.item.id), ["block", "any", "due", "future", "past"],
+                       "進行中 → いつでも（目安日が来た◯日ごとを含む） → これから → 未対応")
+        XCTAssertEqual(todo.first(where: { $0.item.id == "due" })?.group, .ready)
         XCTAssertEqual(todo.first(where: { $0.item.id == "past" })?.group, .overdue)
         XCTAssertEqual(todo.first(where: { $0.item.id == "block" })?.group, .active)
     }
@@ -46,6 +49,22 @@ final class TodayTests: XCTestCase {
         let schedule = [Item(id: "a", label: "本を読む", anytime: true)]
         let (todo, _) = Today.entries(schedule: schedule, records: [:], now: at(23, 50))
         XCTAssertEqual(todo.first?.group, .ready)
+    }
+
+    /// 「◯日ごと」は目安日の当日から出す。前日に出すと「今日やる」と読めて紛らわしい
+    /// （2026-09-24 本人指摘。noticeDays が付いていても見ない）
+    func testIntervalAppearsOnlyFromDueDay() {
+        let item = Item(id: "drip", label: "点滴", time: "09:00",
+                        intervalDays: 4, noticeDays: 3, anchorDate: "2026-09-18")
+        // 目安日は 9/22。9/21 には出ない
+        XCTAssertTrue(Today.entries(schedule: [item], records: [:], now: at(15)).todo.isEmpty)
+        var c = DateComponents(); c.year = 2026; c.month = 9; c.day = 22; c.hour = 15
+        let dueDay = Calendar.current.date(from: c)!
+        XCTAssertEqual(Today.entries(schedule: [item], records: [:], now: dueDay).todo.map(\.item.id), ["drip"])
+        c.day = 24
+        let late = Calendar.current.date(from: c)!
+        XCTAssertEqual(Today.entries(schedule: [item], records: [:], now: late).todo.map(\.item.id), ["drip"],
+                       "過ぎても出続ける")
     }
 
     func testDisabledAndArchivedAreHidden() {

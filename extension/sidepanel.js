@@ -1631,7 +1631,7 @@ function startEdit(id) {
   document.getElementById('input-anytime').checked = isAnytime(item);
   setTargetMinValue(item.targetMin || 10);
   setIntervalDaysValue(isInterval(item) ? item.intervalDays : 7);
-  setNoticeDaysValue(isInterval(item) ? intervalNoticeDays(item) : 3);
+  setNoticeDaysValue(isInterval(item) ? intervalNoticeDays(item) : 0);
   document.getElementById('input-time').value = item.time || '';
   document.getElementById('input-end-time').value = item.endTime || '';
   document.getElementById('input-label').value = item.label;
@@ -1675,7 +1675,7 @@ function resetForm() {
   document.getElementById('input-anchor-date').value = todayKey();
   setTargetMinValue(10);
   setIntervalDaysValue(7);
-  setNoticeDaysValue(3);
+  setNoticeDaysValue(0);
   setSelectedDays([]);
   setRepeatMode('once');
   syncAnytime();
@@ -1721,7 +1721,7 @@ document.getElementById('item-form').addEventListener('submit', async (e) => {
     intervalDays = Number(document.getElementById('input-interval-days').value);
     noticeDays = Number(document.getElementById('input-notice-days').value);
     if (!Number.isInteger(intervalDays) || intervalDays < 1 || intervalDays > 365) return;
-    if (!Number.isInteger(noticeDays) || noticeDays < 0 || noticeDays > 30) noticeDays = 3;
+    if (!Number.isInteger(noticeDays) || noticeDays < 0 || noticeDays > 30) noticeDays = 0;
     anchorDate = document.getElementById('input-anchor-date').value;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(anchorDate)) return;
     if (anchorDate > todayKey()) {

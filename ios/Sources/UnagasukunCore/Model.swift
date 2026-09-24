@@ -17,7 +17,7 @@ public struct Item: Codable, Equatable, Identifiable, Sendable {
     public var targetMin: Int?
     /// 「◯日ごと」。済ませた日から数え直す
     public var intervalDays: Int?
-    /// 目安日の何日前から今日の予定に出すか（未設定は3）
+    /// 目安日の何日前から今日の予定に出すか（未設定は3）。拡張機能用の設定で、アプリは当日から出す
     public var noticeDays: Int?
     /// 登録時に入れる「最後にやった日」
     public var anchorDate: String?

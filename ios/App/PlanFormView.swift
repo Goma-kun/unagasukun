@@ -225,8 +225,9 @@ struct PlanFormView: View {
             // **編集のときは基準日を作り直さない。** やり直すと数え直しが起きて、
             // 「名前を直しただけなのに目安日が飛んだ」ことになる
             item.anchorDate = editing?.anchorDate ?? Logic.dateKey(Date())
-            // 短い間隔で「そろそろ」が一覧に居座らないよう、お知らせ開始を詰める
-            item.noticeDays = max(0, min(3, intervalDays - 2))
+            // 今日の予定には目安日の当日から出す（前日から出すと紛らわしい。2026-09-24 本人指摘）。
+            // アプリの表示はこの値を見ないが、拡張機能へ持っていったときも同じ振る舞いになるよう 0 にする
+            item.noticeDays = 0
         }
         if editing == nil { model.add(item) } else { model.update(item) }
         dismiss()
