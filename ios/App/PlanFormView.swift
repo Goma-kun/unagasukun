@@ -5,6 +5,8 @@ import SwiftUI
 struct PlanFormView: View {
     /// 編集するとき。新規なら nil
     var editing: Item? = nil
+    /// 新規のフォームに最初から入れておく中身（撮影用。`editing` と違い「予定を追加」のまま）
+    var preset: Item? = nil
 
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -135,7 +137,7 @@ struct PlanFormView: View {
 
     /// 編集のとき、いまの内容をフォームに写す
     private func load() {
-        guard let item = editing else { return }
+        guard let item = editing ?? preset else { return }
         label = item.label
         detail = item.detail ?? ""
         enabled = item.enabled

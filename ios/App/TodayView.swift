@@ -114,8 +114,11 @@ struct TodayView: View {
             }
         }
         .onReceive(tick) { now = $0 }
-        .task { await model.refreshNotificationState() }
-        .sheet(item: $form) { PlanFormView(editing: $0.item) }
+        .task {
+            await model.refreshNotificationState()
+            if Shot.formPreset != nil, form == nil { form = .add }
+        }
+        .sheet(item: $form) { PlanFormView(editing: $0.item, preset: Shot.formPreset) }
     }
 
     private func show(_ text: String, emoji: String? = nil) {

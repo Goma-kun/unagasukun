@@ -25,9 +25,14 @@ struct LookBackView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         calendarCard.id("calendar")
                         if let key = selected { dayDetail(key) }
-                        tiles
+                        tiles.id("tiles")
                     }
                     .padding(16)
+                }
+                .onAppear {
+                    // 撮影用（DEBUG のみ）: `-UKShotScroll tiles` でタイルまで下げた状態で始める
+                    guard Shot.scrollTarget == "tiles" else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { proxy.scrollTo("tiles", anchor: .top) }
                 }
                 // タイルで日を選んだら、付け直す場所（カレンダーの下）まで戻す
                 .onChange(of: selected) { _, _ in
@@ -36,7 +41,7 @@ struct LookBackView: View {
             }
         }
         .background(Theme.bg)
-        .onAppear { if selected == nil { selected = Logic.dateKey(Date()) } }
+        .onAppear { if selected == nil { selected = Shot.day ?? Logic.dateKey(Date()) } }
     }
 
     // MARK: - カレンダー

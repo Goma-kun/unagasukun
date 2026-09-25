@@ -48,6 +48,7 @@ final class AppModel: ObservableObject {
 
     /// iCloud と揃える。**取ってきて混ぜてから上げる**。片方を捨てない
     func syncNow() async {
+        if Shot.fakeSync { syncState = .ok(Date()); return }
         guard syncEnabled else { syncState = .off; return }
         if let blocked = await cloud.availability() { syncState = blocked; return }
 
@@ -235,6 +236,7 @@ final class AppModel: ObservableObject {
     /// 通知が届く状態かを見に行く。アプリが前面に戻るたびに呼ぶ
     /// （設定アプリで切られていることがあるため）
     func refreshNotificationState() async {
+        if Shot.fakeNotifications { notificationsWorking = true; return }
         let status = await notifier.authorizationStatus()
         notificationsWorking = (status == .authorized || status == .provisional)
     }
