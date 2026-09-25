@@ -160,6 +160,11 @@ final class AppModel: ObservableObject {
         Logic.itemsOnDay(snapshot.schedule, snapshot.records, key)
     }
 
+    /// これから来る日の予定（カレンダーで先の日を押したとき）
+    func plannedOn(_ key: String, now: Date = Date()) -> [Item] {
+        Logic.plannedOnDay(snapshot.schedule, snapshot.records, key, now: now)
+    }
+
     func mark(_ item: Item, on key: String) -> Mark? {
         snapshot.records[key]?[item.id]
     }

@@ -19,7 +19,7 @@ struct UnagasukunApp: App {
                 TodayView()
                     .tabItem { Label("今日", systemImage: "list.bullet") }
                 LookBackView()
-                    .tabItem { Label("ふりかえり", systemImage: "calendar") }
+                    .tabItem { Label("カレンダー", systemImage: "calendar") }
                 SettingsView()
                     .tabItem { Label("設定", systemImage: "gearshape") }
             }

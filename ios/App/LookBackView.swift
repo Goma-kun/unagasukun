@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// ふりかえり。**できた日だけに色がつく。**
+/// カレンダー。過去は**できた日だけに色がつく**ふりかえり、未来はその日の予定の確認。
 /// できなかった日は何も出さず、達成率も出さない（沈黙が中立＝責めない設計）。
+/// 未来にも進めるようにしたのは 2026-09-26（本人「未来の予定をカレンダーで確認できない」）
 struct LookBackView: View {
     @EnvironmentObject private var model: AppModel
     @State private var month = Date()
@@ -12,7 +13,7 @@ struct LookBackView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("ふりかえり").font(.system(size: 17, weight: .semibold))
+                Text("カレンダー").font(.system(size: 17, weight: .semibold))
                 Spacer()
             }
             .foregroundStyle(.white)
@@ -47,13 +48,16 @@ struct LookBackView: View {
                     Image(systemName: "chevron.left").frame(width: 36, height: 30)
                 }
                 Spacer()
-                Text(monthTitle).font(.system(size: 15, weight: .semibold))
+                Button { month = Date(); selected = Logic.dateKey(Date()) } label: {
+                    Text(monthTitle).font(.system(size: 15, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("今月に戻る")
                 Spacer()
                 Button { shiftMonth(1) } label: {
                     Image(systemName: "chevron.right").frame(width: 36, height: 30)
                 }
-                .disabled(isCurrentMonth)
-                .opacity(isCurrentMonth ? 0.25 : 1)
+                // 今月より先にも進める（先の予定を見るため）。今月へ戻る近道を真ん中の月名に
             }
             .foregroundStyle(Theme.tint)
 
@@ -82,6 +86,8 @@ struct LookBackView: View {
         let mark = model.dayMark(key)
         let isSelected = key == selected
         let isFuture = day > Logic.startOfDay(Date())
+        // 先の日は、予定がある日だけ数字の下に小さな点（何があるかは押して見る）
+        let hasPlan = isFuture && !model.plannedOn(key).isEmpty
 
         return Button { selected = key } label: {
             Text("\(Logic.calendar.component(.day, from: day))")
@@ -90,6 +96,11 @@ struct LookBackView: View {
                 .foregroundStyle(cellText(mark: mark, isFuture: isFuture))
                 .frame(maxWidth: .infinity).frame(height: 38)
                 .background(cellBackground(mark: mark), in: RoundedRectangle(cornerRadius: 8))
+                .overlay(alignment: .bottom) {
+                    if hasPlan {
+                        Circle().fill(Theme.tint).frame(width: 4, height: 4).padding(.bottom, 5)
+                    }
+                }
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Theme.tint, lineWidth: isSelected ? 2 : 0)
@@ -114,7 +125,58 @@ struct LookBackView: View {
 
     // MARK: - 選んだ日
 
+    @ViewBuilder
     private func dayDetail(_ key: String) -> some View {
+        if key > Logic.dateKey(Date()) {
+            futureDetail(key)
+        } else {
+            recordDetail(key)
+        }
+    }
+
+    /// 先の日: その日の予定を時刻つきで並べるだけ。まだ来ていない日に記録のボタンは出さない
+    private func futureDetail(_ key: String) -> some View {
+        let items = model.plannedOn(key)
+        return VStack(alignment: .leading, spacing: 10) {
+            Text((Logic.parseDateKey(key).map(Describe.short) ?? key) + " の予定")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Theme.muted)
+
+            if items.isEmpty {
+                Text("この日の予定はありません")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.skip)
+                    .padding(.vertical, 6)
+            } else {
+                ForEach(items, id: \.id) { item in
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Text(planTimeText(item))
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Theme.tint)
+                            .monospacedDigit()
+                        Text(item.label)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Theme.text)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+                }
+                Text("◯日ごとの予定は、いまの目安日から数えた見込みです。済ませた日で変わります。")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.skip)
+            }
+        }
+    }
+
+    private func planTimeText(_ item: Item) -> String {
+        if Logic.isAnytime(item) { return "いつでも" }
+        guard let t = item.time else { return "—" }
+        if let e = item.endTime, Logic.isValidEndTime(t, e) { return "\(t)〜\(e)" }
+        return t
+    }
+
+    private func recordDetail(_ key: String) -> some View {
         let items = model.itemsOn(key)
         return VStack(alignment: .leading, spacing: 10) {
             Text(dayTitle(key))

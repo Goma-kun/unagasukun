@@ -77,7 +77,7 @@ struct TodayView: View {
                     if !past.isEmpty {
                         collapsibleTitle("過ぎた予定", count: past.count, collapsed: $collapsePast)
                         if !collapsePast {
-                            Text("日付が過ぎた1回だけの予定（2週間ぶん）。できたかどうかをここで付けられます。それより前はふりかえりのカレンダーで見られます。")
+                            Text("日付が過ぎた1回だけの予定（2週間ぶん）。できたかどうかをここで付けられます。それより前はカレンダーのタブで見られます。")
                                 .font(.system(size: 12))
                                 .foregroundStyle(Theme.skip)
                             ForEach(past, id: \.id) { item in

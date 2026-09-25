@@ -156,6 +156,48 @@ final class DescribeTests: XCTestCase {
     }
 }
 
+/// カレンダーで先の日を押したときの予定（2026-09-26 本人指摘「未来の予定をカレンダーで確認できない」）
+final class PlannedOnDayTests: XCTestCase {
+    private func d(_ y: Int, _ m: Int, _ day: Int) -> Date {
+        var c = DateComponents(); c.year = y; c.month = m; c.day = day; c.hour = 10
+        return Calendar.current.date(from: c)!
+    }
+
+    func testOneOffWeeklyAndDisabled() {
+        let now = d(2026, 9, 26)   // 土
+        let schedule = [
+            Item(id: "once", label: "集荷", time: "14:00", date: "2026-09-28"),
+            Item(id: "mon", label: "ジム", time: "10:30", days: [1]),
+            Item(id: "off", label: "休み中", time: "06:00", enabled: false),
+            Item(id: "any", label: "いつでも", days: [1], anytime: true),
+        ]
+        let mon = Logic.plannedOnDay(schedule, [:], "2026-09-28", now: now)
+        XCTAssertEqual(mon.map(\.id), ["any", "mon", "once"], "いつでも → 時刻順")
+        XCTAssertTrue(Logic.plannedOnDay(schedule, [:], "2026-09-29", now: now).isEmpty)
+    }
+
+    /// ◯日ごとは次の目安日から間隔ごと。毎日は出さない
+    func testIntervalRepeatsFromDueDate() {
+        let now = d(2026, 9, 26)
+        let drip = Item(id: "drip", label: "点滴", intervalDays: 4, anchorDate: "2026-09-25")
+        // 目安日は 9/29。以降 10/3, 10/7 …
+        XCTAssertTrue(Logic.plannedOnDay([drip], [:], "2026-09-28", now: now).isEmpty)
+        XCTAssertEqual(Logic.plannedOnDay([drip], [:], "2026-09-29", now: now).map(\.id), ["drip"])
+        XCTAssertTrue(Logic.plannedOnDay([drip], [:], "2026-09-30", now: now).isEmpty)
+        XCTAssertEqual(Logic.plannedOnDay([drip], [:], "2026-10-03", now: now).map(\.id), ["drip"])
+        XCTAssertEqual(Logic.plannedOnDay([drip], [:], "2026-10-07", now: now).map(\.id), ["drip"])
+    }
+
+    /// 目安日が過ぎている◯日ごとは、今日から数える
+    func testOverdueIntervalStartsToday() {
+        let now = d(2026, 9, 26)
+        let drip = Item(id: "drip", label: "点滴", intervalDays: 3, anchorDate: "2026-09-10")
+        XCTAssertEqual(Logic.plannedOnDay([drip], [:], "2026-09-26", now: now).map(\.id), ["drip"])
+        XCTAssertEqual(Logic.plannedOnDay([drip], [:], "2026-09-29", now: now).map(\.id), ["drip"])
+        XCTAssertTrue(Logic.plannedOnDay([drip], [:], "2026-09-28", now: now).isEmpty)
+    }
+}
+
 /// こっそりお祝い。優先順位は ぜんぶ済み > 節目 > ふだん（拡張機能 v1.5.0 と同じ）
 final class CheerTests: XCTestCase {
     /// 答えを固定するための乱数（SplitMix64）。

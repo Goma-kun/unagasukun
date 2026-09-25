@@ -279,6 +279,27 @@ public enum Logic {
 
     // MARK: - カレンダー
 
+    /// これから来る日の予定（カレンダーで先の日を押したとき用）。
+    /// `itemsOnDay` は過去向けで「◯日ごと」を毎日出す（付け忘れを直せるように）が、
+    /// 未来では次の目安日から間隔ごとにだけ出す。休み中・保管済みは出さない。並びは時刻順（いつでも→時刻）
+    public static func plannedOnDay(_ schedule: [Item], _ records: Records, _ key: String, now: Date) -> [Item] {
+        guard let day = parseDateKey(key) else { return [] }
+        let today = startOfDay(now)
+        return schedule.filter { item in
+            if item.origId != nil || isArchived(item) || !item.enabled { return false }
+            if isOneOff(item) { return item.date == key }
+            if isInterval(item) {
+                guard let n = item.intervalDays, n > 0,
+                      let info = intervalDueInfo(item, records, now) else { return false }
+                let due = self.day(today, plus: max(0, info.daysUntil))
+                let gap = Int(((ms(day) - ms(due)) / dayMs).rounded())
+                return gap >= 0 && gap % n == 0
+            }
+            return isScheduledOn(item.days, day)
+        }
+        .sorted { ($0.time ?? "") < ($1.time ?? "") }
+    }
+
     /// その日にあった予定（1回だけ・保管済みを含む）。やりなおしコピーは出さない
     public static func itemsOnDay(_ schedule: [Item], _ records: Records, _ key: String) -> [Item] {
         guard let day = parseDateKey(key) else { return [] }
