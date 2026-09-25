@@ -1,22 +1,34 @@
 # うながすくん プライバシーポリシー / Unagasukun Privacy Policy
 
-最終更新日 / Last updated: 2026-08-14
+最終更新日 / Last updated: 2026-09-26
+
+このポリシーは、**Chrome 拡張機能版**と **iPhone / Mac アプリ版**の両方に適用されます。
+This policy covers both the **Chrome extension** and the **iPhone / Mac app**.
 
 ## 日本語
 
-**うながすくん**（以下「本拡張機能」）は、ユーザーのプライバシーを最優先に設計されています。
+**うながすくん**（以下「本ソフトウェア」）は、ユーザーのプライバシーを最優先に設計されています。
 
 ### データの収集について
 
-本拡張機能は、**いかなるデータも収集・送信しません**。
+本ソフトウェアは、**開発者を含む第三者に、いかなるデータも収集・送信しません**。
 
-- 登録した予定（時刻・やること・曜日）、実績の記録、「実際は」のメモは、すべてお使いのブラウザ内（`chrome.storage.local`）にのみ保存されます
-- 外部サーバーへの通信は一切ありません
-- 開発者を含む第三者が、ユーザーのデータにアクセスすることはできません
-- アクセス解析・トラッキングは行いません
+- 登録した予定（時刻・やること・曜日・詳細メモ）、実績の記録は、お使いの端末の中にのみ保存されます
+- 開発者が運用するサーバーはありません。開発者を含む第三者が、ユーザーのデータにアクセスすることはできません
+- アクセス解析・トラッキング・広告は行いません
+- アカウント登録やログインは不要です
+
+### iPhone / Mac アプリ版について
+
+- **通知**：登録した時刻に「いまは○○の時間です」とお知らせするために、通知の許可をお願いします。許可しなくてもアプリは使えます
+- **iCloud 同期（任意）**：設定で「iCloud で同期」をオンにすると、予定と記録が**あなた自身の iCloud（プライベートデータベース）**に保存され、同じ Apple アカウントでサインインした iPhone と Mac の間で揃います。保存先はあなたの iCloud であり、開発者はその内容を読むことも受け取ることもできません。オフにすれば iCloud への書き込みは止まります
+- **データの書き出し／取り込み**：Chrome 拡張機能版から書き出した JSON ファイルを取り込む機能があります。ファイルはあなたが選んだものだけを読み、アプリの外には送りません
+- アプリ版と Chrome 拡張機能版の間で、データが自動的に共有されることはありません
+
+### Chrome 拡張機能版について
+
+- データは `chrome.storage.local`（ブラウザ内）にのみ保存されます
 - 閲覧履歴・閲覧中のページ内容には一切アクセスしません（そのための権限を持っていません）
-
-### 使用する権限とその理由
 
 | 権限 | 理由 |
 |---|---|
@@ -27,31 +39,41 @@
 
 ### データの削除
 
-本拡張機能をアンインストールすると、保存されたデータはすべて削除されます。
+- アプリ版：アプリを削除すると、端末内のデータはすべて消えます。iCloud 上のデータは、iPhone / Mac の「設定 → Apple アカウント → iCloud → アプリのデータを管理」から削除できます
+- 拡張機能版：アンインストールすると、保存されたデータはすべて削除されます
 
 ### お問い合わせ
 
 GitHub Issues: https://github.com/Goma-kun/unagasukun/issues
 
-提供者：ニシラ（個人事業主）
+提供者：ニシラ（NISHIRA）
 
 ---
 
 ## English
 
-**Unagasukun** ("this extension") is designed with user privacy as the top priority.
+**Unagasukun** ("this software") is designed with user privacy as the top priority.
 
 ### Data Collection
 
-This extension does **not collect or transmit any data**.
+This software does **not collect or transmit any data to the developer or any third party**.
 
-- Your plans (time, task, days), completion records, and "Actually" notes are stored only inside your browser (`chrome.storage.local`)
-- There is no communication with any external server
-- No third party, including the developer, can access your data
-- No analytics or tracking
+- Your plans (time, task, days, notes) and completion records are stored only on your device
+- There is no server run by the developer. No third party, including the developer, can access your data
+- No analytics, tracking, or advertising
+- No account or sign-in is required
+
+### iPhone / Mac App
+
+- **Notifications**: the app asks for permission to show "It's time for ..." at the times you set. The app works without it
+- **iCloud sync (optional)**: when you turn on "Sync with iCloud" in Settings, your plans and records are stored in **your own iCloud private database** and kept in sync between the iPhone and Mac signed in with the same Apple Account. The data lives in your iCloud; the developer cannot read or receive it. Turning sync off stops writing to iCloud
+- **Export / import**: you can import a JSON file exported from the Chrome extension. Only the file you choose is read, and it never leaves the app
+- Data is not shared automatically between the app and the Chrome extension
+
+### Chrome Extension
+
+- Data is stored only inside your browser (`chrome.storage.local`)
 - The extension never accesses your browsing history or page content (it has no permission to do so)
-
-### Permissions and Why They Are Needed
 
 | Permission | Reason |
 |---|---|
@@ -62,10 +84,11 @@ This extension does **not collect or transmit any data**.
 
 ### Data Deletion
 
-Uninstalling the extension deletes all stored data.
+- App: deleting the app removes all data on the device. Data in iCloud can be removed from Settings → Apple Account → iCloud → Manage app data on your iPhone / Mac
+- Extension: uninstalling deletes all stored data
 
 ### Contact
 
 GitHub Issues: https://github.com/Goma-kun/unagasukun/issues
 
-Provider: Nishira (sole proprietor)
+Provider: NISHIRA

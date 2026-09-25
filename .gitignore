@@ -15,3 +15,7 @@ ios/.build-mac-check/
 store-assets-ios/
 STORE_LISTING_IOS.md
 ios/.build-device/
+ios/.build-*/
+
+# 本人データの書き出し（拡張「データを書き出す」の結果。公開しない）
+unagasukun-*.json
