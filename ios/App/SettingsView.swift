@@ -94,6 +94,11 @@ struct SettingsView: View {
                     }
                 }
             }
+            // macOS の Form は既定の「列」スタイルだと縦に詰まって上下中央に寄り、余白も付かない。
+            // iOS の設定画面と同じ見た目になる grouped にする（2026-09-26 Mac App Store 用の撮影で発覚）
+            #if os(macOS)
+            .formStyle(.grouped)
+            #endif
         }
         .background(Theme.bg)
         .task { await model.syncNow() }

@@ -111,6 +111,12 @@ struct PlanFormView: View {
                     }
                 }
             }
+            // macOS のシートは中身の幅で決まり、既定の「列」スタイルだと左右のラベルが枠からはみ出す。
+            // 設定画面と同じ grouped にして幅を決める（2026-09-26 Mac App Store 用の撮影で発覚）
+            #if os(macOS)
+            .formStyle(.grouped)
+            .frame(minWidth: 540, idealWidth: 540, minHeight: 620)
+            #endif
             .navigationTitle(editing == nil ? "予定を追加" : "予定を編集")
             .compactNavigationTitle()
             .toolbar {
