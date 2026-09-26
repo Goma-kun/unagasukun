@@ -288,6 +288,11 @@ private struct TodoCard: View {
                 pastDoneRow(pastCandidates)
             }
 
+            // 時間が過ぎて記録が無い予定には「実際は…」（拡張機能と同じ）。畳んだ状態で置く
+            if entry.group == .overdue {
+                ActualNoteRow(item: entry.item, key: Logic.dateKey(now), openByDefault: false)
+            }
+
             HStack(spacing: 10) {
                 Button {
                     model.record(entry.item, .done, now: now)
@@ -456,16 +461,22 @@ private struct DoneCard: View {
     let entry: TodayEntry
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: entry.mark == .done ? "checkmark.circle.fill" : "moon.zzz.fill")
-                .foregroundStyle(entry.mark == .done ? Theme.done : Theme.skip)
-            Text(entry.item.label)
-                .font(.system(size: 15))
-                .foregroundStyle(Theme.muted)
-            Spacer(minLength: 0)
-            Button("取り消す") { model.undo(entry.item) }
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.navyLight)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: entry.mark == .done ? "checkmark.circle.fill" : "moon.zzz.fill")
+                    .foregroundStyle(entry.mark == .done ? Theme.done : Theme.skip)
+                Text(entry.item.label)
+                    .font(.system(size: 15))
+                    .foregroundStyle(Theme.muted)
+                Spacer(minLength: 0)
+                Button("取り消す") { model.undo(entry.item) }
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.navyLight)
+            }
+            // 休んだ予定には「実際は…」。付けなくてもよい
+            if entry.mark == .skip {
+                ActualNoteRow(item: entry.item, key: Logic.dateKey(Date()))
+            }
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .background(Theme.card.opacity(0.7), in: RoundedRectangle(cornerRadius: 10))

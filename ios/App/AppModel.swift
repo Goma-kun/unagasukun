@@ -263,6 +263,16 @@ final class AppModel: ObservableObject {
         commit()
     }
 
+    /// 「実際は…」の一言（休んだ日・過ぎて未記録の予定に付ける）
+    func note(for item: Item, on key: String) -> String? {
+        snapshot.notes[key]?[item.origId ?? item.id]
+    }
+
+    func setNote(_ text: String?, item: Item, on key: String) {
+        snapshot.setNote(text, item: item.origId ?? item.id, on: key)
+        commit()
+    }
+
     /// 「できた」を付けたあとの一言（こっそりお祝い）。記録を付けてから呼ぶ
     func cheerAfterDone(_ item: Item, now: Date = Date()) -> Cheer {
         CheerLogic.afterDone(item, schedule: snapshot.schedule, records: snapshot.records, now: now)

@@ -17,19 +17,27 @@ public struct Snapshot: Codable, Equatable, Sendable {
     /// 操作の時刻つきで残し、混ぜるときは新しい操作を採る。拡張機能から取り込んだ古い記録には
     /// 履歴が無いので、そこは従来どおり足し合わせ
     public var recordLog: [String: RecordEntry]
+    /// 「実際は…」の一言。日付 → 予定ID → 文（拡張機能の `notes` と同じ形）
+    public var notes: Notes
+    /// notes の操作履歴（records と同じ理由。消したことも同期で伝える）
+    public var noteLog: [String: NoteEntry]
 
     /// 中身が同じか。`updatedAt` は見ない。
     /// 同期で「上げ直す必要があるか」を決めるのに使う（時刻だけ違うものを上げ続けないため）
     public func sameContent(as other: Snapshot) -> Bool {
         schedule == other.schedule && records == other.records && recordLog == other.recordLog
+            && notes == other.notes && noteLog == other.noteLog
     }
 
     public init(schedule: [Item] = [], records: Records = [:], updatedAt: Double = 0,
-                recordLog: [String: RecordEntry] = [:]) {
+                recordLog: [String: RecordEntry] = [:], notes: Notes = [:],
+                noteLog: [String: NoteEntry] = [:]) {
         self.schedule = schedule
         self.records = records
         self.updatedAt = updatedAt
         self.recordLog = recordLog
+        self.notes = notes
+        self.noteLog = noteLog
     }
 
     /// 履歴を足す前に保存したファイルにはキーが無いので、無ければ空で読む
@@ -39,6 +47,19 @@ public struct Snapshot: Codable, Equatable, Sendable {
         records = try c.decode(Records.self, forKey: .records)
         updatedAt = try c.decodeIfPresent(Double.self, forKey: .updatedAt) ?? 0
         recordLog = try c.decodeIfPresent([String: RecordEntry].self, forKey: .recordLog) ?? [:]
+        notes = try c.decodeIfPresent(Notes.self, forKey: .notes) ?? [:]
+        noteLog = try c.decodeIfPresent([String: NoteEntry].self, forKey: .noteLog) ?? [:]
+    }
+
+    /// 「実際は…」を付ける・直す・消す入口。空文字や空白だけなら消す。30字まで
+    public mutating func setNote(_ text: String?, item id: String, on day: String,
+                                 at: Double = Date().timeIntervalSince1970 * 1000) {
+        let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let value: String? = trimmed.isEmpty ? nil : String(trimmed.prefix(ActualNote.maxLength))
+        var d = notes[day] ?? [:]
+        if let value { d[id] = value } else { d.removeValue(forKey: id) }
+        if d.isEmpty { notes.removeValue(forKey: day) } else { notes[day] = d }
+        noteLog[Self.logKey(day, id)] = NoteEntry(text: value, at: at)
     }
 
     /// 記録を付ける・付け直す・消す入口。**アプリからの記録の変更は必ずここを通す**
@@ -52,6 +73,27 @@ public struct Snapshot: Codable, Equatable, Sendable {
     }
 
     static func logKey(_ day: String, _ id: String) -> String { "\(day)|\(id)" }
+}
+
+/// 日付 → 予定ID → 「実際は…」の文
+public typealias Notes = [String: [String: String]]
+
+/// 「実際は…」の1操作。`text` が nil なら「消した」
+public struct NoteEntry: Codable, Equatable, Sendable {
+    public var text: String?
+    public var at: Double
+    public init(text: String?, at: Double) { self.text = text; self.at = at }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(text, forKey: .text)
+        try c.encode(at, forKey: .at)
+    }
+}
+
+/// 「実際は…」の選択肢。拡張機能と同じ4つ。**責める言葉は使わない**（成績表でなく、予定の側を直す材料）
+public enum ActualNote {
+    public static let choices = ["別の作業", "休憩", "ブラウジング", "気分が乗らず"]
+    public static let maxLength = 30
 }
 
 /// 記録の1操作。`mark` が nil なら「消した」
@@ -112,11 +154,31 @@ public enum Merge {
         let cutoff = max(a.updatedAt, b.updatedAt) - 365 * 86_400_000
         log = log.filter { $0.value.at >= cutoff }
 
+        // 「実際は…」も同じ考え方: 足し合わせ（手元優先）→ 履歴のあるものは新しい操作で上書き
+        var notes = a.notes
+        for (day, texts) in b.notes {
+            var merged = notes[day] ?? [:]
+            for (id, t) in texts where merged[id] == nil { merged[id] = t }
+            notes[day] = merged
+        }
+        var nlog = a.noteLog
+        for (k, e) in b.noteLog where nlog[k].map({ e.at > $0.at }) ?? true { nlog[k] = e }
+        for (k, e) in nlog {
+            guard let sep = k.firstIndex(of: "|") else { continue }
+            let day = String(k[..<sep]), id = String(k[k.index(after: sep)...])
+            var d = notes[day] ?? [:]
+            if let t = e.text { d[id] = t } else { d.removeValue(forKey: id) }
+            if d.isEmpty { notes.removeValue(forKey: day) } else { notes[day] = d }
+        }
+        nlog = nlog.filter { $0.value.at >= cutoff }
+
         return Snapshot(
             schedule: newer.schedule,
             records: records,
             updatedAt: max(a.updatedAt, b.updatedAt),
-            recordLog: log
+            recordLog: log,
+            notes: notes,
+            noteLog: nlog
         )
     }
 }
@@ -132,10 +194,15 @@ extension RecordEntry {
     }
 }
 
-/// 拡張機能から書き出したファイルの形。`schedule` と `records` だけ読む（`notes` などは読み飛ばす）
+/// 拡張機能から書き出したファイルの形。`schedule`・`records`・`notes`（実際は…）を読む
 public struct ExportFile: Codable {
     public var schedule: [Item]
     public var records: Records
+    public var notes: Notes?
+
+    public init(schedule: [Item], records: Records, notes: Notes? = nil) {
+        self.schedule = schedule; self.records = records; self.notes = notes
+    }
 }
 
 extension Merge {
@@ -155,9 +222,16 @@ extension Merge {
             for (id, mark) in marks where merged[id] != .done { merged[id] = mark }
             records[day] = merged
         }
+        // 「実際は…」は手元に無い日だけ足す
+        var notes = local.notes
+        for (day, texts) in imported.notes ?? [:] {
+            var merged = notes[day] ?? [:]
+            for (id, t) in texts where merged[id] == nil { merged[id] = t }
+            notes[day] = merged
+        }
         return Snapshot(schedule: schedule, records: records,
                         updatedAt: Date().timeIntervalSince1970 * 1000,
-                        recordLog: local.recordLog)
+                        recordLog: local.recordLog, notes: notes, noteLog: local.noteLog)
     }
 }
 

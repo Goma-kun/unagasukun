@@ -198,13 +198,21 @@ struct LookBackView: View {
                     .padding(.vertical, 6)
             } else {
                 ForEach(items, id: \.id) { item in
-                    HStack(spacing: 10) {
-                        Text(item.label)
-                            .font(.system(size: 15))
-                            .foregroundStyle(Theme.text)
-                        Spacer(minLength: 0)
-                        markButton(item, .done, key, "できた", Theme.done)
-                        markButton(item, .skip, key, "休んだ", Theme.skip)
+                    let mark = model.mark(item, on: key)
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 10) {
+                            Text(item.label)
+                                .font(.system(size: 15))
+                                .foregroundStyle(Theme.text)
+                            Spacer(minLength: 0)
+                            markButton(item, .done, key, "できた", Theme.done)
+                            markButton(item, .skip, key, "休んだ", Theme.skip)
+                        }
+                        // 休んだ日・記録が無い日には「実際は…」（畳んだ状態）。付いていれば見せる
+                        if mark == .skip || (mark == nil && key < Logic.dateKey(Date()))
+                            || model.note(for: item, on: key) != nil {
+                            ActualNoteRow(item: item, key: key, openByDefault: false)
+                        }
                     }
                     .padding(.horizontal, 12).padding(.vertical, 10)
                     .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))

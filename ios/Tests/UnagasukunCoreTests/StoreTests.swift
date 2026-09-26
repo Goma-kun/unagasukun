@@ -210,6 +210,17 @@ final class ImportTests: XCTestCase {
         XCTAssertEqual(m.records["2026-09-21"]?["b"], .done)
     }
 
+    /// 拡張機能の「実際は…」（notes）も取り込む。手元にある日は手元を残す
+    func testImportBringsNotes() throws {
+        let json = #"{"schedule":[],"records":{},"notes":{"2026-09-20":{"a":"休憩"},"2026-09-21":{"a":"別の作業"}}}"#
+        let f = try JSONDecoder().decode(ExportFile.self, from: Data(json.utf8))
+        var local = Snapshot()
+        local.setNote("気分が乗らず", item: "a", on: "2026-09-21", at: 1)
+        let m = Merge.importing(local: local, imported: f)
+        XCTAssertEqual(m.notes["2026-09-20"]?["a"], "休憩")
+        XCTAssertEqual(m.notes["2026-09-21"]?["a"], "気分が乗らず")
+    }
+
     func testImportIntoEmptyTakesEverything() {
         let imported = ExportFile(schedule: [Item(id: "x"), Item(id: "y")], records: ["d": ["x": .done]])
         let m = Merge.importing(local: Snapshot(), imported: imported)

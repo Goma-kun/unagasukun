@@ -117,6 +117,35 @@ final class SyncPlanTests: XCTestCase {
         XCTAssertEqual(back, t, "「消した」の履歴も往復で残る")
     }
 
+    /// 「実際は…」も、消したら向こうの写しで戻らない。新しい操作が勝つ
+    func testNotesFollowNewestOperation() {
+        var a = snap([:], 100)
+        a.setNote("休憩", item: "x", on: "2026-09-26", at: 200)
+        var b = snap([:], 100)
+        b.setNote("別の作業", item: "x", on: "2026-09-26", at: 300)
+        XCTAssertEqual(SyncPlan.decide(local: a, remote: b).merged.notes["2026-09-26"]?["x"], "別の作業")
+        XCTAssertEqual(SyncPlan.decide(local: b, remote: a).merged.notes["2026-09-26"]?["x"], "別の作業")
+
+        var c = b
+        c.setNote(nil, item: "x", on: "2026-09-26", at: 400)
+        XCTAssertNil(SyncPlan.decide(local: c, remote: b).merged.notes["2026-09-26"]?["x"])
+        XCTAssertNil(SyncPlan.decide(local: b, remote: c).merged.notes["2026-09-26"]?["x"])
+    }
+
+    /// 拡張機能から取り込んだ「実際は…」（履歴なし）は足し合わせで残る。空白だけは消す扱い。30字で切る
+    func testNotesLegacyMergeAndTrim() {
+        let local = snap([:], 100)
+        var remote = snap([:], 100)
+        remote.notes = ["2026-09-20": ["x": "ブラウジング"]]
+        XCTAssertEqual(SyncPlan.decide(local: local, remote: remote).merged.notes["2026-09-20"]?["x"], "ブラウジング")
+
+        var s = snap([:], 0)
+        s.setNote("   ", item: "x", on: "d", at: 1)
+        XCTAssertNil(s.notes["d"])
+        s.setNote(String(repeating: "あ", count: 40), item: "x", on: "d", at: 2)
+        XCTAssertEqual(s.notes["d"]?["x"]?.count, 30)
+    }
+
     /// どちらから見ても同じ結果になる（順番で答えが変わってはいけない）
     func testMergeIsSymmetric() {
         let a = snap(["d1": ["x": .done]], 100, [Item(id: "x")])
