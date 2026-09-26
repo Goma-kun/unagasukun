@@ -126,13 +126,18 @@ enum Shot {
 
 #if os(iOS)
 /// 浮かぶ「＋」。指で動かせて、置いた場所を端末ごとに覚える（見出しの文字に被る、という指摘への答え）。
-/// 位置は画面の幅・高さに対する割合で持つので、縦横が変わっても画面の外に出ない
+/// 位置は画面の幅・高さに対する割合で持つので、縦横が変わっても画面の外に出ない。
+///
+/// **Button に DragGesture を重ねない。** Button が指の動きを取ってしまい、指に追従せず離した瞬間に
+/// まとめて飛ぶ（2026-09-26 本人「ピュンって飛ぶ」）。丸は素の View にして、
+/// 押す／動かすは1つの DragGesture(minimumDistance: 0) の中で距離で見分ける
 struct FloatingAddButton: View {
     var action: () -> Void
     /// 割合（0〜1）。既定は左下（Apple のリマインダーと同じ・左手の親指が届く）
     @AppStorage("fabX") private var fabX = 0.0
     @AppStorage("fabY") private var fabY = 1.0
     @State private var drag: CGSize = .zero
+    @State private var pressed = false
 
     private let size: CGFloat = 52
     private let margin: CGFloat = 16
@@ -143,33 +148,49 @@ struct FloatingAddButton: View {
             let area = CGRect(x: margin, y: margin + 8,
                               width: max(1, geo.size.width - margin * 2 - size),
                               height: max(1, geo.size.height - margin - bottomInset - size))
-            let base = CGPoint(x: area.minX + area.width * fabX, y: area.minY + area.height * fabY)
-            Button(action: action) {
-                Image(systemName: "plus")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: size, height: size)
-                    .background(Theme.navyLight, in: Circle())
-                    .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("予定を追加。長押しして動かせます")
-            .position(x: base.x + size / 2 + drag.width, y: base.y + size / 2 + drag.height)
-            .gesture(
-                // 少し動かしてからドラッグ扱いにする（軽く押しただけなら追加のまま）
-                DragGesture(minimumDistance: 10)
-                    .onChanged { drag = $0.translation }
-                    .onEnded { v in
-                        let nx = (base.x + v.translation.width - area.minX) / area.width
-                        let ny = (base.y + v.translation.height - area.minY) / area.height
-                        fabX = min(1, max(0, nx))
-                        fabY = min(1, max(0, ny))
-                        drag = .zero
-                    }
-            )
-            .animation(.easeOut(duration: 0.15), value: drag == .zero)
+            let base = CGPoint(x: area.minX + area.width * fabX + size / 2,
+                               y: area.minY + area.height * fabY + size / 2)
+            Image(systemName: "plus")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: size, height: size)
+                .background(Theme.navyLight, in: Circle())
+                .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
+                .scaleEffect(pressed ? 1.08 : 1)
+                .contentShape(Circle())
+                .position(x: base.x + drag.width, y: base.y + drag.height)
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { v in
+                            // 指にそのまま追従（アニメーションは掛けない）
+                            var t = Transaction(); t.disablesAnimations = true
+                            withTransaction(t) {
+                                drag = v.translation
+                                pressed = true
+                            }
+                        }
+                        .onEnded { v in
+                            let moved = hypot(v.translation.width, v.translation.height)
+                            if moved < 8 {
+                                // ほとんど動いていない＝押した
+                                drag = .zero; pressed = false
+                                action()
+                                return
+                            }
+                            // 置いた場所を割合で覚える。画面の外に出ていたら縁まで戻す（ここだけ軽く動く）
+                            let nx = min(1, max(0, (base.x + v.translation.width - size / 2 - area.minX) / area.width))
+                            let ny = min(1, max(0, (base.y + v.translation.height - size / 2 - area.minY) / area.height))
+                            withAnimation(.spring(duration: 0.25)) {
+                                fabX = nx; fabY = ny
+                                drag = .zero
+                                pressed = false
+                            }
+                        }
+                )
+                .accessibilityLabel("予定を追加")
+                .accessibilityHint("押したまま動かすと位置を変えられます")
+                .accessibilityAddTraits(.isButton)
         }
-        .allowsHitTesting(true)
     }
 }
 #endif
