@@ -65,3 +65,29 @@ public enum LookBack {
         schedule.filter { !Logic.isOneOff($0) && $0.origId == nil && !Logic.isArchived($0) }
     }
 }
+
+extension LookBack {
+    /// カレンダーで日を選んだときの一覧。
+    ///
+    /// `Logic.itemsOnDay` は「◯日ごと」を毎日出す（付け忘れを直せるように）が、
+    /// 今日の予定に無いものまで同じ顔で並ぶと「今日やるの？」と読める（2026-09-26 本人指摘）。
+    /// その日に記録があるか、その日の時点で目安日が来ているものだけを `main` に、
+    /// 残りの「◯日ごと」は `others`（済ませていたら付けられる控えめな欄）に分ける。
+    /// **拡張機能の `itemsOnDay` は変えない**（突き合わせテストの対象なので、ここで分ける）
+    public static func dayLists(_ schedule: [Item], _ records: Records, _ key: String)
+        -> (main: [Item], others: [Item]) {
+        let all = Logic.itemsOnDay(schedule, records, key)
+        guard let day = Logic.parseDateKey(key) else { return (all, []) }
+        let rec = records[key] ?? [:]
+        var main: [Item] = [], others: [Item] = []
+        for item in all {
+            if Logic.isInterval(item), rec[item.id] == nil,
+               let info = Logic.intervalDueInfo(item, records, day), info.daysUntil > 0 {
+                others.append(item)
+            } else {
+                main.append(item)
+            }
+        }
+        return (main, others)
+    }
+}

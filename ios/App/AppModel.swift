@@ -161,6 +161,11 @@ final class AppModel: ObservableObject {
         Logic.itemsOnDay(snapshot.schedule, snapshot.records, key)
     }
 
+    /// カレンダーで日を選んだときの一覧（その日の予定／予定に無いが付けられるもの）
+    func dayLists(_ key: String) -> (main: [Item], others: [Item]) {
+        LookBack.dayLists(snapshot.schedule, snapshot.records, key)
+    }
+
     /// これから来る日の予定（カレンダーで先の日を押したとき）
     func plannedOn(_ key: String, now: Date = Date()) -> [Item] {
         Logic.plannedOnDay(snapshot.schedule, snapshot.records, key, now: now)

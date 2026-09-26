@@ -156,6 +156,25 @@ final class DescribeTests: XCTestCase {
     }
 }
 
+/// 日別リストで、目安日が先の「◯日ごと」は主の一覧に混ぜない（2026-09-26 本人指摘）
+final class DayListsTests: XCTestCase {
+    func testIntervalNotDueGoesToOthers() {
+        let daily = Item(id: "d", label: "独り言", anytime: true)
+        let drip = Item(id: "drip", label: "点滴", intervalDays: 4, anchorDate: "2026-09-25")
+        // 9/26: 目安日は 9/29 → others
+        let a = LookBack.dayLists([daily, drip], [:], "2026-09-26")
+        XCTAssertEqual(a.main.map(\.id), ["d"])
+        XCTAssertEqual(a.others.map(\.id), ["drip"])
+        // 9/29: 目安日 → main
+        let b = LookBack.dayLists([daily, drip], [:], "2026-09-29")
+        XCTAssertEqual(b.main.map(\.id), ["d", "drip"])
+        XCTAssertTrue(b.others.isEmpty)
+        // 記録が付いていれば目安日でなくても main（付けた事実が見えないと困る）
+        let c = LookBack.dayLists([daily, drip], ["2026-09-26": ["drip": .done]], "2026-09-26")
+        XCTAssertEqual(c.main.map(\.id), ["d", "drip"])
+    }
+}
+
 /// カレンダーで先の日を押したときの予定（2026-09-26 本人指摘「未来の予定をカレンダーで確認できない」）
 final class PlannedOnDayTests: XCTestCase {
     private func d(_ y: Int, _ m: Int, _ day: Int) -> Date {

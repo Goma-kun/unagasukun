@@ -7,6 +7,10 @@ struct LookBackView: View {
     @EnvironmentObject private var model: AppModel
     @State private var month = Date()
     @State private var selected: String? = nil
+    /// 日別リストの「予定に無いもの」を開いているか
+    @State private var othersOpen = false
+    /// タイルで押した日（予定ID → 日付キー）。その場で記録を付けられる行を出す
+    @State private var tilePick: [String: String] = [:]
 
     private let weekdayNames = ["日", "月", "火", "水", "木", "金", "土"]
 
@@ -34,10 +38,8 @@ struct LookBackView: View {
                     guard Shot.scrollTarget == "tiles" else { return }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { proxy.scrollTo("tiles", anchor: .top) }
                 }
-                // タイルで日を選んだら、付け直す場所（カレンダーの下）まで戻す
-                .onChange(of: selected) { _, _ in
-                    withAnimation { proxy.scrollTo("calendar", anchor: .top) }
-                }
+                // タイルを押しても上には戻さない（戻されても何をすればいいか分からない・2026-09-26 本人指摘）。
+                // 記録はタイルのすぐ下で付ける
             }
         }
         .background(Theme.bg)
@@ -182,7 +184,8 @@ struct LookBackView: View {
     }
 
     private func recordDetail(_ key: String) -> some View {
-        let items = model.itemsOn(key)
+        let lists = model.dayLists(key)
+        let items = lists.main
         return VStack(alignment: .leading, spacing: 10) {
             Text(dayTitle(key))
                 .font(.system(size: 13, weight: .semibold))
@@ -209,6 +212,45 @@ struct LookBackView: View {
                 Text("押すと記録が付き、もう一度押すと取り消せます。")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.skip)
+            }
+
+            // この日の予定には無いが、済ませていたら付けられるもの（目安日が先の「◯日ごと」）。
+            // 主の一覧に混ぜると「今日やるの？」と読めるので、畳んだ欄に分ける
+            if !lists.others.isEmpty {
+                Button { withAnimation(.easeInOut(duration: 0.2)) { othersOpen.toggle() } } label: {
+                    HStack(spacing: 6) {
+                        Text("この日の予定に無いもの")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("\(lists.others.count)")
+                            .font(.system(size: 11, weight: .semibold))
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(Theme.skip.opacity(0.35), in: Capsule())
+                        Spacer(minLength: 0)
+                        Image(systemName: othersOpen ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(Theme.muted)
+                    .padding(.top, 6)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                if othersOpen {
+                    Text("目安日が先の「◯日ごと」です。この日に済ませていたら、ここで付けられます。")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.skip)
+                    ForEach(lists.others, id: \.id) { item in
+                        HStack(spacing: 10) {
+                            Text(item.label)
+                                .font(.system(size: 15))
+                                .foregroundStyle(Theme.muted)
+                            Spacer(minLength: 0)
+                            markButton(item, .done, key, "できた", Theme.done)
+                            markButton(item, .skip, key, "休んだ", Theme.skip)
+                        }
+                        .padding(.horizontal, 12).padding(.vertical, 10)
+                        .background(Theme.card.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+                    }
+                }
             }
         }
     }
@@ -247,7 +289,7 @@ struct LookBackView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Theme.muted)
                 // 見方の説明。「マスが並んでいるだけで何か分からない」と言われたので、先頭に1回だけ
-                Text("マス1つが1日。縦が日〜土、横が週で、右端の列が今週です。色が付いた日が「できた」日。マスを押すと、その日の記録を上のカレンダーで付け直せます。")
+                Text("マス1つが1日。縦が日〜土、横が週で、右端の列が今週です。色が付いた日が「できた」日。マスを押すと、その日の記録をすぐ下で付けられます。")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.skip)
 
@@ -267,6 +309,20 @@ struct LookBackView: View {
                             .foregroundStyle(Theme.muted)
                         tileGrid(item, weeks)
                         legend
+                        // 押したタイルの日。ここで「できた／休んだ」を付ける
+                        if let key = tilePick[item.id], let d = Logic.parseDateKey(key) {
+                            HStack(spacing: 10) {
+                                Text(Describe.short(d) + (key == Logic.dateKey(Date()) ? "（今日）" : ""))
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(Theme.text)
+                                Spacer(minLength: 0)
+                                markButton(item, .done, key, "できた", Theme.done)
+                                markButton(item, .skip, key, "休んだ", Theme.skip)
+                            }
+                            .padding(.horizontal, 12).padding(.vertical, 10)
+                            .background(Theme.bg, in: RoundedRectangle(cornerRadius: 10))
+                            .transition(.opacity)
+                        }
                     }
                     .padding(12)
                     .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
@@ -315,9 +371,10 @@ struct LookBackView: View {
                                 .frame(width: tileSize, height: tileSize)
                         } else {
                             Button {
-                                // その日を上のカレンダーで選ぶ（付け直しはカレンダーの下でする）
-                                selected = key
-                                month = day
+                                // その日の記録を、このタイルのすぐ下で付ける。同じ日をもう一度押すと閉じる
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    tilePick[item.id] = tilePick[item.id] == key ? nil : key
+                                }
                             } label: {
                                 RoundedRectangle(cornerRadius: 2)
                                     .fill(LookBack.tileMark(item, model.snapshot.records, day, now: Date()) == .done
@@ -325,7 +382,7 @@ struct LookBackView: View {
                                     .frame(width: tileSize, height: tileSize)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 2)
-                                            .stroke(key == todayKey ? Theme.accent : (key == selected ? Theme.tint : .clear),
+                                            .stroke(key == todayKey ? Theme.accent : (key == tilePick[item.id] ? Theme.tint : .clear),
                                                     lineWidth: 1.5)
                                     )
                             }
