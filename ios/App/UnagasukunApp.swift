@@ -12,8 +12,6 @@ struct UnagasukunApp: App {
     @State private var tab = Shot.initialTab
     /// 浮かぶ「＋」から開く登録フォーム（iPhone だけ）
     @State private var addingFromFab = false
-    /// 「＋」の左右。既定は左（Apple のリマインダーと同じ。左手の親指が届く・2026-09-26 本人）
-    @AppStorage("addButtonSide") private var addButtonSide = "left"
 
     init() {
         UNUserNotificationCenter.current().delegate = Self.presenter
@@ -34,22 +32,11 @@ struct UnagasukunApp: App {
                 #if os(macOS)
                 .frame(minWidth: 380, minHeight: 560)
                 #else
-                // 右上の「追加」は左手だと遠い（2026-09-26 本人指摘）。タブのすぐ上に浮かせる。
-                // 今日とカレンダーの両方に出し、設定では出さない
-                .overlay(alignment: addButtonSide == "right" ? .bottomTrailing : .bottomLeading) {
+                // 右上の「追加」は左手だと遠い（2026-09-26 本人指摘）。浮かぶ「＋」を出す。
+                // 今日とカレンダーの両方に出し、設定では出さない。指で好きな場所へ動かせる（Things 3 と同じ）
+                .overlay {
                     if tab != 2 {
-                        Button { addingFromFab = true } label: {
-                            Image(systemName: "plus")
-                                .font(.system(size: 22, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .frame(width: 52, height: 52)
-                                .background(Theme.navyLight, in: Circle())
-                                .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("予定を追加")
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 62)   // タブバーのすぐ上
+                        FloatingAddButton { addingFromFab = true }
                     }
                 }
                 .sheet(isPresented: $addingFromFab) { PlanFormView().environmentObject(model) }
@@ -136,3 +123,53 @@ enum Shot {
         #endif
     }
 }
+
+#if os(iOS)
+/// 浮かぶ「＋」。指で動かせて、置いた場所を端末ごとに覚える（見出しの文字に被る、という指摘への答え）。
+/// 位置は画面の幅・高さに対する割合で持つので、縦横が変わっても画面の外に出ない
+struct FloatingAddButton: View {
+    var action: () -> Void
+    /// 割合（0〜1）。既定は左下（Apple のリマインダーと同じ・左手の親指が届く）
+    @AppStorage("fabX") private var fabX = 0.0
+    @AppStorage("fabY") private var fabY = 1.0
+    @State private var drag: CGSize = .zero
+
+    private let size: CGFloat = 52
+    private let margin: CGFloat = 16
+    private let bottomInset: CGFloat = 62   // タブバーぶん
+
+    var body: some View {
+        GeometryReader { geo in
+            let area = CGRect(x: margin, y: margin + 8,
+                              width: max(1, geo.size.width - margin * 2 - size),
+                              height: max(1, geo.size.height - margin - bottomInset - size))
+            let base = CGPoint(x: area.minX + area.width * fabX, y: area.minY + area.height * fabY)
+            Button(action: action) {
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: size, height: size)
+                    .background(Theme.navyLight, in: Circle())
+                    .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("予定を追加。長押しして動かせます")
+            .position(x: base.x + size / 2 + drag.width, y: base.y + size / 2 + drag.height)
+            .gesture(
+                // 少し動かしてからドラッグ扱いにする（軽く押しただけなら追加のまま）
+                DragGesture(minimumDistance: 10)
+                    .onChanged { drag = $0.translation }
+                    .onEnded { v in
+                        let nx = (base.x + v.translation.width - area.minX) / area.width
+                        let ny = (base.y + v.translation.height - area.minY) / area.height
+                        fabX = min(1, max(0, nx))
+                        fabY = min(1, max(0, ny))
+                        drag = .zero
+                    }
+            )
+            .animation(.easeOut(duration: 0.15), value: drag == .zero)
+        }
+        .allowsHitTesting(true)
+    }
+}
+#endif

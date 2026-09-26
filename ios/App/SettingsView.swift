@@ -2,8 +2,9 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct SettingsView: View {
-    /// 浮かぶ「＋」の左右（iPhone だけ）。UnagasukunApp と同じキー
-    @AppStorage("addButtonSide") private var addButtonSide = "left"
+    /// 浮かぶ「＋」の位置（iPhone だけ）。FloatingAddButton と同じキー
+    @AppStorage("fabX") private var fabX = 0.0
+    @AppStorage("fabY") private var fabY = 1.0
     @EnvironmentObject private var model: AppModel
 
     @State private var confirmingRestore = false
@@ -65,15 +66,12 @@ struct SettingsView: View {
 
                 #if os(iOS)
                 Section {
-                    Picker("追加ボタンの位置", selection: $addButtonSide) {
-                        Text("左").tag("left")
-                        Text("右").tag("right")
-                    }
-                    .pickerStyle(.segmented)
+                    Button("「＋」の位置を左下に戻す") { fabX = 0; fabY = 1 }
+                        .disabled(fabX == 0 && fabY == 1)
                 } header: {
                     Text("追加ボタン")
                 } footer: {
-                    Text("画面の下に浮かぶ「＋」を、持つ手の親指が届く側に置けます。")
+                    Text("画面に浮かぶ「＋」は、指で好きな場所へ動かせます。置いた場所はこの端末で覚えます。")
                 }
                 #endif
 
