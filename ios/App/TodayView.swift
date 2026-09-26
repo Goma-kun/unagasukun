@@ -23,6 +23,8 @@ struct TodayView: View {
     /// 過ぎた予定は見返すことが少ないので、はじめは畳んでおく
     @AppStorage("collapseRegistered") private var collapseRegistered = false
     @AppStorage("collapsePast") private var collapsePast = true
+    /// 「今日対応済み」も畳める。済んだ数が多い日に長くなる（2026-09-26 本人要望）。はじめは開いておく
+    @AppStorage("collapseDone") private var collapseDone = false
 
     private let tick = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
@@ -49,9 +51,11 @@ struct TodayView: View {
                             }
                         }
                         if !done.isEmpty {
-                            sectionTitle("今日対応済み", count: done.count)
-                            ForEach(done, id: \.item.id) { entry in
-                                DoneCard(entry: entry)
+                            collapsibleTitle("今日対応済み", count: done.count, collapsed: $collapseDone)
+                            if !collapseDone {
+                                ForEach(done, id: \.item.id) { entry in
+                                    DoneCard(entry: entry)
+                                }
                             }
                         }
                     }
