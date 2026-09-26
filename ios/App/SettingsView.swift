@@ -2,6 +2,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct SettingsView: View {
+    /// 浮かぶ「＋」の左右（iPhone だけ）。UnagasukunApp と同じキー
+    @AppStorage("addButtonSide") private var addButtonSide = "left"
     @EnvironmentObject private var model: AppModel
 
     @State private var confirmingRestore = false
@@ -60,6 +62,20 @@ struct SettingsView: View {
                          ? "予定の時刻より前に、一度お知らせします。済ませたものには出しません。"
                          : "予定の時刻にだけお知らせします。")
                 }
+
+                #if os(iOS)
+                Section {
+                    Picker("追加ボタンの位置", selection: $addButtonSide) {
+                        Text("左").tag("left")
+                        Text("右").tag("right")
+                    }
+                    .pickerStyle(.segmented)
+                } header: {
+                    Text("追加ボタン")
+                } footer: {
+                    Text("画面の下に浮かぶ「＋」を、持つ手の親指が届く側に置けます。")
+                }
+                #endif
 
                 Section {
                     Button("拡張機能のデータを取り込む") { importing = true }

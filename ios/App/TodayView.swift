@@ -91,6 +91,7 @@ struct TodayView: View {
                     }
                 }
                 .padding(16)
+                .padding(.bottom, Platform.fabClearance)
             }
         }
         .background(Theme.bg)

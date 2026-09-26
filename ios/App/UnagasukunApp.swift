@@ -10,6 +10,10 @@ struct UnagasukunApp: App {
     private static let presenter = ForegroundNotificationPresenter()
     /// 開いているタブ。撮影用の引数 `-UKShotTab 1` があればそこから開く（DEBUG のみ）
     @State private var tab = Shot.initialTab
+    /// 浮かぶ「＋」から開く登録フォーム（iPhone だけ）
+    @State private var addingFromFab = false
+    /// 「＋」の左右。既定は左（Apple のリマインダーと同じ。左手の親指が届く・2026-09-26 本人）
+    @AppStorage("addButtonSide") private var addButtonSide = "left"
 
     init() {
         UNUserNotificationCenter.current().delegate = Self.presenter
@@ -29,6 +33,26 @@ struct UnagasukunApp: App {
                 .tint(Theme.tint)
                 #if os(macOS)
                 .frame(minWidth: 380, minHeight: 560)
+                #else
+                // 右上の「追加」は左手だと遠い（2026-09-26 本人指摘）。タブのすぐ上に浮かせる。
+                // 今日とカレンダーの両方に出し、設定では出さない
+                .overlay(alignment: addButtonSide == "right" ? .bottomTrailing : .bottomLeading) {
+                    if tab != 2 {
+                        Button { addingFromFab = true } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 52, height: 52)
+                                .background(Theme.navyLight, in: Circle())
+                                .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("予定を追加")
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 62)   // タブバーのすぐ上
+                    }
+                }
+                .sheet(isPresented: $addingFromFab) { PlanFormView().environmentObject(model) }
                 #endif
                 .task {
                     // 通知の許可はここでは聞かない。

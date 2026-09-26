@@ -32,6 +32,7 @@ struct LookBackView: View {
                         tiles.id("tiles")
                     }
                     .padding(16)
+                    .padding(.bottom, Platform.fabClearance)
                 }
                 .onAppear {
                     // 撮影用（DEBUG のみ）: `-UKShotScroll tiles` でタイルまで下げた状態で始める

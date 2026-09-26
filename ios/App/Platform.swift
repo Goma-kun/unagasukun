@@ -10,6 +10,15 @@ import AppKit
 /// **画面の側に `#if` を散らさない。**散らすと、どちらかの OS だけ直し忘れる
 enum Platform {
 
+    /// 浮かぶ「＋」（iPhone だけ）に一番下のカードが隠れないための余白。Mac は 0
+    static var fabClearance: CGFloat {
+        #if os(iOS)
+        return 72
+        #else
+        return 0
+        #endif
+    }
+
     /// 通知の設定を開く。iOS はこのアプリの設定、Mac は「通知」の設定
     static func openNotificationSettings() {
         #if os(iOS)
