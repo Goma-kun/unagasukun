@@ -19,3 +19,6 @@ ios/.build-*/
 
 # 本人データの書き出し（拡張「データを書き出す」の結果。公開しない）
 unagasukun-*.json
+
+# ASC の API キー（絶対に入れない）
+AuthKey_*.p8
