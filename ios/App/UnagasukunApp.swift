@@ -57,6 +57,12 @@ struct UnagasukunApp: App {
                         await model.syncNow()
                     }
                 }
+                #if os(macOS)
+                // Mac は scenePhase が前面/背面で動かないことがある。アプリが前面になった通知でも取りに行く
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                    Task { await model.syncNow() }
+                }
+                #endif
         }
         #if os(macOS)
         // 予定を縦に並べる画面なので、横に広げても読みやすくならない。

@@ -28,6 +28,8 @@ final class AppModel: ObservableObject {
     private let notifier: Notifier
     private let cloud = CloudSync()
     private var pushTask: Task<Void, Never>?
+    /// 開きっぱなしでも、ほかの端末の記録を取りに行く（2分ごと）
+    private var pollTask: Task<Void, Never>?
 
     init(store: SnapshotStore? = try? SnapshotStore(url: SnapshotStore.defaultURL()),
          notifier: Notifier = Notifier()) {
@@ -42,9 +44,24 @@ final class AppModel: ObservableObject {
         // リマインダーやメモと同じで、既定はオン。**自分の iCloud に入るだけ**なので
         // 預かる側の都合で止める理由がない
         self.syncEnabled = d.object(forKey: "syncEnabled") as? Bool ?? true
+        startPolling()
     }
 
     // MARK: - iCloud 同期
+
+    /// 同期のきっかけは「起動」「前面に戻る」「自分で記録する」だけだったので、
+    /// Mac を開きっぱなしにすると iPhone で付けた記録が何時間も来なかった（2026-09-27 本人報告）。
+    /// 2分ごとに見に行く。取ってきて混ぜるだけなので軽い
+    private func startPolling() {
+        pollTask?.cancel()
+        pollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(120))
+                guard !Task.isCancelled, let self, self.syncEnabled else { continue }
+                await self.syncNow()
+            }
+        }
+    }
 
     /// iCloud と揃える。**取ってきて混ぜてから上げる**。片方を捨てない
     func syncNow() async {
