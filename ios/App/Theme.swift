@@ -28,6 +28,22 @@ enum Theme {
     /// ライトでは紺、ダークでは薄い青。**背景の紺（navy）と分けて持つ**のがダーク対応の要
     static let tint       = dynamic(light: 0x1B2A4A, dark: 0x8FB4FF)
 
+    /// ラベルの8色。ライトは白いカードの上で沈まない濃さ、ダークは暗いカードの上で浮く明るさ。
+    /// 状態の色（done の緑・accent の橙）と見分けがつくよう、緑は青寄り、橙は赤寄りにずらしてある
+    static func tagColor(_ key: String) -> Color {
+        switch key {
+        case "red":    return dynamic(light: 0xD65A4A, dark: 0xE8776A)
+        case "orange": return dynamic(light: 0xE07B2E, dark: 0xF09A55)
+        case "yellow": return dynamic(light: 0xC9A227, dark: 0xE0BC4A)
+        case "green":  return dynamic(light: 0x4C9F70, dark: 0x5FB884)
+        case "teal":   return dynamic(light: 0x2E9AA6, dark: 0x4FB8C4)
+        case "blue":   return dynamic(light: 0x3B78D8, dark: 0x6D9EF0)
+        case "purple": return dynamic(light: 0x8A5CC7, dark: 0xA97FE0)
+        case "pink":   return dynamic(light: 0xD4569A, dark: 0xE87AB5)
+        default:       return dynamic(light: 0x7A8299, dark: 0x9AA3B8)
+        }
+    }
+
     private static func dynamic(light: UInt32, dark: UInt32) -> Color {
         #if os(iOS)
         return Color(uiColor: UIColor { trait in

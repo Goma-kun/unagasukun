@@ -27,6 +27,9 @@ struct PlanFormView: View {
     @State private var days: Set<Int> = []
     @State private var intervalDays = 3
     @State private var enabled = true
+    /// ラベル（`Tag.id`）。無ければ nil
+    @State private var tagId: String? = nil
+    @State private var editingTags = false
 
     private let weekdayNames = ["日", "月", "火", "水", "木", "金", "土"]
     private let intervalChoices = [1, 2, 3, 4, 6, 7, 14, 30]
@@ -47,6 +50,16 @@ struct PlanFormView: View {
                             // 拡張機能と同じ上限（300字）。通知の本文に載せるので長すぎないように
                             if v.count > 300 { detail = String(v.prefix(300)) }
                         }
+                }
+
+                Section {
+                    TagPickerRow(tags: model.tags, selected: $tagId)
+                    Button("ラベルを整える…") { editingTags = true }
+                        .font(.system(size: 13))
+                } header: {
+                    Text("ラベル")
+                } footer: {
+                    Text("色の目印です。今日の画面で絞り込めます。")
                 }
 
                 Section("繰り返し") {
@@ -127,7 +140,8 @@ struct PlanFormView: View {
                     Button(editing == nil ? "追加" : "保存") { save() }.disabled(!canSave)
                 }
             }
-            .onAppear(perform: load)
+            .onAppear { load(); if Shot.tagEditor { editingTags = true } }
+            .sheet(isPresented: $editingTags) { TagEditorView() }
             .confirmationDialog("この予定を削除しますか？", isPresented: $confirmingDelete,
                                 titleVisibility: .visible) {
                 Button("削除する", role: .destructive) {
@@ -146,6 +160,7 @@ struct PlanFormView: View {
         guard let item = editing ?? preset else { return }
         label = item.label
         detail = item.detail ?? ""
+        tagId = item.tagId
         enabled = item.enabled
         noTime = Logic.isAnytime(item)
         // 前に開いた予定の状態を引きずらないよう、毎回すべて入れ直す
@@ -274,6 +289,7 @@ struct PlanFormView: View {
         item.targetMin = editing?.targetMin
         let memo = detail.trimmingCharacters(in: .whitespacesAndNewlines)
         item.detail = memo.isEmpty ? nil : memo
+        item.tagId = tagId
         if noTime {
             item.anytime = true
         } else {

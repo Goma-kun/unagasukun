@@ -23,19 +23,31 @@ struct TodayView: View {
     /// 過ぎた予定は見返すことが少ないので、はじめは畳んでおく
     @AppStorage("collapseRegistered") private var collapseRegistered = false
     @AppStorage("collapsePast") private var collapsePast = true
+    /// ラベルの絞り込み（空＝すべて）。端末ごとに覚える
+    @AppStorage("todayTagFilter") private var tagFilter = ""
     /// 「今日対応済み」も畳める。済んだ数が多い日に長くなる（2026-09-26 本人要望）。はじめは開いておく
     @AppStorage("collapseDone") private var collapseDone = false
 
     private let tick = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        let (todo, done) = model.today(now: now)
+        let (todoAll, doneAll) = model.today(now: now)
+        let tagsInUse = model.tagsInUse()
+        // 消したラベルで絞ったままにならないよう、無いラベルなら「すべて」に戻す
+        let filter = tagsInUse.contains { $0.id == tagFilter } ? tagFilter : ""
+        let todo = filter.isEmpty ? todoAll : todoAll.filter { $0.item.tagId == filter }
+        let done = filter.isEmpty ? doneAll : doneAll.filter { $0.item.tagId == filter }
 
         VStack(spacing: 0) {
             header
 
             if !model.notificationsWorking {
                 notificationOffBanner
+            }
+
+            // ラベルを使っている予定があるときだけ、絞り込みの列を出す
+            if !tagsInUse.isEmpty {
+                TagFilterBar(tags: tagsInUse, selected: $tagFilter)
             }
 
             ScrollView {
@@ -60,7 +72,7 @@ struct TodayView: View {
                         }
                     }
 
-                    let registered = model.registered(now: now)
+                    let registered = model.registered(now: now).filter { filter.isEmpty || $0.tagId == filter }
                     if !registered.isEmpty {
                         collapsibleTitle("登録済み", count: registered.count, collapsed: $collapseRegistered)
                         if !collapseRegistered {
@@ -77,7 +89,7 @@ struct TodayView: View {
 
                     // 日付が過ぎた1回だけの予定。登録済みに混ざると「まだやっていない」に見えるので
                     // 分けて出し、できたかどうかをここで付けられるようにする
-                    let past = model.pastOneOffs(now: now)
+                    let past = model.pastOneOffs(now: now).filter { filter.isEmpty || $0.tagId == filter }
                     if !past.isEmpty {
                         collapsibleTitle("過ぎた予定", count: past.count, collapsed: $collapsePast)
                         if !collapsePast {
@@ -245,10 +257,11 @@ private struct TodoCard: View {
 
     var body: some View {
         let pastCandidates = Logic.isInterval(entry.item) ? model.pastDoneCandidates(for: entry.item, now: now) : []
+        let tag = model.tag(for: entry.item)
 
         // 印（🔥 3日 など）は名前の右の空きに入れ、その行のぶんカードを低くする（2026-09-24 本人要望）。
         // 名前が長くて1行に収まらないカードだけ、今までどおり下の行に出す
-        let chipsInHeader = pastCandidates.isEmpty && !subtitles.isEmpty
+        let chipsInHeader = pastCandidates.isEmpty && (!subtitles.isEmpty || tag != nil)
 
         VStack(alignment: .leading, spacing: 10) {
             if chipsInHeader {
@@ -257,7 +270,10 @@ private struct TodoCard: View {
                     header(withChips: true)
                     VStack(alignment: .leading, spacing: 10) {
                         header(withChips: false)
-                        HStack(spacing: 8) { ForEach(subtitles, id: \.self) { chip($0) } }
+                        HStack(spacing: 8) {
+                            if let tag { TagChip(tag: tag) }
+                            ForEach(subtitles, id: \.self) { chip($0) }
+                        }
                     }
                 }
             } else {
@@ -266,8 +282,9 @@ private struct TodoCard: View {
 
             detailText
 
-            if !chipsInHeader && (!subtitles.isEmpty || !pastCandidates.isEmpty) {
+            if !chipsInHeader && (!subtitles.isEmpty || !pastCandidates.isEmpty || tag != nil) {
                 HStack(spacing: 8) {
+                    if let tag { TagChip(tag: tag) }
                     ForEach(subtitles, id: \.self) { chip($0) }
                     Spacer(minLength: 0)
                     // 済ませたのに付け忘れた日を、あとから「できた」にする入口。
@@ -310,7 +327,9 @@ private struct TodoCard: View {
             }
         }
         .padding(14)
+        .padding(.leading, tag == nil ? 0 : 6)
         .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(alignment: .leading) { TagStripe(tag: tag) }
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(borderColor, lineWidth: entry.group == .upcoming ? 1 : 1.5)
@@ -341,6 +360,7 @@ private struct TodoCard: View {
                     .foregroundStyle(Theme.text)
                 Spacer(minLength: 0)
                 if withChips {
+                    if let tag = model.tag(for: entry.item) { TagChip(tag: tag) }
                     ForEach(subtitles, id: \.self) { chip($0) }
                 }
                 Image(systemName: "ellipsis")
@@ -434,7 +454,10 @@ struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let width = proposal.width ?? .infinity
+        // 「理想の幅」を聞かれたら（proposal.width が nil）1行ぶんの巨大な幅を返さない。
+        // macOS の Form はラベル列の幅を各行の理想幅から決めるので、ここで無限に近い幅を返すと
+        // 同じ Form の TextField が押しつぶされて文字が見えなくなる（2026-09-30 Mac のラベル欄で発覚）
+        let width = proposal.width ?? 320
         var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
         for sub in subviews {
             let size = sub.sizeThatFits(.unspecified)
@@ -466,6 +489,7 @@ private struct DoneCard: View {
             HStack(spacing: 10) {
                 Image(systemName: entry.mark == .done ? "checkmark.circle.fill" : "moon.zzz.fill")
                     .foregroundStyle(entry.mark == .done ? Theme.done : Theme.skip)
+                TagDot(tag: model.tag(for: entry.item))
                 Text(entry.item.label)
                     .font(.system(size: 15))
                     .foregroundStyle(Theme.muted)
@@ -578,6 +602,7 @@ private struct RegisteredRow: View {
 
     private var row: some View {
         HStack(spacing: 10) {
+            TagDot(tag: model.tag(for: item))
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.label)
                     .font(.system(size: 15))

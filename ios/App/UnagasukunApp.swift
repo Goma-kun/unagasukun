@@ -114,6 +114,14 @@ enum Shot {
         #endif
     }
     /// `-UKShotNotif 1` 通知が効いている扱いにする（シミュレータは未許可のため帯が出る）
+    /// `-UKShotTags 1` 登録フォームの上に「ラベルを整える」を開いた状態にする
+    static var tagEditor: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "UKShotTags")
+        #else
+        return false
+        #endif
+    }
     static var fakeNotifications: Bool {
         #if DEBUG
         return UserDefaults.standard.bool(forKey: "UKShotNotif")

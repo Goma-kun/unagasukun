@@ -21,6 +21,12 @@ public struct PlannedNotification: Equatable, Sendable {
 
 public enum NotificationPlan {
 
+    /// 通知の題。ラベルがあれば「買い物：牛乳」のように頭に付ける（何の用事か一目で分かるように）
+    public static func title(of item: Item, tagNames: [String: String]) -> String {
+        if let id = item.tagId, let name = tagNames[id], !name.isEmpty { return "\(name)：\(item.label)" }
+        return item.label
+    }
+
     /// iOS が1つのアプリに対して抱えてくれる予約通知の上限。
     /// **超えたぶんは黙って捨てられる**ので、こちらで先に切る。
     public static let iosPendingLimit = 64
@@ -39,7 +45,8 @@ public enum NotificationPlan {
         preNoticeOn: Bool? = nil,
         preNoticeMin: Int? = nil,
         horizonDays: Int = 30,
-        limit: Int = iosPendingLimit
+        limit: Int = iosPendingLimit,
+        tagNames: [String: String] = [:]
     ) -> [PlannedNotification] {
         var out: [PlannedNotification] = []
         let horizon = Logic.day(now, plus: horizonDays)
@@ -61,7 +68,7 @@ public enum NotificationPlan {
                 if !alreadyDone {
                     out.append(PlannedNotification(
                         id: "main:\(item.id):\(Int(Logic.ms(next)))",
-                        itemId: item.id, kind: .main, fireAt: next, title: item.label,
+                        itemId: item.id, kind: .main, fireAt: next, title: Self.title(of: item, tagNames: tagNames),
                         detail: item.detail
                     ))
                     if let preMs = Logic.preNoticeAt(Logic.ms(next), on: preNoticeOn,
@@ -69,7 +76,7 @@ public enum NotificationPlan {
                         out.append(PlannedNotification(
                             id: "pre:\(item.id):\(Int(preMs))",
                             itemId: item.id, kind: .pre,
-                            fireAt: Date(timeIntervalSince1970: preMs / 1000), title: item.label,
+                            fireAt: Date(timeIntervalSince1970: preMs / 1000), title: Self.title(of: item, tagNames: tagNames),
                             detail: item.detail
                         ))
                     }
@@ -80,7 +87,7 @@ public enum NotificationPlan {
                             out.append(PlannedNotification(
                                 id: "end:\(item.id):\(Int(endMs))",
                                 itemId: item.id, kind: .end,
-                                fireAt: Date(timeIntervalSince1970: endMs / 1000), title: item.label,
+                                fireAt: Date(timeIntervalSince1970: endMs / 1000), title: Self.title(of: item, tagNames: tagNames),
                                 detail: item.detail
                             ))
                         }

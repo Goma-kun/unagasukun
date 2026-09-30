@@ -21,23 +21,26 @@ public struct Snapshot: Codable, Equatable, Sendable {
     public var notes: Notes
     /// notes の操作履歴（records と同じ理由。消したことも同期で伝える）
     public var noteLog: [String: NoteEntry]
+    /// ラベル一覧。空なら `Tag.defaults` を使う（App 側で解決）。schedule と同じく同期は新しいほうを採る
+    public var tags: [Tag]
 
     /// 中身が同じか。`updatedAt` は見ない。
     /// 同期で「上げ直す必要があるか」を決めるのに使う（時刻だけ違うものを上げ続けないため）
     public func sameContent(as other: Snapshot) -> Bool {
         schedule == other.schedule && records == other.records && recordLog == other.recordLog
-            && notes == other.notes && noteLog == other.noteLog
+            && notes == other.notes && noteLog == other.noteLog && tags == other.tags
     }
 
     public init(schedule: [Item] = [], records: Records = [:], updatedAt: Double = 0,
                 recordLog: [String: RecordEntry] = [:], notes: Notes = [:],
-                noteLog: [String: NoteEntry] = [:]) {
+                noteLog: [String: NoteEntry] = [:], tags: [Tag] = []) {
         self.schedule = schedule
         self.records = records
         self.updatedAt = updatedAt
         self.recordLog = recordLog
         self.notes = notes
         self.noteLog = noteLog
+        self.tags = tags
     }
 
     /// 履歴を足す前に保存したファイルにはキーが無いので、無ければ空で読む
@@ -49,6 +52,16 @@ public struct Snapshot: Codable, Equatable, Sendable {
         recordLog = try c.decodeIfPresent([String: RecordEntry].self, forKey: .recordLog) ?? [:]
         notes = try c.decodeIfPresent(Notes.self, forKey: .notes) ?? [:]
         noteLog = try c.decodeIfPresent([String: NoteEntry].self, forKey: .noteLog) ?? [:]
+        tags = try c.decodeIfPresent([Tag].self, forKey: .tags) ?? []
+    }
+
+    /// 使うラベル一覧。まだ自分で触っていなければ既定の6つ
+    public var effectiveTags: [Tag] { tags.isEmpty ? Tag.defaults : tags }
+
+    /// 予定に付いているラベル（無ければ nil。消したラベルの id が残っていても nil）
+    public func tag(for item: Item) -> Tag? {
+        guard let id = item.tagId else { return nil }
+        return effectiveTags.first { $0.id == id }
     }
 
     /// 「実際は…」を付ける・直す・消す入口。空文字や空白だけなら消す。30字まで
@@ -178,7 +191,8 @@ public enum Merge {
             updatedAt: max(a.updatedAt, b.updatedAt),
             recordLog: log,
             notes: notes,
-            noteLog: nlog
+            noteLog: nlog,
+            tags: newer.tags
         )
     }
 }
@@ -231,7 +245,8 @@ extension Merge {
         }
         return Snapshot(schedule: schedule, records: records,
                         updatedAt: Date().timeIntervalSince1970 * 1000,
-                        recordLog: local.recordLog, notes: notes, noteLog: local.noteLog)
+                        recordLog: local.recordLog, notes: notes, noteLog: local.noteLog,
+                        tags: local.tags)
     }
 }
 

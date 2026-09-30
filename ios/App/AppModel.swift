@@ -141,7 +141,9 @@ final class AppModel: ObservableObject {
     }
 
     func streak(for item: Item, now: Date = Date()) -> Int {
-        Logic.streakFor(snapshot.records, item.id, now, item.days)
+        // 「🔥 に数えない」ラベル（買い物など）は 0 のまま。忘れても続けた日数は切れない
+        if tag(for: item)?.countsStreak == false { return 0 }
+        return Logic.streakFor(snapshot.records, item.id, now, item.days)
     }
 
     /// 登録済み一覧に出すもの。**今日の画面に出ているものは重ねて出さない**
@@ -290,6 +292,30 @@ final class AppModel: ObservableObject {
         commit()
     }
 
+    // MARK: - ラベル
+
+    /// 使うラベル一覧（自分で触るまでは既定の6つ）
+    var tags: [Tag] { snapshot.effectiveTags }
+
+    func tag(for item: Item) -> Tag? { snapshot.tag(for: item) }
+
+    /// 予定が1つでも付いているラベルだけ（今日の絞り込みチップに出す）
+    func tagsInUse() -> [Tag] {
+        let used = Set(snapshot.schedule.filter { $0.origId == nil && !Logic.isArchived($0) }.compactMap(\.tagId))
+        return tags.filter { used.contains($0.id) }
+    }
+
+    /// ラベル一覧を差し替える。消したラベルが付いていた予定は「ラベルなし」に戻す
+    func setTags(_ newTags: [Tag]) {
+        let ids = Set(newTags.map(\.id))
+        snapshot.tags = newTags
+        for i in snapshot.schedule.indices where snapshot.schedule[i].tagId.map({ !ids.contains($0) }) ?? false {
+            snapshot.schedule[i].tagId = nil
+        }
+        commit()
+        reschedule()
+    }
+
     /// 「できた」を付けたあとの一言（こっそりお祝い）。記録を付けてから呼ぶ
     func cheerAfterDone(_ item: Item, now: Date = Date()) -> Cheer {
         CheerLogic.afterDone(item, schedule: snapshot.schedule, records: snapshot.records, now: now)
@@ -338,7 +364,8 @@ final class AppModel: ObservableObject {
     func reschedule(now: Date = Date()) {
         let plan = NotificationPlan.build(
             schedule: snapshot.schedule, records: snapshot.records, now: now,
-            preNoticeOn: preNoticeOn, preNoticeMin: preNoticeMin
+            preNoticeOn: preNoticeOn, preNoticeMin: preNoticeMin,
+            tagNames: Dictionary(uniqueKeysWithValues: tags.map { ($0.id, $0.name) })
         )
         Task { await notifier.replaceAll(with: plan) }
     }

@@ -94,8 +94,10 @@ struct LookBackView: View {
         let mark = model.dayMark(key)
         let isSelected = key == selected
         let isFuture = day > Logic.startOfDay(Date())
-        // 先の日は、予定がある日だけ数字の下に小さな点（何があるかは押して見る）
-        let hasPlan = isFuture && !model.plannedOn(key).isEmpty
+        // 先の日は、予定がある日だけ数字の下に小さな点（何があるかは押して見る）。ラベルがあればその色
+        let plans = isFuture ? model.plannedOn(key) : []
+        let hasPlan = !plans.isEmpty
+        let dotColor = plans.compactMap { model.tag(for: $0) }.first.map { Theme.tagColor($0.color) } ?? Theme.tint
 
         return Button { selected = key } label: {
             Text("\(Logic.calendar.component(.day, from: day))")
@@ -106,7 +108,7 @@ struct LookBackView: View {
                 .background(cellBackground(mark: mark), in: RoundedRectangle(cornerRadius: 8))
                 .overlay(alignment: .bottom) {
                     if hasPlan {
-                        Circle().fill(Theme.tint).frame(width: 4, height: 4).padding(.bottom, 5)
+                        Circle().fill(dotColor).frame(width: 5, height: 5).padding(.bottom, 5)
                     }
                 }
                 .overlay(
@@ -282,8 +284,9 @@ struct LookBackView: View {
     private var tiles: some View {
         // **1度もできていないものは並べない。** 真っ白な枠を見せるのは
         // 「何もできていない」と突きつけるのと同じで、沈黙が中立という設計に反する
+        // 「🔥 とタイルに数えない」ラベル（買い物など）はタイルに並べない
         let items = LookBack.tileItems(model.snapshot.schedule)
-            .filter { model.doneCount($0, weeks: 12) > 0 }
+            .filter { model.doneCount($0, weeks: 12) > 0 && model.tag(for: $0)?.countsStreak != false }
         // 先週までの12週に今週の列を足す（右端が今週）。今週のまだ来ていない日は点線の枠だけ
         let weeks = LookBack.tileWeeks(now: Date(), count: 12)
 

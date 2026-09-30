@@ -228,3 +228,46 @@ final class ImportTests: XCTestCase {
         XCTAssertEqual(m.records.count, 1)
     }
 }
+
+final class TagTests: XCTestCase {
+    /// ラベルを足す前に保存したファイル（tags キー無し）も読める。無ければ既定の6つを使う
+    func testSnapshotWithoutTagsDecodesAndUsesDefaults() throws {
+        let json = #"{"schedule":[{"id":"a","label":"x"}],"records":{}}"#.data(using: .utf8)!
+        let s = try JSONDecoder().decode(Snapshot.self, from: json)
+        XCTAssertEqual(s.tags, [])
+        XCTAssertEqual(s.effectiveTags, Tag.defaults)
+        XCTAssertNil(s.schedule[0].tagId)
+    }
+
+    func testItemTagIdRoundTripsAndOldTagIdResolvesToNil() throws {
+        var s = Snapshot(schedule: [Item(id: "a", label: "牛乳", tagId: "tag-shopping")])
+        let data = try JSONEncoder().encode(s)
+        let back = try JSONDecoder().decode(Snapshot.self, from: data)
+        XCTAssertEqual(back.schedule[0].tagId, "tag-shopping")
+        XCTAssertEqual(back.tag(for: back.schedule[0])?.name, "買い物")
+        // ラベルを消したあとに id だけ残っていても nil（落ちない・変な色にならない）
+        s.tags = [Tag(id: "t1", name: "猫", color: "teal")]
+        XCTAssertNil(s.tag(for: s.schedule[0]))
+    }
+
+    /// 同期は schedule と同じく「新しいほうのラベル一覧」を採る
+    func testMergeTakesTagsFromTheNewerSide() {
+        let old = Snapshot(updatedAt: 1, tags: [Tag(id: "t1", name: "古い", color: "red")])
+        let new = Snapshot(updatedAt: 2, tags: [Tag(id: "t1", name: "新しい", color: "blue")])
+        XCTAssertEqual(Merge.snapshots(old, new).tags.first?.name, "新しい")
+        XCTAssertEqual(Merge.snapshots(new, old).tags.first?.name, "新しい")
+    }
+
+    /// 拡張機能から取り込んでも、手元のラベル一覧は消えない（拡張の JSON にはラベルが無い）
+    func testImportKeepsLocalTags() throws {
+        let local = Snapshot(tags: [Tag(id: "t1", name: "猫", color: "teal")])
+        let file = try JSONDecoder().decode(ExportFile.self, from: #"{"schedule":[],"records":{}}"#.data(using: .utf8)!)
+        XCTAssertEqual(Merge.importing(local: local, imported: file).tags.count, 1)
+    }
+
+    func testNotificationTitleGetsTagName() {
+        let item = Item(id: "a", label: "牛乳", tagId: "tag-shopping")
+        XCTAssertEqual(NotificationPlan.title(of: item, tagNames: ["tag-shopping": "買い物"]), "買い物：牛乳")
+        XCTAssertEqual(NotificationPlan.title(of: item, tagNames: [:]), "牛乳")
+    }
+}
