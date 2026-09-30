@@ -86,8 +86,9 @@ struct TimeField: View {
 }
 
 /// 日付の入力。iOS は標準の DatePicker（押すとカレンダーが出る）。
-/// Mac は**月カレンダーそのもの**を出す。年・月・日のプルダウンだと「10月3日は何曜日か」を
-/// 自分で数えることになる（2026-09-30 本人指摘）。選んだ日は上に「2026/10/30(金)」と言い切る
+/// Mac は**曜日つきの月カレンダー**を自前で出す。年・月・日のプルダウンだと「10月3日は何曜日か」を
+/// 自分で数えることになる（2026-09-30 本人指摘）。macOS 標準の graphical は字が小さいので、
+/// カレンダー画面と同じ見た目のマスで作る。選んだ日は上に「2026/10/30(金)」と言い切る
 struct DateField: View {
     let title: String
     @Binding var date: Date
@@ -97,32 +98,102 @@ struct DateField: View {
         DatePicker(title, selection: $date, displayedComponents: .date)
         #else
         LabeledContent(title) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(selectedText)
-                        .font(.system(size: 14, weight: .semibold))
-                    Button("今日") { date = Date() }
-                        .font(.system(size: 12))
-                        .buttonStyle(.plain)
-                        .foregroundStyle(Theme.tint)
-                        .disabled(Calendar.current.isDateInToday(date))
-                    Spacer(minLength: 0)
-                }
-                // 曜日つきの月カレンダー（macOS の graphical 表示）。月送りは左右の矢印で、上下のステッパーではない
-                DatePicker("", selection: $date, displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-                    .labelsHidden()
-            }
+            MonthPickerGrid(date: $date)
         }
         #endif
+    }
+}
+
+#if os(macOS)
+/// 月のマスから日を選ぶ。アプリのカレンダー画面と同じ並び（日曜はじまり・月送りは左右の矢印）
+struct MonthPickerGrid: View {
+    @Binding var date: Date
+    /// 表示している月（選んだ日とは別に動かせる）
+    @State private var month = Date()
+
+    private let weekdayNames = ["日", "月", "火", "水", "木", "金", "土"]
+    private let cell: CGFloat = 34
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text(selectedText)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.text)
+                Button("今日") { date = Date(); month = Date() }
+                    .font(.system(size: 12))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Theme.tint)
+                    .disabled(Calendar.current.isDateInToday(date))
+                Spacer(minLength: 0)
+            }
+
+            HStack {
+                Button { shift(-1) } label: { Image(systemName: "chevron.left").frame(width: 28, height: 24) }
+                Spacer()
+                Text(monthTitle).font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Button { shift(1) } label: { Image(systemName: "chevron.right").frame(width: 28, height: 24) }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.tint)
+
+            HStack(spacing: 2) {
+                ForEach(0..<7, id: \.self) { i in
+                    Text(weekdayNames[i])
+                        .font(.system(size: 11))
+                        .foregroundStyle(i == 0 ? Theme.danger : (i == 6 ? Theme.tint : Theme.muted))
+                        .frame(width: cell)
+                }
+            }
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(cell), spacing: 2), count: 7), spacing: 2) {
+                ForEach(Array(LookBack.monthGrid(month).enumerated()), id: \.offset) { _, day in
+                    if let day { dayCell(day) } else { Color.clear.frame(width: cell, height: cell) }
+                }
+            }
+        }
+        .padding(.vertical, 4)
+        .onAppear { month = date }
+        .onChange(of: date) { _, d in
+            // 外から日付が変わったら（編集で読み込んだとき）、その月を見せる
+            let c = Calendar.current
+            if !c.isDate(d, equalTo: month, toGranularity: .month) { month = d }
+        }
+    }
+
+    private func dayCell(_ day: Date) -> some View {
+        let cal = Calendar.current
+        let selected = cal.isDate(day, inSameDayAs: date)
+        let today = cal.isDateInToday(day)
+        let wd = Logic.jsWeekday(day)
+        return Button { date = day } label: {
+            Text("\(cal.component(.day, from: day))")
+                .font(.system(size: 13, weight: selected ? .semibold : .regular))
+                .monospacedDigit()
+                .foregroundStyle(selected ? .white : (wd == 0 ? Theme.danger : (wd == 6 ? Theme.tint : Theme.text)))
+                .frame(width: cell, height: cell)
+                .background(selected ? Theme.tint : Theme.bg, in: RoundedRectangle(cornerRadius: 7))
+                .overlay(RoundedRectangle(cornerRadius: 7).stroke(today ? Theme.accent : .clear, lineWidth: 1.5))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Describe.short(day))
     }
 
     private var selectedText: String {
         let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
-        let wd = ["日", "月", "火", "水", "木", "金", "土"][Logic.jsWeekday(date)]
-        return "\(c.year ?? 0)/\(c.month ?? 0)/\(c.day ?? 0)(\(wd))"
+        return "\(c.year ?? 0)/\(c.month ?? 0)/\(c.day ?? 0)(\(weekdayNames[Logic.jsWeekday(date)]))"
+    }
+
+    private var monthTitle: String {
+        let c = Calendar.current.dateComponents([.year, .month], from: month)
+        return "\(c.year ?? 0)年\(c.month ?? 0)月"
+    }
+
+    private func shift(_ n: Int) {
+        if let d = Calendar.current.date(byAdding: .month, value: n, to: month) { month = d }
     }
 }
+#endif
 
 extension View {
     /// `navigationBarTitleDisplayMode` は iOS にしか無い
