@@ -7,8 +7,14 @@ struct LookBackView: View {
     @EnvironmentObject private var model: AppModel
     @State private var month = Date()
     @State private var selected: String? = nil
-    /// 先の日の予定を押したときに開く編集フォーム（カレンダーからも直せるように。2026-09-30 本人指摘）
-    @State private var editing: Item? = nil
+    /// 開くフォーム。追加と編集で .sheet を2つ付けると片方が開いた瞬間に閉じることがあるので1つにまとめる
+    enum FormTarget: Identifiable {
+        /// 選んでいる日で新規（その日の「1回だけ」）
+        case add(String?)
+        case edit(Item)
+        var id: String { if case .edit(let i) = self { return "edit-" + i.id } else { return "add" } }
+    }
+    @State private var form: FormTarget? = nil
     /// 日別リストの「予定に無いもの」を開いているか
     @State private var othersOpen = false
     /// タイルで押した日（予定ID → 日付キー）。その場で記録を付けられる行を出す
@@ -18,9 +24,18 @@ struct LookBackView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 8) {
                 Text("カレンダー").font(.system(size: 17, weight: .semibold))
                 Spacer()
+                // 選んでいる日で登録する（今日の日付に化けない。2026-09-30 本人指摘）
+                Button { form = .add(selected) } label: {
+                    Label("追加", systemImage: "plus")
+                        .labelStyle(.titleAndIcon)
+                        .font(.system(size: 14, weight: .medium))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(Theme.navyLight, in: Capsule())
+                }
+                .buttonStyle(.plain)
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 16).padding(.vertical, 12)
@@ -46,8 +61,18 @@ struct LookBackView: View {
             }
         }
         .background(Theme.bg)
-        .onAppear { if selected == nil { selected = Shot.day ?? Logic.dateKey(Date()) } }
-        .sheet(item: $editing) { PlanFormView(editing: $0) }
+        .onAppear {
+            if selected == nil { selected = Shot.day ?? Logic.dateKey(Date()) }
+            model.calendarSelectedDay = selected
+        }
+        .onChange(of: selected) { _, v in model.calendarSelectedDay = v }
+        .onDisappear { model.calendarSelectedDay = nil }
+        .sheet(item: $form) { target in
+            switch target {
+            case .add(let day): PlanFormView(preset: day.map { Item(id: "preset", date: $0) })
+            case .edit(let item): PlanFormView(editing: item)
+            }
+        }
     }
 
     // MARK: - カレンダー
@@ -170,7 +195,7 @@ struct LookBackView: View {
             } else {
                 ForEach(items, id: \.id) { item in
                     // 押すと編集フォーム。時刻や日付をここから直せる（2026-09-30 本人指摘）
-                    Button { editing = item } label: {
+                    Button { form = .edit(item) } label: {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
                             Text(planTimeText(item))
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))

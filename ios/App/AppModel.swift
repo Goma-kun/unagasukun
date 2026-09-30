@@ -17,6 +17,15 @@ final class AppModel: ObservableObject {
 
     /// iCloud 同期の状態。**うまくいっていないことを黙っていない**
     @Published private(set) var syncState: CloudSync.State = .off
+    /// カレンダーで選んでいる日（"YYYY-MM-DD"）。浮かぶ「＋」がこの日で登録フォームを開くために持つ。
+    /// 保存はしない（画面の状態）
+    @Published var calendarSelectedDay: String? = nil
+
+    /// カレンダーの選択日で新規登録するときのひな型（その日の「1回だけ」）。選んでいなければ nil
+    var presetForCalendarDay: Item? {
+        guard let day = calendarSelectedDay else { return nil }
+        return Item(id: "preset", date: day)
+    }
     @Published var syncEnabled: Bool {
         didSet {
             UserDefaults.standard.set(syncEnabled, forKey: "syncEnabled")

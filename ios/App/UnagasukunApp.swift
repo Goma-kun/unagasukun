@@ -39,7 +39,10 @@ struct UnagasukunApp: App {
                         FloatingAddButton { addingFromFab = true }
                     }
                 }
-                .sheet(isPresented: $addingFromFab) { PlanFormView().environmentObject(model) }
+                // カレンダーを開いているときは、選んでいる日の「1回だけ」として開く（2026-09-30 本人指摘）
+                .sheet(isPresented: $addingFromFab) {
+                    PlanFormView(preset: tab == 1 ? model.presetForCalendarDay : nil).environmentObject(model)
+                }
                 #endif
                 .task {
                     // 通知の許可はここでは聞かない。
