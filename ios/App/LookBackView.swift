@@ -7,6 +7,8 @@ struct LookBackView: View {
     @EnvironmentObject private var model: AppModel
     @State private var month = Date()
     @State private var selected: String? = nil
+    /// 先の日の予定を押したときに開く編集フォーム（カレンダーからも直せるように。2026-09-30 本人指摘）
+    @State private var editing: Item? = nil
     /// 日別リストの「予定に無いもの」を開いているか
     @State private var othersOpen = false
     /// タイルで押した日（予定ID → 日付キー）。その場で記録を付けられる行を出す
@@ -45,6 +47,7 @@ struct LookBackView: View {
         }
         .background(Theme.bg)
         .onAppear { if selected == nil { selected = Shot.day ?? Logic.dateKey(Date()) } }
+        .sheet(item: $editing) { PlanFormView(editing: $0) }
     }
 
     // MARK: - カレンダー
@@ -94,21 +97,28 @@ struct LookBackView: View {
         let mark = model.dayMark(key)
         let isSelected = key == selected
         let isFuture = day > Logic.startOfDay(Date())
-        // 先の日は、予定がある日だけ数字の下に小さな点（何があるかは押して見る）。ラベルがあればその色
-        let plans = isFuture ? model.plannedOn(key) : []
-        let hasPlan = !plans.isEmpty
-        let dotColor = plans.compactMap { model.tag(for: $0) }.first.map { Theme.tagColor($0.color) } ?? Theme.tint
+        // 先の日は「その日だけの予定」か「◯日ごとの目安日」がある日にだけ、数字の下に小さな点。
+        // 毎日・毎週の予定まで点にすると全部の日に点が付き、動物病院のような日が埋もれる（2026-09-30 本人指摘）。
+        // その日だけの予定は太字＋大きめの点。色はラベルがあればその色、無ければ橙（気づくための色）
+        let special = isFuture ? model.plannedOn(key).filter { Logic.isOneOff($0) || Logic.isInterval($0) } : []
+        let oneOff = special.first { Logic.isOneOff($0) }
+        let hasPlan = !special.isEmpty
+        let dotItem = oneOff ?? special.first
+        let dotColor = dotItem.flatMap { model.tag(for: $0) }.map { Theme.tagColor($0.color) }
+            ?? (oneOff != nil ? Theme.accent : Theme.tint)
 
         return Button { selected = key } label: {
             Text("\(Logic.calendar.component(.day, from: day))")
-                .font(.system(size: 14, weight: mark == .done ? .semibold : .regular))
+                .font(.system(size: 14, weight: mark == .done || oneOff != nil ? .semibold : .regular))
                 .monospacedDigit()
                 .foregroundStyle(cellText(mark: mark, isFuture: isFuture))
                 .frame(maxWidth: .infinity).frame(height: 38)
                 .background(cellBackground(mark: mark), in: RoundedRectangle(cornerRadius: 8))
                 .overlay(alignment: .bottom) {
                     if hasPlan {
-                        Circle().fill(dotColor).frame(width: 5, height: 5).padding(.bottom, 5)
+                        Circle().fill(dotColor)
+                            .frame(width: oneOff != nil ? 7 : 5, height: oneOff != nil ? 7 : 5)
+                            .padding(.bottom, oneOff != nil ? 4 : 5)
                     }
                 }
                 .overlay(
@@ -159,20 +169,36 @@ struct LookBackView: View {
                     .padding(.vertical, 6)
             } else {
                 ForEach(items, id: \.id) { item in
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text(planTimeText(item))
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Theme.tint)
-                            .monospacedDigit()
-                        Text(item.label)
-                            .font(.system(size: 15))
-                            .foregroundStyle(Theme.text)
-                        Spacer(minLength: 0)
+                    // 押すと編集フォーム。時刻や日付をここから直せる（2026-09-30 本人指摘）
+                    Button { editing = item } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text(planTimeText(item))
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundStyle(Theme.tint)
+                                .monospacedDigit()
+                            TagDot(tag: model.tag(for: item))
+                            Text(item.label)
+                                .font(.system(size: 15))
+                                .foregroundStyle(Theme.text)
+                            Spacer(minLength: 0)
+                            if Logic.isOneOff(item) {
+                                Text("この日だけ")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(Theme.accent)
+                                    .padding(.horizontal, 7).padding(.vertical, 2)
+                                    .background(Theme.accent.opacity(0.14), in: Capsule())
+                            }
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Theme.skip)
+                        }
+                        .padding(.horizontal, 12).padding(.vertical, 10)
+                        .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+                        .contentShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .padding(.horizontal, 12).padding(.vertical, 10)
-                    .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+                    .buttonStyle(.plain)
                 }
-                Text("◯日ごとの予定は、いまの目安日から数えた見込みです。済ませた日で変わります。")
+                Text("押すと編集できます。◯日ごとの予定は、いまの目安日から数えた見込みです。済ませた日で変わります。")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.skip)
             }
