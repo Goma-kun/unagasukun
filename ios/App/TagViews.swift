@@ -25,19 +25,9 @@ struct TagDot: View {
     }
 }
 
-/// カードの左端の細い帯
-struct TagStripe: View {
-    let tag: Tag?
-    var body: some View {
-        if let tag {
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Theme.tagColor(tag.color))
-                .frame(width: 4)
-                .padding(.vertical, 12)
-                .padding(.leading, 6)
-        }
-    }
-}
+// カードの左端の帯（TagStripe）は 2026-10-01 に外した。
+// カードの地をラベル色に寄せたので役目が重なるうえ、**時間が過ぎた予定のオレンジの枠と並ぶと
+// どちらが何の色か分からなくなる**（本人指摘「枠だけでよい。縦のオレンジは要らない」）
 
 /// 今日の画面の上の絞り込み。「すべて」＋使っているラベルだけ
 struct TagFilterBar: View {

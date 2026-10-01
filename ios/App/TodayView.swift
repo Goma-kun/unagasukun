@@ -327,9 +327,7 @@ private struct TodoCard: View {
             }
         }
         .padding(14)
-        .padding(.leading, tag == nil ? 0 : 6)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(alignment: .leading) { TagStripe(tag: tag) }
+        .background(Theme.cardBg(tag?.color), in: RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(borderColor, lineWidth: entry.group == .upcoming ? 1 : 1.5)
@@ -564,7 +562,7 @@ private struct PastOneOffRow: View {
             markButton(.skip, "休んだ", Theme.skip)
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
+        .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var statusText: String {

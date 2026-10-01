@@ -218,7 +218,7 @@ struct LookBackView: View {
                                 .foregroundStyle(Theme.skip)
                         }
                         .padding(.horizontal, 12).padding(.vertical, 10)
-                        .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+                        .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 10))
                         .contentShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.plain)

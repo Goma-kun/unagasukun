@@ -31,17 +31,45 @@ enum Theme {
     /// ラベルの8色。ライトは白いカードの上で沈まない濃さ、ダークは暗いカードの上で浮く明るさ。
     /// 状態の色（done の緑・accent の橙）と見分けがつくよう、緑は青寄り、橙は赤寄りにずらしてある
     static func tagColor(_ key: String) -> Color {
+        let h = tagHex(key)
+        return dynamic(light: h.light, dark: h.dark)
+    }
+
+    /// カードの地。**ラベルが付いていたら、その色をほんの少し混ぜる**（本人の要望・2026-10-01
+    /// 「ラベルを付けるだけでなくカード自体の色が変わったほうがパッと見て分かる」）。
+    ///
+    /// ベタ塗りにはしない。カードの上には本文も「できた」の緑も載るので、地を濃くすると
+    /// そちらが読みにくくなる。**左の帯＋地を1割ほど寄せる**のが、仕分けの色づけの定石
+    /// （色だけで意味を伝えないよう、名前入りのチップも今までどおり残す）
+    static func cardBg(_ key: String?) -> Color {
+        guard let key, !key.isEmpty, key != "none" else { return card }
+        let h = tagHex(key)
+        // ダークは地が暗いぶん、同じ割合だと差が出ないので気持ち濃いめに寄せる
+        return dynamic(light: mix(0xFFFFFF, h.light, 0.11), dark: mix(0x1E2638, h.dark, 0.17))
+    }
+
+    private static func tagHex(_ key: String) -> (light: UInt32, dark: UInt32) {
         switch key {
-        case "red":    return dynamic(light: 0xD65A4A, dark: 0xE8776A)
-        case "orange": return dynamic(light: 0xE07B2E, dark: 0xF09A55)
-        case "yellow": return dynamic(light: 0xC9A227, dark: 0xE0BC4A)
-        case "green":  return dynamic(light: 0x4C9F70, dark: 0x5FB884)
-        case "teal":   return dynamic(light: 0x2E9AA6, dark: 0x4FB8C4)
-        case "blue":   return dynamic(light: 0x3B78D8, dark: 0x6D9EF0)
-        case "purple": return dynamic(light: 0x8A5CC7, dark: 0xA97FE0)
-        case "pink":   return dynamic(light: 0xD4569A, dark: 0xE87AB5)
-        default:       return dynamic(light: 0x7A8299, dark: 0x9AA3B8)
+        case "red":    return (0xD65A4A, 0xE8776A)
+        case "orange": return (0xE07B2E, 0xF09A55)
+        case "yellow": return (0xC9A227, 0xE0BC4A)
+        case "green":  return (0x4C9F70, 0x5FB884)
+        case "teal":   return (0x2E9AA6, 0x4FB8C4)
+        case "blue":   return (0x3B78D8, 0x6D9EF0)
+        case "purple": return (0x8A5CC7, 0xA97FE0)
+        case "pink":   return (0xD4569A, 0xE87AB5)
+        default:       return (0x7A8299, 0x9AA3B8)
         }
+    }
+
+    /// 2色を混ぜる（ratio の分だけ b に寄せる）。半透明を重ねるのではなく
+    /// 混ぜた不透明色を作るので、カードが重なっても見え方が変わらない
+    private static func mix(_ a: UInt32, _ b: UInt32, _ ratio: Double) -> UInt32 {
+        func ch(_ shift: UInt32) -> UInt32 {
+            let x = Double((a >> shift) & 0xFF), y = Double((b >> shift) & 0xFF)
+            return UInt32((x + (y - x) * ratio).rounded())
+        }
+        return (ch(16) << 16) | (ch(8) << 8) | ch(0)
     }
 
     private static func dynamic(light: UInt32, dark: UInt32) -> Color {
