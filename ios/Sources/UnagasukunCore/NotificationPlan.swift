@@ -71,8 +71,17 @@ public enum NotificationPlan {
                         itemId: item.id, kind: .main, fireAt: next, title: Self.title(of: item, tagNames: tagNames),
                         detail: item.detail
                     ))
-                    if let preMs = Logic.preNoticeAt(Logic.ms(next), on: preNoticeOn,
-                                                     minutes: preNoticeMin, nowMs: Logic.ms(now)) {
+                    // 予定ごとの早めのお知らせが決まっていればそれを優先（0 は出さない）。無ければ設定どおり
+                    let preMs: Double? = {
+                        if let own = item.preNoticeMin {
+                            guard own > 0 else { return nil }
+                            let at = Logic.ms(next) - Double(own) * 60_000
+                            return at > Logic.ms(now) ? at : nil
+                        }
+                        return Logic.preNoticeAt(Logic.ms(next), on: preNoticeOn,
+                                                 minutes: preNoticeMin, nowMs: Logic.ms(now))
+                    }()
+                    if let preMs {
                         out.append(PlannedNotification(
                             id: "pre:\(item.id):\(Int(preMs))",
                             itemId: item.id, kind: .pre,

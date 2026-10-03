@@ -30,6 +30,9 @@ public struct Item: Codable, Equatable, Identifiable, Sendable {
     public var detail: String?
     /// ラベル（`Snapshot.tags` の id）。仕分けの目印で、1つの予定に1つ（2026-09-30 本人要望）
     public var tagId: String?
+    /// この予定だけの「早めのお知らせ」（分）。nil は設定どおり、0 は出さない。
+    /// 病院の予約のように1時間前に知りたい予定のため（2026-10-03 本人要望）。拡張機能は見ない
+    public var preNoticeMin: Int?
 
     /// 拡張機能の JSON は false のときにキーごと省くことがある（`anytime` `archived` `enabled`）。
     /// 素の Codable だと欠けたキーで丸ごと失敗するので、無ければ既定値で読む
@@ -51,6 +54,7 @@ public struct Item: Codable, Equatable, Identifiable, Sendable {
         endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
         detail = try c.decodeIfPresent(String.self, forKey: .detail)
         tagId = try c.decodeIfPresent(String.self, forKey: .tagId)
+        preNoticeMin = try c.decodeIfPresent(Int.self, forKey: .preNoticeMin)
     }
 
     public init(
@@ -58,13 +62,13 @@ public struct Item: Codable, Equatable, Identifiable, Sendable {
         days: [Int]? = nil, enabled: Bool = true, anytime: Bool = false, targetMin: Int? = nil,
         intervalDays: Int? = nil, noticeDays: Int? = nil, anchorDate: String? = nil,
         archived: Bool = false, origId: String? = nil, endTime: String? = nil, detail: String? = nil,
-        tagId: String? = nil
+        tagId: String? = nil, preNoticeMin: Int? = nil
     ) {
         self.id = id; self.label = label; self.time = time; self.date = date
         self.days = days; self.enabled = enabled; self.anytime = anytime; self.targetMin = targetMin
         self.intervalDays = intervalDays; self.noticeDays = noticeDays; self.anchorDate = anchorDate
         self.archived = archived; self.origId = origId; self.endTime = endTime; self.detail = detail
-        self.tagId = tagId
+        self.tagId = tagId; self.preNoticeMin = preNoticeMin
     }
 }
 

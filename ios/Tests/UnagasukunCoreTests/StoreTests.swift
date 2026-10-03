@@ -67,6 +67,24 @@ final class NotificationPlanTests: XCTestCase {
         XCTAssertGreaterThan(withoutRecord.count, withDone.count)
     }
 
+    /// 予定ごとの早めのお知らせ。1時間前なら 09:00 に予告、0 なら設定がオンでも出さない
+    func testPerItemPreNotice() {
+        let hospital = Item(id: "h", label: "はなちゃん病院", time: "14:00", preNoticeMin: 60)
+        let plan = NotificationPlan.build(schedule: [hospital], records: [:], now: now(),
+                                          preNoticeOn: true, preNoticeMin: 10, horizonDays: 1)
+        XCTAssertEqual(plan.map(\.kind), [.pre, .main])
+        let c = Calendar.current.dateComponents([.hour, .minute], from: plan[0].fireAt)
+        XCTAssertEqual([c.hour, c.minute], [13, 0])
+
+        let quiet = Item(id: "q", label: "静か", time: "20:00", preNoticeMin: 0)
+        XCTAssertEqual(NotificationPlan.build(schedule: [quiet], records: [:], now: now(),
+                                              preNoticeOn: true, preNoticeMin: 10, horizonDays: 1).map(\.kind), [.main])
+
+        let usual = Item(id: "u", label: "ふつう", time: "20:00")
+        XCTAssertEqual(NotificationPlan.build(schedule: [usual], records: [:], now: now(),
+                                              preNoticeOn: true, preNoticeMin: 10, horizonDays: 1).map(\.kind), [.pre, .main])
+    }
+
     /// 時間帯（終了時刻つき）は、始まりと終わりの2回。済ませたら両方消える
     func testBlockGetsStartAndEndNotifications() {
         let item = Item(id: "i1", label: "ヤマト集荷", time: "14:00", endTime: "16:00")

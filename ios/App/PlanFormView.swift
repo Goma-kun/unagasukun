@@ -22,6 +22,8 @@ struct PlanFormView: View {
     @State private var noTime = false
     /// 終了時刻も決める（「14〜16時の集荷」のような時間帯。2026-09-24 本人要望）
     @State private var hasEnd = false
+    /// この予定だけの早めのお知らせ（分）。nil は設定どおり、0 は出さない
+    @State private var preNotice: Int? = nil
     @State private var endTime = Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: Date())!
     @State private var date = Date()
     @State private var days: Set<Int> = []
@@ -96,6 +98,7 @@ struct PlanFormView: View {
                                     .foregroundStyle(Theme.danger)
                             }
                         }
+                        preNoticeChips
                     }
                 } header: {
                     Text("時刻")
@@ -166,6 +169,7 @@ struct PlanFormView: View {
         // 前に開いた予定の状態を引きずらないよう、毎回すべて入れ直す
         hasEnd = false
         days = []
+        preNotice = item.preNoticeMin
         if let t = item.time, let d = Logic.parseTime(t) {
             time = Logic.at(Date(), hour: d.0, minute: d.1)
         }
@@ -234,6 +238,35 @@ struct PlanFormView: View {
         }
     }
 
+    /// 早めのお知らせ。病院の予約のように「1時間前に知りたい」予定のため（2026-10-03 本人要望）。
+    /// 「設定どおり」が既定で、設定画面の分数（既定10分前）に従う
+    private let preNoticeChoices: [(name: String, min: Int?)] = [
+        ("設定どおり", nil), ("なし", 0), ("15分前", 15), ("30分前", 30),
+        ("1時間前", 60), ("2時間前", 120), ("3時間前", 180),
+    ]
+
+    private var preNoticeChips: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("早めのお知らせ")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.muted)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
+                ForEach(preNoticeChoices, id: \.name) { c in
+                    let on = c.min == preNotice
+                    Button { preNotice = c.min } label: {
+                        Text(c.name)
+                            .font(.system(size: 13, weight: .medium))
+                            .frame(maxWidth: .infinity).frame(height: 32)
+                            .background(on ? Theme.navy : Theme.bg, in: RoundedRectangle(cornerRadius: 8))
+                            .foregroundStyle(on ? .white : Theme.muted)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
     private var intervalChips: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
             ForEach(intervalChoices, id: \.self) { n in
@@ -273,8 +306,17 @@ struct PlanFormView: View {
 
     private var timeSentence: String {
         if noTime { return "いつでも大丈夫。済ませるまで今日の予定に残ります。" }
-        if hasEnd { return "\(hhmm)〜\(endHHMM) の時間帯。始まりと終わりにお知らせします。" }
-        return "\(hhmm) にお知らせします。"
+        let base = hasEnd
+            ? "\(hhmm)〜\(endHHMM) の時間帯。始まりと終わりにお知らせします。"
+            : "\(hhmm) にお知らせします。"
+        return base + preNoticeSentence
+    }
+
+    private var preNoticeSentence: String {
+        guard let m = preNotice else { return "" }
+        if m == 0 { return "早めのお知らせは出しません。" }
+        let how = m % 60 == 0 ? "\(m / 60)時間前" : "\(m)分前"
+        return "\(how)にもお知らせします。"
     }
 
     private var hhmm: String { Self.hhmm(time) }
@@ -321,6 +363,7 @@ struct PlanFormView: View {
         } else {
             item.time = hhmm
             item.endTime = hasEnd ? endHHMM : nil
+            item.preNoticeMin = preNotice
         }
         switch mode {
         case .once:
