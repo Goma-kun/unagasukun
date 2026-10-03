@@ -115,6 +115,7 @@ struct LookBackView: View {
         }
         .padding(14)
         .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.plainStroke, lineWidth: 1.5))
     }
 
     private func dayCell(_ day: Date) -> some View {
@@ -220,7 +221,7 @@ struct LookBackView: View {
                         .padding(.horizontal, 12).padding(.vertical, 10)
                         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 10))
                         .overlay(RoundedRectangle(cornerRadius: 10)
-                            .stroke(Theme.cardStroke(model.tag(for: item)?.color) ?? .clear, lineWidth: 1.5))
+                            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: 1.5))
                         .contentShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.plain)
@@ -272,6 +273,7 @@ struct LookBackView: View {
                     }
                     .padding(.horizontal, 12).padding(.vertical, 10)
                     .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.plainStroke, lineWidth: 1.5))
                 }
                 Text("押すと記録が付き、もう一度押すと取り消せます。")
                     .font(.system(size: 12))
@@ -313,6 +315,7 @@ struct LookBackView: View {
                         }
                         .padding(.horizontal, 12).padding(.vertical, 10)
                         .background(Theme.card.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.plainStroke, lineWidth: 1.5))
                     }
                 }
             }
@@ -391,6 +394,7 @@ struct LookBackView: View {
                     }
                     .padding(12)
                     .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.plainStroke, lineWidth: 1.5))
                 }
             }
         }

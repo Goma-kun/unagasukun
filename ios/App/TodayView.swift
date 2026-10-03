@@ -341,7 +341,7 @@ private struct TodoCard: View {
         switch entry.group {
         case .active: return Theme.done
         case .overdue: return Theme.accent
-        default: return Theme.cardStroke(model.tag(for: entry.item)?.color) ?? Theme.skip.opacity(0.4)
+        default: return Theme.cardStroke(model.tag(for: entry.item)?.color)
         }
     }
 
@@ -504,6 +504,7 @@ private struct DoneCard: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .background(Theme.card.opacity(0.7), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.plainStroke, lineWidth: 1.5))
     }
 }
 
@@ -565,7 +566,7 @@ private struct PastOneOffRow: View {
         .padding(.horizontal, 14).padding(.vertical, 12)
         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12)
-            .stroke(Theme.cardStroke(model.tag(for: item)?.color) ?? .clear, lineWidth: 1.5))
+            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: 1.5))
     }
 
     private var statusText: String {
@@ -627,7 +628,7 @@ private struct RegisteredRow: View {
         .padding(.horizontal, 14).padding(.vertical, 11)
         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10)
-            .stroke(Theme.cardStroke(model.tag(for: item)?.color) ?? .clear, lineWidth: 1.5))
+            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: 1.5))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.skip.opacity(0.35), lineWidth: 1))
     }
 }

@@ -49,12 +49,16 @@ enum Theme {
         return dynamic(light: mix(0xFFFFFF, h.light, 0.16), dark: mix(0x1E2638, h.dark, 0.30))
     }
 
-    /// ラベル付きカードの枠線。地の色だけだと暗い画面で見分けにくいので、ラベルの色で縁取る。
-    /// 文字や「できた」の緑には重ならないので、読みやすさは落ちない。ラベルが無ければ nil
-    static func cardStroke(_ key: String?) -> Color? {
-        guard let key, !key.isEmpty, key != "none" else { return nil }
+    /// カードの枠線。ラベルがあればその色、無ければ薄い灰色。
+    /// 地の色だけだと暗い画面で見分けにくいのでラベルの色で縁取る。文字や「できた」の緑には重ならない。
+    /// **ラベルの無いカードにも同じ太さの枠を付ける**（枠の有無で凹凸が違って見える・2026-10-03 本人指摘）
+    static func cardStroke(_ key: String?) -> Color {
+        guard let key, !key.isEmpty, key != "none" else { return plainStroke }
         return tagColor(key).opacity(0.7)
     }
+
+    /// ラベルの無いカードの枠
+    static let plainStroke = skip.opacity(0.4)
 
     private static func tagHex(_ key: String) -> (light: UInt32, dark: UInt32) {
         switch key {
