@@ -191,7 +191,33 @@ struct PlanFormView: View {
 
     // MARK: - 部品
 
+    /// よくある型を名前で先に見せる（Apple のリマインダーの「毎日／平日／週末」と同じ）。
+    /// 曜日の丸だけだと「土日だけ繰り返せる」ことに気づけない（2026-10-03 本人指摘）
+    private let weekdayPresets: [(name: String, days: Set<Int>)] = [
+        ("毎日", Set(0...6)), ("平日", Set(1...5)), ("週末", [0, 6]),
+    ]
+
     private var weekdayChips: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                ForEach(weekdayPresets, id: \.name) { p in
+                    let on = days == p.days
+                    Button { days = p.days } label: {
+                        Text(p.name)
+                            .font(.system(size: 13, weight: .medium))
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(on ? Theme.navy : Theme.bg, in: Capsule())
+                            .foregroundStyle(on ? .white : Theme.muted)
+                    }
+                    .buttonStyle(.plain)
+                }
+                Spacer(minLength: 0)
+            }
+            weekdayCircles
+        }
+    }
+
+    private var weekdayCircles: some View {
         HStack(spacing: 6) {
             ForEach(0..<7, id: \.self) { d in
                 Button {
