@@ -18,61 +18,73 @@ struct UnagasukunApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
-            TabView(selection: $tab) {
-                TodayView()
-                    .tabItem { Label("今日", systemImage: "list.bullet") }.tag(0)
-                LookBackView()
-                    .tabItem { Label("カレンダー", systemImage: "calendar") }.tag(1)
-                SettingsView()
-                    .tabItem { Label("設定", systemImage: "gearshape") }.tag(2)
-            }
-                .environmentObject(model)
-                .tint(Theme.tint)
-                #if os(macOS)
-                .frame(minWidth: 380, minHeight: 560)
-                #else
-                // 右上の「追加」は左手だと遠い（2026-09-26 本人指摘）。浮かぶ「＋」を出す。
-                // 今日とカレンダーの両方に出し、設定では出さない。指で好きな場所へ動かせる（Things 3 と同じ）
-                .overlay {
-                    if tab != 2 {
-                        FloatingAddButton { addingFromFab = true }
-                    }
-                }
-                // カレンダーを開いているときは、選んでいる日の「1回だけ」として開く（2026-09-30 本人指摘）
-                .sheet(isPresented: $addingFromFab) {
-                    PlanFormView(preset: tab == 1 ? model.presetForCalendarDay : nil).environmentObject(model)
-                }
-                #endif
-                .task {
-                    // 通知の許可はここでは聞かない。
-                    // **何のアプリか分からないうちに聞かれると、人は断る。**
-                    // 最初の予定を登録したとき（＝通知が意味を持った瞬間）に聞く
-                    model.reschedule()
-                }
-                .onChange(of: scenePhase) { _, phase in
-                    // 設定アプリで通知を切られていることがあるので、戻るたびに見に行く
-                    guard phase == .active else { return }
-                    Task {
-                        await model.refreshNotificationState()
-                        model.reschedule()
-                        // 前面に戻るたびに揃える。ほかの端末で付けた記録を取りに行く
-                        await model.syncNow()
-                    }
-                }
-                #if os(macOS)
-                // Mac は scenePhase が前面/背面で動かないことがある。アプリが前面になった通知でも取りに行く
-                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                    Task { await model.syncNow() }
-                }
-                #endif
-        }
         #if os(macOS)
+        // 窓は1枚だけ（WindowGroup だと「新規ウインドウ」で何枚も開けてしまい、
+        // 同じ画面が複数出る・2026-10-03 本人指摘）。Dock から開き直しても同じ窓が前に出る
+        Window("うながすくん", id: "main") {
+            root
+        }
         // 予定を縦に並べる画面なので、横に広げても読みやすくならない。
         // リマインダーやメモと同じくらいの幅を既定にする
         .defaultSize(width: 420, height: 760)
         .windowResizability(.contentMinSize)
+        #else
+        WindowGroup {
+            root
+        }
         #endif
+    }
+
+    /// タブ3つの本体。Mac と iPhone で同じ
+    private var root: some View {
+
+        TabView(selection: $tab) {
+            TodayView()
+            .tabItem { Label("今日", systemImage: "list.bullet") }.tag(0)
+            LookBackView()
+            .tabItem { Label("カレンダー", systemImage: "calendar") }.tag(1)
+            SettingsView()
+            .tabItem { Label("設定", systemImage: "gearshape") }.tag(2)
+        }
+            .environmentObject(model)
+            .tint(Theme.tint)
+            #if os(macOS)
+            .frame(minWidth: 380, minHeight: 560)
+            #else
+            // 右上の「追加」は左手だと遠い（2026-09-26 本人指摘）。浮かぶ「＋」を出す。
+            // 今日とカレンダーの両方に出し、設定では出さない。指で好きな場所へ動かせる（Things 3 と同じ）
+            .overlay {
+            if tab != 2 {
+                FloatingAddButton { addingFromFab = true }
+            }
+            }
+            // カレンダーを開いているときは、選んでいる日の「1回だけ」として開く（2026-09-30 本人指摘）
+            .sheet(isPresented: $addingFromFab) {
+            PlanFormView(preset: tab == 1 ? model.presetForCalendarDay : nil).environmentObject(model)
+            }
+            #endif
+            .task {
+            // 通知の許可はここでは聞かない。
+            // **何のアプリか分からないうちに聞かれると、人は断る。**
+            // 最初の予定を登録したとき（＝通知が意味を持った瞬間）に聞く
+            model.reschedule()
+            }
+            .onChange(of: scenePhase) { _, phase in
+            // 設定アプリで通知を切られていることがあるので、戻るたびに見に行く
+            guard phase == .active else { return }
+            Task {
+                await model.refreshNotificationState()
+                model.reschedule()
+                // 前面に戻るたびに揃える。ほかの端末で付けた記録を取りに行く
+                await model.syncNow()
+            }
+            }
+            #if os(macOS)
+            // Mac は scenePhase が前面/背面で動かないことがある。アプリが前面になった通知でも取りに行く
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await model.syncNow() }
+            }
+            #endif
     }
 }
 
