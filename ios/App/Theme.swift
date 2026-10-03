@@ -44,8 +44,16 @@ enum Theme {
     static func cardBg(_ key: String?) -> Color {
         guard let key, !key.isEmpty, key != "none" else { return card }
         let h = tagHex(key)
-        // ダークは地が暗いぶん、同じ割合だと差が出ないので気持ち濃いめに寄せる
-        return dynamic(light: mix(0xFFFFFF, h.light, 0.11), dark: mix(0x1E2638, h.dark, 0.17))
+        // ダークは地が暗いぶん、同じ割合だと差が出ない。17% では「色合いが微妙で分かりづらい」
+        // （2026-10-03 本人指摘・Mac と iPhone 両方）ので 3割まで寄せ、枠線（cardStroke）も添える
+        return dynamic(light: mix(0xFFFFFF, h.light, 0.16), dark: mix(0x1E2638, h.dark, 0.30))
+    }
+
+    /// ラベル付きカードの枠線。地の色だけだと暗い画面で見分けにくいので、ラベルの色で縁取る。
+    /// 文字や「できた」の緑には重ならないので、読みやすさは落ちない。ラベルが無ければ nil
+    static func cardStroke(_ key: String?) -> Color? {
+        guard let key, !key.isEmpty, key != "none" else { return nil }
+        return tagColor(key).opacity(0.7)
     }
 
     private static func tagHex(_ key: String) -> (light: UInt32, dark: UInt32) {

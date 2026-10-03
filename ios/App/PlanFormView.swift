@@ -245,6 +245,13 @@ struct PlanFormView: View {
         ("1時間前", 60), ("2時間前", 120), ("3時間前", 180),
     ]
 
+    /// 「設定どおり」が何分前なのかをその場で見せる（2026-10-03 本人指摘）
+    private var defaultPreNoticeName: String {
+        guard model.preNoticeOn else { return "設定どおり（なし）" }
+        let m = model.preNoticeMin
+        return "設定どおり（" + (m % 60 == 0 ? "\(m / 60)時間前" : "\(m)分前") + "）"
+    }
+
     private var preNoticeChips: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("早めのお知らせ")
@@ -254,7 +261,7 @@ struct PlanFormView: View {
                 ForEach(preNoticeChoices, id: \.name) { c in
                     let on = c.min == preNotice
                     Button { preNotice = c.min } label: {
-                        Text(c.name)
+                        Text(c.min == nil ? defaultPreNoticeName : c.name)
                             .font(.system(size: 13, weight: .medium))
                             .frame(maxWidth: .infinity).frame(height: 32)
                             .background(on ? Theme.navy : Theme.bg, in: RoundedRectangle(cornerRadius: 8))
@@ -313,7 +320,11 @@ struct PlanFormView: View {
     }
 
     private var preNoticeSentence: String {
-        guard let m = preNotice else { return "" }
+        guard let m = preNotice else {
+            guard model.preNoticeOn else { return "" }
+            let g = model.preNoticeMin
+            return (g % 60 == 0 ? "\(g / 60)時間前" : "\(g)分前") + "にもお知らせします（設定どおり）。"
+        }
         if m == 0 { return "早めのお知らせは出しません。" }
         let how = m % 60 == 0 ? "\(m / 60)時間前" : "\(m)分前"
         return "\(how)にもお知らせします。"

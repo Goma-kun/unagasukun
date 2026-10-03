@@ -335,12 +335,13 @@ private struct TodoCard: View {
     }
 
     /// 時間が過ぎたものは枠の色でも分かるようにする。
-    /// **赤は使わない。**責めるためではなく、気づくための表示なので
+    /// **赤は使わない。**責めるためではなく、気づくための表示なので。
+    /// ふだんの枠はラベルの色（暗い画面で地の色だけだと見分けにくいため・2026-10-03）
     private var borderColor: Color {
         switch entry.group {
         case .active: return Theme.done
         case .overdue: return Theme.accent
-        default: return Theme.skip.opacity(0.4)
+        default: return Theme.cardStroke(model.tag(for: entry.item)?.color) ?? Theme.skip.opacity(0.4)
         }
     }
 
@@ -563,6 +564,8 @@ private struct PastOneOffRow: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12)
+            .stroke(Theme.cardStroke(model.tag(for: item)?.color) ?? .clear, lineWidth: 1.5))
     }
 
     private var statusText: String {
@@ -622,7 +625,9 @@ private struct RegisteredRow: View {
                 .foregroundStyle(Theme.skip)
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+        .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10)
+            .stroke(Theme.cardStroke(model.tag(for: item)?.color) ?? .clear, lineWidth: 1.5))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.skip.opacity(0.35), lineWidth: 1))
     }
 }

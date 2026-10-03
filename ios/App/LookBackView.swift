@@ -219,6 +219,8 @@ struct LookBackView: View {
                         }
                         .padding(.horizontal, 12).padding(.vertical, 10)
                         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10)
+                            .stroke(Theme.cardStroke(model.tag(for: item)?.color) ?? .clear, lineWidth: 1.5))
                         .contentShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.plain)
