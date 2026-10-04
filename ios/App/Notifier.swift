@@ -5,11 +5,27 @@ import UserNotifications
 /// **iOS の既定は「前面のときは出さない」。** 予定の時刻にアプリを見ていた人だけ
 /// お知らせを受け取れないのは、この道具の趣旨に合わない
 final class ForegroundNotificationPresenter: NSObject, UNUserNotificationCenterDelegate {
+    /// 通知を押して開いたときに、どの予定だったかを画面へ伝える合図
+    static let tapped = Notification.Name("UKNotificationTapped")
+
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
         [.banner, .sound, .list]
+    }
+
+    /// **通知を押したら、その予定のカードまで連れていく。**
+    /// 本人の指摘（2026-10-04）「iPhone に通知が来たが、何の通知かすぐ分からなかった」。
+    /// 開くだけだと、8 件並んだ中から自分で探すことになっていた
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        guard let id = response.notification.request.content.userInfo["itemId"] as? String else { return }
+        await MainActor.run {
+            NotificationCenter.default.post(name: Self.tapped, object: nil, userInfo: ["itemId": id])
+        }
     }
 }
 
@@ -53,6 +69,8 @@ struct Notifier {
             // 共鳴しない残響を薄くかけたもの。本人が「これがいい」と選んだ（2026-09-23）。
             // 予告も同じ音（短い版は「短かった」とのことで、同じにした）
             content.sound = UNNotificationSound(named: UNNotificationSoundName("unagasu.caf"))
+            // どの予定の通知かを持たせる。押したときにそのカードへ連れていくのに使う
+            content.userInfo = ["itemId": p.itemId]
 
             let parts = Calendar.current.dateComponents(
                 [.year, .month, .day, .hour, .minute], from: p.fireAt

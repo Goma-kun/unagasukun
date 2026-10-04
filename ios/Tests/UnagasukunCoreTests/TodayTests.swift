@@ -25,8 +25,9 @@ final class TodayTests: XCTestCase {
         let (todo, done) = Today.entries(schedule: schedule, records: [:], now: now)
 
         XCTAssertTrue(done.isEmpty)
-        XCTAssertEqual(todo.map(\.item.id), ["block", "any", "due", "future", "past"],
-                       "進行中 → いつでも（目安日が来た◯日ごとを含む） → これから → 未対応")
+        XCTAssertEqual(todo.map(\.item.id), ["block", "past", "any", "due", "future"],
+                       "進行中 → 未対応 → いつでも（目安日が来た◯日ごとを含む） → これから。"
+                       + "未対応を 2 番目に上げたのは、通知が鳴ったあとのものがそこに入るため（2026-10-04）")
         XCTAssertEqual(todo.first(where: { $0.item.id == "due" })?.group, .ready)
         XCTAssertEqual(todo.first(where: { $0.item.id == "past" })?.group, .overdue)
         XCTAssertEqual(todo.first(where: { $0.item.id == "block" })?.group, .active)

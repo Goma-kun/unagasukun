@@ -20,6 +20,9 @@ final class AppModel: ObservableObject {
     /// カレンダーで選んでいる日（"YYYY-MM-DD"）。浮かぶ「＋」がこの日で登録フォームを開くために持つ。
     /// 保存はしない（画面の状態）
     @Published var calendarSelectedDay: String? = nil
+    /// 通知を押して開いたときに、そのカードへ連れていって光らせる相手。
+    /// 数秒で自分から消える（ずっと光っていると、次に開いたときに何の印か分からなくなる）
+    @Published var highlightedId: String? = nil
 
     /// カレンダーの選択日で新規登録するときのひな型（その日の「1回だけ」）。選んでいなければ nil
     var presetForCalendarDay: Item? {

@@ -716,10 +716,10 @@ function renderToday() {
     if (result !== undefined) return 5; // できた・スキップ
     // 済んでから◯日後：目安日以降は「いつでも」と同じ扱い。
     // まだ先（そろそろ予告中）は今日の本来の予定を邪魔しないよう一番下に置く
-    if (isInterval(it)) return intervalDueInfo(it, records, now).daysUntil > 0 ? 4 : 1;
-    if (isAnytime(it)) return 1; // いつでも（時間切れの概念がなく、未対応にもならない）
-    if (it.time > nowHM) return 2; // これから
-    return 3; // 時間が過ぎて未対応
+    if (isInterval(it)) return intervalDueInfo(it, records, now).daysUntil > 0 ? 4 : 2;
+    if (isAnytime(it)) return 2; // いつでも（時間切れの概念がなく、未対応にもならない）
+    if (it.time > nowHM) return 3; // これから
+    return 1; // 時間が過ぎて未対応。**通知が鳴ったあとのものはここに来るので上に置く**（2026-10-04）
   };
   items.sort((a, b) => groupOf(a) - groupOf(b) || (a.time || '').localeCompare(b.time || ''));
 

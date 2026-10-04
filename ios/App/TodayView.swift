@@ -50,6 +50,7 @@ struct TodayView: View {
                 TagFilterBar(tags: tagsInUse, selected: $tagFilter)
             }
 
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     if todo.isEmpty && done.isEmpty {
@@ -60,6 +61,7 @@ struct TodayView: View {
                             ForEach(todo, id: \.item.id) { entry in
                                 TodoCard(entry: entry, now: now, onEdit: { form = .edit($0) },
                                          onNotice: { show($0) }, onDone: { cheer($0) })
+                                    .id(entry.item.id)   // 通知から飛んでくる先
                             }
                         }
                         if !done.isEmpty {
@@ -104,6 +106,17 @@ struct TodayView: View {
                 }
                 .padding(16)
                 .padding(.bottom, Platform.fabClearance)
+            }
+            // 通知を押して開いたら、その予定まで送って光らせる。4 秒で印は消える
+            .onReceive(NotificationCenter.default.publisher(for: ForegroundNotificationPresenter.tapped)) { note in
+                guard let id = note.userInfo?["itemId"] as? String else { return }
+                model.highlightedId = id
+                withAnimation(.easeInOut(duration: 0.4)) { proxy.scrollTo(id, anchor: .center) }
+                Task {
+                    try? await Task.sleep(nanoseconds: 4_000_000_000)
+                    if model.highlightedId == id { withAnimation { model.highlightedId = nil } }
+                }
+            }
             }
         }
         .background(Theme.bg)
@@ -330,9 +343,14 @@ private struct TodoCard: View {
         .background(Theme.cardBg(tag?.color), in: RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(borderColor, lineWidth: borderWidth)
+                .stroke(highlighted ? Theme.tint : borderColor,
+                        lineWidth: highlighted ? 3 : borderWidth)
         )
+        .animation(.easeInOut(duration: 0.3), value: highlighted)
     }
+
+    /// 通知を押して飛んできた相手かどうか。枠を太くして「これですよ」と示す
+    private var highlighted: Bool { model.highlightedId == entry.item.id }
 
     /// 時間が過ぎたものは枠の色でも分かるようにする。
     /// **赤は使わない。**責めるためではなく、気づくための表示なので。
