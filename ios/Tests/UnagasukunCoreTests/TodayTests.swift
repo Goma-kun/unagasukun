@@ -32,6 +32,21 @@ final class TodayTests: XCTestCase {
         XCTAssertEqual(todo.first(where: { $0.item.id == "block" })?.group, .active)
     }
 
+    /// 同じ時刻（いつでも）どうしは、同じラベルが隣り合う。時刻が違えば時刻順が先
+    func testSameTimeItemsAreGroupedByTag() {
+        let schedule = [
+            Item(id: "buy1", label: "牛乳", anytime: true, tagId: "shop"),
+            Item(id: "play", label: "映画", anytime: true, tagId: "play"),
+            Item(id: "buy2", label: "洗剤", anytime: true, tagId: "shop"),
+            Item(id: "none", label: "ラベルなし", anytime: true),
+            Item(id: "late", label: "夜の買い物", time: "20:00", tagId: "shop"),
+            Item(id: "early", label: "朝の遊び", time: "19:00", tagId: "play"),
+        ]
+        let (todo, _) = Today.entries(schedule: schedule, records: [:], now: at(15), tagOrder: ["shop", "play"])
+        XCTAssertEqual(todo.map(\.item.id), ["buy1", "buy2", "play", "none", "early", "late"],
+                       "いつでも: 買い物2つ→遊び→ラベルなし。時刻つきは時刻順のまま")
+    }
+
     /// 記録が付いたものは下の欄へ移る
     func testRecordedItemsMoveToDone() {
         let now = at(15)

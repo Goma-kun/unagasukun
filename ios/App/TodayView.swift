@@ -330,13 +330,23 @@ private struct TodoCard: View {
         .background(Theme.cardBg(tag?.color), in: RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(borderColor, lineWidth: entry.group == .upcoming ? 1 : 1.5)
+                .stroke(borderColor, lineWidth: borderWidth)
         )
     }
 
     /// 時間が過ぎたものは枠の色でも分かるようにする。
     /// **赤は使わない。**責めるためではなく、気づくための表示なので。
     /// ふだんの枠はラベルの色（暗い画面で地の色だけだと見分けにくいため・2026-10-03）
+    /// 状態の枠（進行中・未対応）は 1.5、ラベル付きは 2、何も無い「これから」は 1
+    private var borderWidth: CGFloat {
+        switch entry.group {
+        case .active, .overdue: return 1.5
+        default:
+            let key = model.tag(for: entry.item)?.color
+            return key == nil ? (entry.group == .upcoming ? 1 : 1.5) : Theme.cardStrokeWidth(key)
+        }
+    }
+
     private var borderColor: Color {
         switch entry.group {
         case .active: return Theme.done
@@ -352,7 +362,7 @@ private struct TodoCard: View {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(timeText)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Theme.tint)
+                    .foregroundStyle(Theme.timeColor(model.tag(for: entry.item)?.color))
                     .monospacedDigit()
                 Text(entry.item.label)
                     .font(.system(size: 16))
@@ -566,7 +576,7 @@ private struct PastOneOffRow: View {
         .padding(.horizontal, 14).padding(.vertical, 12)
         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12)
-            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: 1.5))
+            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: Theme.cardStrokeWidth(model.tag(for: item)?.color)))
     }
 
     private var statusText: String {
@@ -628,7 +638,7 @@ private struct RegisteredRow: View {
         .padding(.horizontal, 14).padding(.vertical, 11)
         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10)
-            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: 1.5))
+            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: Theme.cardStrokeWidth(model.tag(for: item)?.color)))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.skip.opacity(0.35), lineWidth: 1))
     }
 }

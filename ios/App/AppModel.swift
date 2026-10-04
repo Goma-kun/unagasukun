@@ -146,7 +146,8 @@ final class AppModel: ObservableObject {
     // MARK: - 読むほう
 
     func today(now: Date = Date()) -> (todo: [TodayEntry], done: [TodayEntry]) {
-        Today.entries(schedule: snapshot.schedule, records: snapshot.records, now: now)
+        Today.entries(schedule: snapshot.schedule, records: snapshot.records, now: now,
+                      tagOrder: snapshot.tags.map(\.id))
     }
 
     func streak(for item: Item, now: Date = Date()) -> Int {

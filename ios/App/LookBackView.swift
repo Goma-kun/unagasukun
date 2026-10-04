@@ -200,7 +200,7 @@ struct LookBackView: View {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
                             Text(planTimeText(item))
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(Theme.tint)
+                                .foregroundStyle(Theme.timeColor(model.tag(for: item)?.color))
                                 .monospacedDigit()
                             TagDot(tag: model.tag(for: item))
                             Text(item.label)
@@ -221,7 +221,7 @@ struct LookBackView: View {
                         .padding(.horizontal, 12).padding(.vertical, 10)
                         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 10))
                         .overlay(RoundedRectangle(cornerRadius: 10)
-                            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: 1.5))
+                            .stroke(Theme.cardStroke(model.tag(for: item)?.color), lineWidth: Theme.cardStrokeWidth(model.tag(for: item)?.color)))
                         .contentShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.plain)

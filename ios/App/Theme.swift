@@ -46,7 +46,9 @@ enum Theme {
         let h = tagHex(key)
         // ダークは地が暗いぶん、同じ割合だと差が出ない。17% では「色合いが微妙で分かりづらい」
         // （2026-10-03 本人指摘・Mac と iPhone 両方）ので 3割まで寄せ、枠線（cardStroke）も添える
-        return dynamic(light: mix(0xFFFFFF, h.light, 0.16), dark: mix(0x1E2638, h.dark, 0.30))
+        // 暗い地に色を多く混ぜると、橙は茶色に、桃色はくすんだ色に沈む（色の性質）。
+        // 地は2割に抑え、鮮やかさは枠線と時刻の文字（timeColor）に持たせる（2026-10-04 本人指摘）
+        return dynamic(light: mix(0xFFFFFF, h.light, 0.16), dark: mix(0x1E2638, h.dark, 0.20))
     }
 
     /// カードの枠線。ラベルがあればその色、無ければ薄い灰色。
@@ -54,7 +56,20 @@ enum Theme {
     /// **ラベルの無いカードにも同じ太さの枠を付ける**（枠の有無で凹凸が違って見える・2026-10-03 本人指摘）
     static func cardStroke(_ key: String?) -> Color {
         guard let key, !key.isEmpty, key != "none" else { return plainStroke }
-        return tagColor(key).opacity(0.7)
+        return tagColor(key).opacity(0.95)
+    }
+
+    /// 枠の太さ。ラベル付きは少し太くして色をはっきり見せる
+    static func cardStrokeWidth(_ key: String?) -> CGFloat {
+        guard let key, !key.isEmpty, key != "none" else { return 1.5 }
+        return 2
+    }
+
+    /// 時刻（「いつでも」「09:00」）の文字色。ラベルがあればその色、無ければいつもの青。
+    /// 大きな文字に色を持たせると、地を濃く塗らなくても一目で仕分けが分かる
+    static func timeColor(_ key: String?) -> Color {
+        guard let key, !key.isEmpty, key != "none" else { return tint }
+        return tagColor(key)
     }
 
     /// ラベルの無いカードの枠
@@ -62,14 +77,16 @@ enum Theme {
 
     private static func tagHex(_ key: String) -> (light: UInt32, dark: UInt32) {
         switch key {
-        case "red":    return (0xD65A4A, 0xE8776A)
-        case "orange": return (0xE07B2E, 0xF09A55)
-        case "yellow": return (0xC9A227, 0xE0BC4A)
-        case "green":  return (0x4C9F70, 0x5FB884)
-        case "teal":   return (0x2E9AA6, 0x4FB8C4)
-        case "blue":   return (0x3B78D8, 0x6D9EF0)
-        case "purple": return (0x8A5CC7, 0xA97FE0)
-        case "pink":   return (0xD4569A, 0xE87AB5)
+        // ダークは彩度を上げてある。暗い地に混ぜると、くすんだ色は茶色や灰色に沈むため
+        // （2026-10-04 本人指摘「買い物が茶色っぽい・遊びがくすんでいる」）
+        case "red":    return (0xD65A4A, 0xFF6B5E)
+        case "orange": return (0xE07B2E, 0xFF9A2E)
+        case "yellow": return (0xC9A227, 0xFFD23F)
+        case "green":  return (0x4C9F70, 0x3DD68C)
+        case "teal":   return (0x2E9AA6, 0x2ED3E0)
+        case "blue":   return (0x3B78D8, 0x5AA2FF)
+        case "purple": return (0x8A5CC7, 0xB57BFF)
+        case "pink":   return (0xD4569A, 0xFF6FB5)
         default:       return (0x7A8299, 0x9AA3B8)
         }
     }

@@ -38,7 +38,7 @@ public enum Today {
     /// 拡張側のこの処理は sidepanel.js にあってマーカーブロックの外なので、
     /// いまは突き合わせテストの対象外。**いずれ logic.js に寄せてここと突き合わせる。**
     public static func entries(
-        schedule: [Item], records: Records, now: Date
+        schedule: [Item], records: Records, now: Date, tagOrder: [String] = []
     ) -> (todo: [TodayEntry], done: [TodayEntry]) {
         let key = Logic.dateKey(now)
         let rec = records[key] ?? [:]
@@ -73,10 +73,20 @@ public enum Today {
             entries.append(TodayEntry(item: item, mark: mark, group: group))
         }
 
-        entries.sort {
-            $0.group == $1.group
-                ? ($0.item.time ?? "") < ($1.item.time ?? "")
-                : $0.group < $1.group
+        // 並びは 組 → 時刻 → ラベル → 登録順。
+        // 同じ時刻（とくに「いつでも」どうし）は、同じラベルが隣り合うようにまとめる。
+        // 「買い物・遊び・買い物」と飛び飛びに並ぶと見づらい（2026-10-04 本人指摘）。
+        // ラベルの順は「ラベルを整える」で並べた順。ラベル無しは最後
+        let rank = Dictionary(uniqueKeysWithValues: tagOrder.enumerated().map { ($1, $0) })
+        func tagRank(_ item: Item) -> Int { item.tagId.flatMap { rank[$0] } ?? Int.max }
+        let order = Dictionary(uniqueKeysWithValues: schedule.enumerated().map { ($1.id, $0) })
+        entries.sort { a, b in
+            if a.group != b.group { return a.group < b.group }
+            let ta = a.item.time ?? "", tb = b.item.time ?? ""
+            if ta != tb { return ta < tb }
+            let ra = tagRank(a.item), rb = tagRank(b.item)
+            if ra != rb { return ra < rb }
+            return (order[a.item.id] ?? 0) < (order[b.item.id] ?? 0)
         }
 
         return (entries.filter { $0.group != .resolved },
