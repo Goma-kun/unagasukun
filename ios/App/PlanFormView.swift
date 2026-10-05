@@ -26,6 +26,8 @@ struct PlanFormView: View {
     @State private var preNotice: Int? = nil
     @State private var endTime = Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: Date())!
     @State private var date = Date()
+    /// 新しく登録するときの「1回だけ」で選んだ日（複数可）。選んだ日の数だけ予定を作る
+    @State private var dateKeys: Set<String> = [Logic.dateKey(Date())]
     @State private var days: Set<Int> = []
     @State private var intervalDays = 3
     @State private var enabled = true
@@ -73,7 +75,15 @@ struct PlanFormView: View {
 
                     switch mode {
                     case .once:
-                        DateField(title: "日付", date: $date)
+                        if editing == nil {
+                            // 新しく作るときは複数の日を選べる（今日と明日だけ、など）
+                            MultiDateField(title: "日付", keys: $dateKeys)
+                            Text("日をいくつか選ぶと、選んだ日の数だけ同じ予定を作ります。")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.muted)
+                        } else {
+                            DateField(title: "日付", date: $date)
+                        }
                     case .weekly:
                         weekdayChips
                     case .interval:
@@ -263,6 +273,9 @@ struct PlanFormView: View {
                     Button { preNotice = c.min } label: {
                         Text(c.min == nil ? defaultPreNoticeName : c.name)
                             .font(.system(size: 13, weight: .medium))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)   // 「設定どおり（10分前）」が2行に折れないように
+                            .padding(.horizontal, 4)
                             .frame(maxWidth: .infinity).frame(height: 32)
                             .background(on ? Theme.navy : Theme.bg, in: RoundedRectangle(cornerRadius: 8))
                             .foregroundStyle(on ? .white : Theme.muted)
@@ -294,7 +307,12 @@ struct PlanFormView: View {
     private var preview: String {
         switch mode {
         case .once:
-            return "→ \(dateText(date)) に1回だけ。" + timeSentence
+            guard editing == nil else { return "→ \(dateText(date)) に1回だけ。" + timeSentence }
+            let ds = dateKeys.sorted().compactMap { Logic.parseDateKey($0) }
+            if ds.isEmpty { return "→ 日付を選んでください。" }
+            if ds.count == 1 { return "→ \(dateText(ds[0])) に1回だけ。" + timeSentence }
+            let list = ds.prefix(4).map(dateText).joined(separator: "・") + (ds.count > 4 ? " ほか" : "")
+            return "→ \(list) の\(ds.count)日に、1回ずつ。" + timeSentence
         case .weekly:
             guard !days.isEmpty else { return "→ 曜日を選んでください。毎日なら全部押します。" }
             let how = days.count == 7 ? "毎日" : "毎週 " + days.sorted().map { weekdayNames[$0] }
@@ -355,6 +373,7 @@ struct PlanFormView: View {
     private var canSave: Bool {
         guard !label.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
         if mode == .weekly && days.isEmpty { return false }
+        if mode == .once && editing == nil && dateKeys.isEmpty { return false }
         if !noTime && !endValid { return false }
         return true
     }
@@ -378,7 +397,7 @@ struct PlanFormView: View {
         }
         switch mode {
         case .once:
-            item.date = Logic.dateKey(date)
+            item.date = editing == nil ? (dateKeys.sorted().first ?? Logic.dateKey(Date())) : Logic.dateKey(date)
         case .weekly:
             item.days = days.sorted()
         case .interval:
@@ -390,7 +409,20 @@ struct PlanFormView: View {
             // アプリの表示はこの値を見ないが、拡張機能へ持っていったときも同じ振る舞いになるよう 0 にする
             item.noticeDays = 0
         }
-        if editing == nil { model.add(item) } else { model.update(item) }
+        if editing == nil {
+            model.add(item)
+            // 「1回だけ」で複数の日を選んだら、残りの日にも同じ予定を作る（予定ごとに別の ID）
+            if mode == .once {
+                for key in dateKeys.sorted().dropFirst() {
+                    var copy = item
+                    copy.id = UUID().uuidString
+                    copy.date = key
+                    model.add(copy)
+                }
+            }
+        } else {
+            model.update(item)
+        }
         dismiss()
     }
 }

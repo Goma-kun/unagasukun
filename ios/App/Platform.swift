@@ -98,7 +98,41 @@ struct DateField: View {
         DatePicker(title, selection: $date, displayedComponents: .date)
         #else
         LabeledContent(title) {
-            MonthPickerGrid(date: $date)
+            MonthPickerGrid(keys: Binding(get: { [Logic.dateKey(date)] },
+                                          set: { ks in if let k = ks.first, let d = Logic.parseDateKey(k) { date = d } }),
+                            multi: false)
+        }
+        #endif
+    }
+}
+
+/// 複数の日を選ぶ入力。新しく登録するときの「1回だけ」で使う。
+/// 「今日と明日の夜だけ」のような短い予定を、1回の登録で作れるようにする（2026-10-06 本人要望）。
+/// 選んだ日の数だけ予定ができる。iOS は標準の MultiDatePicker、Mac は月のマスを複数押せる形
+struct MultiDateField: View {
+    let title: String
+    /// 選んだ日（"YYYY-MM-DD"）
+    @Binding var keys: Set<String>
+
+    #if os(iOS)
+    @State private var comps: Set<DateComponents> = []
+    #endif
+
+    var body: some View {
+        #if os(iOS)
+        MultiDatePicker(title, selection: $comps)
+            .onAppear {
+                let cal = Calendar.current
+                comps = Set(keys.compactMap { Logic.parseDateKey($0) }
+                    .map { cal.dateComponents([.calendar, .era, .year, .month, .day], from: $0) })
+            }
+            .onChange(of: comps) { _, new in
+                let cal = Calendar.current
+                keys = Set(new.compactMap { cal.date(from: $0) }.map { Logic.dateKey($0) })
+            }
+        #else
+        LabeledContent(title) {
+            MonthPickerGrid(keys: $keys, multi: true)
         }
         #endif
     }
@@ -107,7 +141,10 @@ struct DateField: View {
 #if os(macOS)
 /// 月のマスから日を選ぶ。アプリのカレンダー画面と同じ並び（日曜はじまり・月送りは左右の矢印）
 struct MonthPickerGrid: View {
-    @Binding var date: Date
+    /// 選んでいる日（"YYYY-MM-DD"）。multi が false なら常に1つ
+    @Binding var keys: Set<String>
+    /// 複数の日を選べるか（押すたびに付け外し）
+    var multi = false
     /// 表示している月（選んだ日とは別に動かせる）
     @State private var month = Date()
 
@@ -120,11 +157,13 @@ struct MonthPickerGrid: View {
                 Text(selectedText)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Theme.text)
-                Button("今日") { date = Date(); month = Date() }
-                    .font(.system(size: 12))
-                    .buttonStyle(.plain)
-                    .foregroundStyle(Theme.tint)
-                    .disabled(Calendar.current.isDateInToday(date))
+                if !multi {
+                    Button("今日") { keys = [Logic.dateKey(Date())]; month = Date() }
+                        .font(.system(size: 12))
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Theme.tint)
+                        .disabled(keys == [Logic.dateKey(Date())])
+                }
                 Spacer(minLength: 0)
             }
 
@@ -153,20 +192,29 @@ struct MonthPickerGrid: View {
             }
         }
         .padding(.vertical, 4)
-        .onAppear { month = date }
-        .onChange(of: date) { _, d in
-            // 外から日付が変わったら（編集で読み込んだとき）、その月を見せる
-            let c = Calendar.current
-            if !c.isDate(d, equalTo: month, toGranularity: .month) { month = d }
+        .onAppear { if let d = firstDate { month = d } }
+        .onChange(of: keys) { _, _ in
+            // 1日だけ選ぶ形で外から日付が変わったら（編集で読み込んだとき）、その月を見せる
+            guard !multi, let d = firstDate else { return }
+            if !Calendar.current.isDate(d, equalTo: month, toGranularity: .month) { month = d }
         }
     }
 
+    private var firstDate: Date? { keys.sorted().first.flatMap { Logic.parseDateKey($0) } }
+
     private func dayCell(_ day: Date) -> some View {
         let cal = Calendar.current
-        let selected = cal.isDate(day, inSameDayAs: date)
+        let key = Logic.dateKey(day)
+        let selected = keys.contains(key)
         let today = cal.isDateInToday(day)
         let wd = Logic.jsWeekday(day)
-        return Button { date = day } label: {
+        return Button {
+            if multi {
+                if selected { keys.remove(key) } else { keys.insert(key) }
+            } else {
+                keys = [key]
+            }
+        } label: {
             Text("\(cal.component(.day, from: day))")
                 .font(.system(size: 13, weight: selected ? .semibold : .regular))
                 .monospacedDigit()
@@ -180,6 +228,14 @@ struct MonthPickerGrid: View {
     }
 
     private var selectedText: String {
+        let dates = keys.sorted().compactMap { Logic.parseDateKey($0) }
+        if multi {
+            if dates.isEmpty { return "日を押して選びます（いくつでも）" }
+            if dates.count == 1 { return Describe.short(dates[0]) + "（ほかの日も押せます）" }
+            let head = dates.prefix(4).map(Describe.short).joined(separator: "・")
+            return head + (dates.count > 4 ? " ほか" : "") + "（\(dates.count)日）"
+        }
+        guard let date = dates.first else { return "" }
         let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
         return "\(c.year ?? 0)/\(c.month ?? 0)/\(c.day ?? 0)(\(weekdayNames[Logic.jsWeekday(date)]))"
     }
