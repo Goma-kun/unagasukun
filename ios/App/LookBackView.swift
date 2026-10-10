@@ -426,7 +426,7 @@ struct LookBackView: View {
             ForEach(0..<7, id: \.self) { r in
                 HStack(spacing: tileGap) {
                     // 左端に曜日。どの行が何曜日か、見なくても分かるように
-                    Text(weekdayNames[r])
+                    Text(Describe.weekdayInitials[r])
                         .font(.system(size: 9))
                         .foregroundStyle(Theme.muted)
                         .frame(width: 16, alignment: .trailing)

@@ -9,6 +9,9 @@ public enum Describe {
     /// 曜日の短い名前（端末の言語で。ja は「日・月…」、en は「Sun・Mon…」）
     public static var weekdayNames: [String] { Logic.calendar.shortWeekdaySymbols }
 
+    /// タイルの行頭など幅 16pt に収める曜日（ja は「日」、en は「S」）。"Sun" だと 2 行に折れる
+    public static var weekdayInitials: [String] { Logic.calendar.veryShortWeekdaySymbols }
+
     /// 並べるときの区切り。ja は「・」、en は「 · 」
     public static var sep: String { String(localized: "・") }
 
