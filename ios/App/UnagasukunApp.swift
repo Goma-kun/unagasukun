@@ -21,7 +21,7 @@ struct UnagasukunApp: App {
         #if os(macOS)
         // 窓は1枚だけ（WindowGroup だと「新規ウインドウ」で何枚も開けてしまい、
         // 同じ画面が複数出る・2026-10-03 本人指摘）。Dock から開き直しても同じ窓が前に出る
-        Window("うながすくん", id: "main") {
+        Window(String(localized: "うながすくん"), id: "main") {
             root
         }
         // 予定を縦に並べる画面なので、横に広げても読みやすくならない。
@@ -106,8 +106,8 @@ enum Shot {
     static var formPreset: Item? {
         #if DEBUG
         guard UserDefaults.standard.string(forKey: "UKShotForm") == "interval" else { return nil }
-        return Item(id: "shot", label: "猫の点滴", time: "09:00", intervalDays: 4,
-                    detail: "首の後ろに 100ml。終わったらおやつ")
+        return Item(id: "shot", label: String(localized: "猫の点滴"), time: "09:00", intervalDays: 4,
+                    detail: String(localized: "首の後ろに 100ml。終わったらおやつ"))
         #else
         return nil
         #endif
@@ -217,7 +217,7 @@ struct FloatingAddButton: View {
                         }
                 )
                 .accessibilityLabel("予定を追加")
-                .accessibilityHint("押したまま動かすと位置を変えられます")
+                .accessibilityHint(String(localized: "押したまま動かすと位置を変えられます"))
                 .accessibilityAddTraits(.isButton)
         }
     }

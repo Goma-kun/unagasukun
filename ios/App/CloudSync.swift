@@ -42,16 +42,16 @@ final class CloudSync {
             case .available:
                 return nil   // 使える
             case .noAccount:
-                return .unavailable("iCloud にサインインすると、ほかの端末と揃います")
+                return .unavailable(String(localized: "iCloud にサインインすると、ほかの端末と揃います"))
             case .restricted:
-                return .unavailable("この端末では iCloud の利用が制限されています")
+                return .unavailable(String(localized: "この端末では iCloud の利用が制限されています"))
             case .couldNotDetermine, .temporarilyUnavailable:
-                return .unavailable("iCloud に接続できませんでした")
+                return .unavailable(String(localized: "iCloud に接続できませんでした"))
             @unknown default:
-                return .unavailable("iCloud の状態が分かりませんでした")
+                return .unavailable(String(localized: "iCloud の状態が分かりませんでした"))
             }
         } catch {
-            return .unavailable("iCloud に接続できませんでした")
+            return .unavailable(String(localized: "iCloud に接続できませんでした"))
         }
     }
 

@@ -57,7 +57,7 @@ struct TodayView: View {
                         emptyState
                     } else {
                         if !todo.isEmpty {
-                            sectionTitle("今日の予定", count: todo.count)
+                            sectionTitle(String(localized: "今日の予定"), count: todo.count)
                             ForEach(todo, id: \.item.id) { entry in
                                 TodoCard(entry: entry, now: now, onEdit: { form = .edit($0) },
                                          onNotice: { show($0) }, onDone: { cheer($0) })
@@ -65,7 +65,7 @@ struct TodayView: View {
                             }
                         }
                         if !done.isEmpty {
-                            collapsibleTitle("今日対応済み", count: done.count, collapsed: $collapseDone)
+                            collapsibleTitle(String(localized: "今日対応済み"), count: done.count, collapsed: $collapseDone)
                             if !collapseDone {
                                 ForEach(done, id: \.item.id) { entry in
                                     DoneCard(entry: entry)
@@ -76,7 +76,7 @@ struct TodayView: View {
 
                     let registered = model.registered(now: now).filter { filter.isEmpty || $0.tagId == filter }
                     if !registered.isEmpty {
-                        collapsibleTitle("登録済み", count: registered.count, collapsed: $collapseRegistered)
+                        collapsibleTitle(String(localized: "登録済み"), count: registered.count, collapsed: $collapseRegistered)
                         if !collapseRegistered {
                             Text("今日の予定に出ているものは、ここには出しません。")
                                 .font(.system(size: 12))
@@ -93,7 +93,7 @@ struct TodayView: View {
                     // 分けて出し、できたかどうかをここで付けられるようにする
                     let past = model.pastOneOffs(now: now).filter { filter.isEmpty || $0.tagId == filter }
                     if !past.isEmpty {
-                        collapsibleTitle("過ぎた予定", count: past.count, collapsed: $collapsePast)
+                        collapsibleTitle(String(localized: "過ぎた予定"), count: past.count, collapsed: $collapsePast)
                         if !collapsePast {
                             Text("日付が過ぎた1回だけの予定（2週間ぶん）。できたかどうかをここで付けられます。それより前はカレンダーのタブで見られます。")
                                 .font(.system(size: 12))
@@ -221,7 +221,7 @@ struct TodayView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(collapsed.wrappedValue ? "\(title)を開く" : "\(title)を畳む")
+        .accessibilityLabel(collapsed.wrappedValue ? String(localized: "\(title)を開く") : String(localized: "\(title)を畳む"))
     }
 
     private func sectionTitle(_ title: String, count: Int) -> some View {
@@ -413,23 +413,23 @@ private struct TodoCard: View {
     }
 
     private var timeText: String {
-        if Logic.isAnytime(entry.item) { return "いつでも" }
+        if Logic.isAnytime(entry.item) { return String(localized: "いつでも") }
         guard let t = entry.item.time else { return "—" }
         // 時間帯は「14:00〜16:00」（拡張機能の timeText() と同じ書き方）
-        if let e = entry.item.endTime, Logic.isValidEndTime(t, e) { return "\(t)〜\(e)" }
+        if let e = entry.item.endTime, Logic.isValidEndTime(t, e) { return String(localized: "\(t)〜\(e)") }
         return t
     }
 
     private var subtitles: [String] {
         var out: [String] = []
         switch entry.group {
-        case .active: out.append("進行中")
-        case .overdue: out.append("未対応")
+        case .active: out.append(String(localized: "進行中"))
+        case .overdue: out.append(String(localized: "未対応"))
         default: break
         }
         if let due = model.nextDueText(for: entry.item, now: now) { out.append(due) }
         let s = model.streak(for: entry.item, now: now)
-        if s > 0 { out.append("🔥 \(s)日") }
+        if s > 0 { out.append(String(localized: "🔥 \(s)日")) }
         return out
     }
 
@@ -472,7 +472,7 @@ private struct TodoCard: View {
 
     private func dateChipText(_ key: String, yesterday: String) -> String {
         let text = Logic.parseDateKey(key).map(Describe.short) ?? key
-        return key == yesterday ? "きのう \(text)" : text
+        return key == yesterday ? String(localized: "きのう \(text)") : text
     }
 }
 
@@ -588,8 +588,8 @@ private struct PastOneOffRow: View {
             }
             .buttonStyle(.plain)
             Spacer(minLength: 0)
-            markButton(.done, "できた", Theme.done)
-            markButton(.skip, "休んだ", Theme.skip)
+            markButton(.done, String(localized: "できた"), Theme.done)
+            markButton(.skip, String(localized: "休んだ"), Theme.skip)
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
         .background(Theme.cardBg(model.tag(for: item)?.color), in: RoundedRectangle(cornerRadius: 12))
@@ -599,9 +599,9 @@ private struct PastOneOffRow: View {
 
     private var statusText: String {
         switch model.mark(item, on: key) {
-        case .done: return "\(dateText)・できた"
-        case .skip: return "\(dateText)・休んだ"
-        case nil: return "\(dateText)・記録なし"
+        case .done: return String(localized: "\(dateText)・できた")
+        case .skip: return String(localized: "\(dateText)・休んだ")
+        case nil: return String(localized: "\(dateText)・記録なし")
         }
     }
 

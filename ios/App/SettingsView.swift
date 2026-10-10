@@ -33,8 +33,7 @@ struct SettingsView: View {
                 } header: {
                     Text("ほかの端末と")
                 } footer: {
-                    Text("同じ Apple アカウントの iPhone や Mac と、予定と記録が揃います。"
-                         + "データはあなたの iCloud に入ります。こちらからは見えません。")
+                    Text("同じ Apple アカウントの iPhone や Mac と、予定と記録が揃います。データはあなたの iCloud に入ります。こちらからは見えません。")
                 }
 
                 Section {
@@ -60,8 +59,8 @@ struct SettingsView: View {
                     Text("お知らせ")
                 } footer: {
                     Text(model.preNoticeOn
-                         ? "予定の時刻より前に、一度お知らせします。済ませたものには出しません。"
-                         : "予定の時刻にだけお知らせします。")
+                         ? String(localized: "予定の時刻より前に、一度お知らせします。済ませたものには出しません。")
+                         : String(localized: "予定の時刻にだけお知らせします。"))
                 }
 
                 #if os(iOS)
@@ -83,8 +82,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Chrome 拡張版から")
                 } footer: {
-                    Text("拡張機能の 設定 →「データを書き出す」で作ったファイルを選びます。"
-                         + "同じ予定はこちらを残し、記録は足し合わせます。取り込む前の中身は控えに残ります。")
+                    Text("拡張機能の 設定 →「データを書き出す」で作ったファイルを選びます。同じ予定はこちらを残し、記録は足し合わせます。取り込む前の中身は控えに残ります。")
                 }
 
                 if model.backupCount() > 0 {
@@ -93,10 +91,7 @@ struct SettingsView: View {
                     } header: {
                         Text("もしものとき")
                     } footer: {
-                        Text("ほかの端末と揃えるとき、この端末の中身を書き換える直前の控えを"
-                             + "\(model.backupCount())件 残しています。"
-                             + "記録が思っていたものと違うときは、ここから戻せます。"
-                             + "戻す前の中身も控えに残すので、やり直せます。")
+                        Text("ほかの端末と揃えるとき、この端末の中身を書き換える直前の控えを\(model.backupCount())件 残しています。記録が思っていたものと違うときは、ここから戻せます。戻す前の中身も控えに残すので、やり直せます。")
                     }
                 }
 
@@ -151,9 +146,9 @@ struct SettingsView: View {
 
     private var syncText: String {
         switch model.syncState {
-        case .off: return "この端末の中だけで使っています"
-        case .syncing: return "揃えています…"
-        case .ok(let at): return "最後に揃えたのは \(timeText(at))"
+        case .off: return String(localized: "この端末の中だけで使っています")
+        case .syncing: return String(localized: "揃えています…")
+        case .ok(let at): return String(localized: "最後に揃えたのは \(timeText(at))")
         case .unavailable(let why): return why
         case .failed(let why): return why
         }

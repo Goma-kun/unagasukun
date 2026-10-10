@@ -12,7 +12,16 @@ struct PlanFormView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var confirmingDelete = false
 
-    enum Repeat: String, CaseIterable { case once = "1回だけ", weekly = "毎週", interval = "◯日ごと" }
+    enum Repeat: CaseIterable {
+        case once, weekly, interval
+        var title: String {
+            switch self {
+            case .once: return String(localized: "1回だけ")
+            case .weekly: return String(localized: "毎週")
+            case .interval: return String(localized: "◯日ごと")
+            }
+        }
+    }
 
     @State private var label = ""
     /// 詳細メモ（任意）。拡張機能と同じ項目で、今日のカードと通知の本文に出す
@@ -35,7 +44,7 @@ struct PlanFormView: View {
     @State private var tagId: String? = nil
     @State private var editingTags = false
 
-    private let weekdayNames = ["日", "月", "火", "水", "木", "金", "土"]
+    private var weekdayNames: [String] { Describe.weekdayNames }
     private let intervalChoices = [1, 2, 3, 4, 6, 7, 14, 30]
 
     var body: some View {
@@ -68,7 +77,7 @@ struct PlanFormView: View {
 
                 Section("繰り返し") {
                     Picker("", selection: $mode) {
-                        ForEach(Repeat.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                        ForEach(Repeat.allCases, id: \.self) { Text($0.title).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
@@ -77,12 +86,12 @@ struct PlanFormView: View {
                     case .once:
                         if editing == nil {
                             // 新しく作るときは複数の日を選べる（今日と明日だけ、など）
-                            MultiDateField(title: "日付", keys: $dateKeys)
+                            MultiDateField(title: String(localized: "日付"), keys: $dateKeys)
                             Text("日をいくつか選ぶと、選んだ日の数だけ同じ予定を作ります。")
                                 .font(.system(size: 12))
                                 .foregroundStyle(Theme.muted)
                         } else {
-                            DateField(title: "日付", date: $date)
+                            DateField(title: String(localized: "日付"), date: $date)
                         }
                     case .weekly:
                         weekdayChips
@@ -94,14 +103,14 @@ struct PlanFormView: View {
                 Section {
                     Toggle("いつでも大丈夫（時刻は決めない）", isOn: $noTime)
                     if !noTime {
-                        TimeField(title: hasEnd ? "開始" : "時刻", date: $time)
+                        TimeField(title: hasEnd ? String(localized: "開始") : String(localized: "時刻"), date: $time)
                         Toggle("終了時刻も決める", isOn: $hasEnd)
                             // チェックを入れた瞬間から意味のある値に。初期値のままだと開始より前で
                             // 赤字が出る（2026-09-24 本人指摘）
                             .onChange(of: hasEnd) { _, on in if on { ensureEndAfterStart() } }
                             .onChange(of: time) { _, _ in if hasEnd { ensureEndAfterStart() } }
                         if hasEnd {
-                            TimeField(title: "終了", date: $endTime)
+                            TimeField(title: String(localized: "終了"), date: $endTime)
                             if !endValid {
                                 Text("終了は開始より後の時刻にしてください。")
                                     .font(.system(size: 13))
@@ -143,14 +152,14 @@ struct PlanFormView: View {
             .formStyle(.grouped)
             .frame(minWidth: 540, idealWidth: 540, minHeight: 620)
             #endif
-            .navigationTitle(editing == nil ? "予定を追加" : "予定を編集")
+            .navigationTitle(editing == nil ? String(localized: "予定を追加") : String(localized: "予定を編集"))
             .compactNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("やめる") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(editing == nil ? "追加" : "保存") { save() }.disabled(!canSave)
+                    Button(editing == nil ? String(localized: "追加") : String(localized: "保存")) { save() }.disabled(!canSave)
                 }
             }
             .onAppear { load(); if Shot.tagEditor { editingTags = true } }
@@ -208,7 +217,7 @@ struct PlanFormView: View {
     /// よくある型を名前で先に見せる（Apple のリマインダーの「毎日／平日／週末」と同じ）。
     /// 曜日の丸だけだと「土日だけ繰り返せる」ことに気づけない（2026-10-03 本人指摘）
     private let weekdayPresets: [(name: String, days: Set<Int>)] = [
-        ("毎日", Set(0...6)), ("平日", Set(1...5)), ("週末", [0, 6]),
+        (String(localized: "毎日"), Set(0...6)), (String(localized: "平日"), Set(1...5)), (String(localized: "週末"), [0, 6]),
     ]
 
     private var weekdayChips: some View {
@@ -251,15 +260,20 @@ struct PlanFormView: View {
     /// 早めのお知らせ。病院の予約のように「1時間前に知りたい」予定のため（2026-10-03 本人要望）。
     /// 「設定どおり」が既定で、設定画面の分数（既定10分前）に従う
     private let preNoticeChoices: [(name: String, min: Int?)] = [
-        ("設定どおり", nil), ("なし", 0), ("15分前", 15), ("30分前", 30),
-        ("1時間前", 60), ("2時間前", 120), ("3時間前", 180),
+        (String(localized: "設定どおり"), nil), (String(localized: "なし"), 0), (String(localized: "15分前"), 15), (String(localized: "30分前"), 30),
+        (String(localized: "1時間前"), 60), (String(localized: "2時間前"), 120), (String(localized: "3時間前"), 180),
     ]
 
     /// 「設定どおり」が何分前なのかをその場で見せる（2026-10-03 本人指摘）
     private var defaultPreNoticeName: String {
-        guard model.preNoticeOn else { return "設定どおり（なし）" }
+        guard model.preNoticeOn else { return String(localized: "設定どおり（なし）") }
         let m = model.preNoticeMin
-        return "設定どおり（" + (m % 60 == 0 ? "\(m / 60)時間前" : "\(m)分前") + "）"
+        return String(localized: "設定どおり（\(beforeText(m))）")
+    }
+
+    /// 「15分前」「1時間前」
+    private func beforeText(_ m: Int) -> String {
+        m % 60 == 0 ? String(localized: "\(m / 60)時間前") : String(localized: "\(m)分前")
     }
 
     private var preNoticeChips: some View {
@@ -307,33 +321,32 @@ struct PlanFormView: View {
     private var preview: String {
         switch mode {
         case .once:
-            guard editing == nil else { return "→ \(dateText(date)) に1回だけ。" + timeSentence }
+            guard editing == nil else { return String(localized: "→ \(dateText(date)) に1回だけ。") + timeSentence }
             let ds = dateKeys.sorted().compactMap { Logic.parseDateKey($0) }
-            if ds.isEmpty { return "→ 日付を選んでください。" }
-            if ds.count == 1 { return "→ \(dateText(ds[0])) に1回だけ。" + timeSentence }
-            let list = ds.prefix(4).map(dateText).joined(separator: "・") + (ds.count > 4 ? " ほか" : "")
-            return "→ \(list) の\(ds.count)日に、1回ずつ。" + timeSentence
+            if ds.isEmpty { return String(localized: "→ 日付を選んでください。") }
+            if ds.count == 1 { return String(localized: "→ \(dateText(ds[0])) に1回だけ。") + timeSentence }
+            let list = ds.prefix(4).map(dateText).joined(separator: Describe.sep) + (ds.count > 4 ? String(localized: " ほか") : "")
+            return String(localized: "→ \(list) の\(ds.count)日に、1回ずつ。") + timeSentence
         case .weekly:
-            guard !days.isEmpty else { return "→ 曜日を選んでください。毎日なら全部押します。" }
-            let how = days.count == 7 ? "毎日" : "毎週 " + days.sorted().map { weekdayNames[$0] }
-                                                            .joined(separator: "・")
-            return "→ \(how) に繰り返します。" + timeSentence
+            guard !days.isEmpty else { return String(localized: "→ 曜日を選んでください。毎日なら全部押します。") }
+            let names = days.sorted().map { weekdayNames[$0] }.joined(separator: Describe.sep)
+            let how = days.count == 7 ? String(localized: "毎日") : String(localized: "毎週 \(names)")
+            return String(localized: "→ \(how) に繰り返します。") + timeSentence
         case .interval:
             // 「3日ごと」は、間の日数で数える人（「3日空けて」）には1日ずれて伝わる。
             // 「3日に1回」＋「間は2日空きます」＋実際の日付3つ、で読み違えの余地を消す
             let base = editing?.anchorDate.flatMap(Logic.parseDateKey) ?? Date()
             let dates = (1...3).map { dateText(Logic.day(base, plus: intervalDays * $0)) }
-            return "→ \(Describe.rhythm(intervalDays))。"
-                + dates.joined(separator: " → ") + " と続きます。"
-                + "「できた」を押した日から数え直します。" + timeSentence
+            return String(localized: "→ \(Describe.rhythm(intervalDays))。\(dates.joined(separator: " → ")) と続きます。「できた」を押した日から数え直します。")
+                + timeSentence
         }
     }
 
     private var timeSentence: String {
-        if noTime { return "いつでも大丈夫。済ませるまで今日の予定に残ります。" }
+        if noTime { return String(localized: "いつでも大丈夫。済ませるまで今日の予定に残ります。") }
         let base = hasEnd
-            ? "\(hhmm)〜\(endHHMM) の時間帯。始まりと終わりにお知らせします。"
-            : "\(hhmm) にお知らせします。"
+            ? String(localized: "\(hhmm)〜\(endHHMM) の時間帯。始まりと終わりにお知らせします。")
+            : String(localized: "\(hhmm) にお知らせします。")
         return base + preNoticeSentence
     }
 
@@ -341,11 +354,10 @@ struct PlanFormView: View {
         guard let m = preNotice else {
             guard model.preNoticeOn else { return "" }
             let g = model.preNoticeMin
-            return (g % 60 == 0 ? "\(g / 60)時間前" : "\(g)分前") + "にもお知らせします（設定どおり）。"
+            return String(localized: "\(beforeText(g))にもお知らせします（設定どおり）。")
         }
-        if m == 0 { return "早めのお知らせは出しません。" }
-        let how = m % 60 == 0 ? "\(m / 60)時間前" : "\(m)分前"
-        return "\(how)にもお知らせします。"
+        if m == 0 { return String(localized: "早めのお知らせは出しません。") }
+        return String(localized: "\(beforeText(m))にもお知らせします。")
     }
 
     private var hhmm: String { Self.hhmm(time) }
@@ -365,10 +377,7 @@ struct PlanFormView: View {
         return String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
     }
 
-    private func dateText(_ d: Date) -> String {
-        let c = Calendar.current.dateComponents([.month, .day, .weekday], from: d)
-        return "\(c.month ?? 0)/\(c.day ?? 0)(\(weekdayNames[(c.weekday ?? 1) - 1]))"
-    }
+    private func dateText(_ d: Date) -> String { Describe.short(d) }
 
     private var canSave: Bool {
         guard !label.trimmingCharacters(in: .whitespaces).isEmpty else { return false }

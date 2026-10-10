@@ -20,7 +20,7 @@ struct LookBackView: View {
     /// タイルで押した日（予定ID → 日付キー）。その場で記録を付けられる行を出す
     @State private var tilePick: [String: String] = [:]
 
-    private let weekdayNames = ["日", "月", "火", "水", "木", "金", "土"]
+    private var weekdayNames: [String] { Describe.weekdayNames }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -184,7 +184,7 @@ struct LookBackView: View {
     private func futureDetail(_ key: String) -> some View {
         let items = model.plannedOn(key)
         return VStack(alignment: .leading, spacing: 10) {
-            Text((Logic.parseDateKey(key).map(Describe.short) ?? key) + " の予定")
+            Text(String(localized: "\(Logic.parseDateKey(key).map(Describe.short) ?? key) の予定"))
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(Theme.muted)
 
@@ -234,9 +234,9 @@ struct LookBackView: View {
     }
 
     private func planTimeText(_ item: Item) -> String {
-        if Logic.isAnytime(item) { return "いつでも" }
+        if Logic.isAnytime(item) { return String(localized: "いつでも") }
         guard let t = item.time else { return "—" }
-        if let e = item.endTime, Logic.isValidEndTime(t, e) { return "\(t)〜\(e)" }
+        if let e = item.endTime, Logic.isValidEndTime(t, e) { return String(localized: "\(t)〜\(e)") }
         return t
     }
 
@@ -262,8 +262,8 @@ struct LookBackView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(Theme.text)
                             Spacer(minLength: 0)
-                            markButton(item, .done, key, "できた", Theme.done)
-                            markButton(item, .skip, key, "休んだ", Theme.skip)
+                            markButton(item, .done, key, String(localized: "できた"), Theme.done)
+                            markButton(item, .skip, key, String(localized: "休んだ"), Theme.skip)
                         }
                         // 休んだ日・記録が無い日には「実際は…」（畳んだ状態）。付いていれば見せる
                         if mark == .skip || (mark == nil && key < Logic.dateKey(Date()))
@@ -310,8 +310,8 @@ struct LookBackView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(Theme.muted)
                             Spacer(minLength: 0)
-                            markButton(item, .done, key, "できた", Theme.done)
-                            markButton(item, .skip, key, "休んだ", Theme.skip)
+                            markButton(item, .done, key, String(localized: "できた"), Theme.done)
+                            markButton(item, .skip, key, String(localized: "休んだ"), Theme.skip)
                         }
                         .padding(.horizontal, 12).padding(.vertical, 10)
                         .background(Theme.card.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
@@ -380,12 +380,12 @@ struct LookBackView: View {
                         // 押したタイルの日。ここで「できた／休んだ」を付ける
                         if let key = tilePick[item.id], let d = Logic.parseDateKey(key) {
                             HStack(spacing: 10) {
-                                Text(Describe.short(d) + (key == Logic.dateKey(Date()) ? "（今日）" : ""))
+                                Text(Describe.short(d) + (key == Logic.dateKey(Date()) ? String(localized: "（今日）") : ""))
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundStyle(Theme.text)
                                 Spacer(minLength: 0)
-                                markButton(item, .done, key, "できた", Theme.done)
-                                markButton(item, .skip, key, "休んだ", Theme.skip)
+                                markButton(item, .done, key, String(localized: "できた"), Theme.done)
+                                markButton(item, .skip, key, String(localized: "休んだ"), Theme.skip)
                             }
                             .padding(.horizontal, 12).padding(.vertical, 10)
                             .background(Theme.bg, in: RoundedRectangle(cornerRadius: 10))
@@ -415,7 +415,7 @@ struct LookBackView: View {
                     ZStack(alignment: .leading) {
                         Color.clear.frame(width: tileSize, height: 12)
                         if let l = labels.first(where: { $0.column == w }) {
-                            Text("\(Logic.calendar.component(.month, from: l.sunday))月")
+                            Text(Describe.monthShort(l.sunday))
                                 .font(.system(size: 9))
                                 .foregroundStyle(Theme.muted)
                                 .fixedSize()
@@ -467,8 +467,8 @@ struct LookBackView: View {
     /// 凡例（色の意味。小さく1行だけ）
     private var legend: some View {
         HStack(spacing: 10) {
-            legendItem(Theme.done, "できた")
-            legendItem(Theme.skip.opacity(0.22), "記録なし")
+            legendItem(Theme.done, String(localized: "できた"))
+            legendItem(Theme.skip.opacity(0.22), String(localized: "記録なし"))
             HStack(spacing: 4) {
                 RoundedRectangle(cornerRadius: 2)
                     .stroke(Theme.skip.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
@@ -489,10 +489,7 @@ struct LookBackView: View {
 
     // MARK: - 小物
 
-    private var monthTitle: String {
-        let c = Logic.calendar.dateComponents([.year, .month], from: month)
-        return "\(c.year ?? 0)年\(c.month ?? 0)月"
-    }
+    private var monthTitle: String { Describe.monthTitle(month) }
 
     private var isCurrentMonth: Bool {
         let a = Logic.calendar.dateComponents([.year, .month], from: month)
@@ -506,6 +503,6 @@ struct LookBackView: View {
 
     private func dayTitle(_ key: String) -> String {
         guard let d = Logic.parseDateKey(key) else { return key }
-        return Describe.short(d) + " の記録"
+        return String(localized: "\(Describe.short(d)) の記録")
     }
 }

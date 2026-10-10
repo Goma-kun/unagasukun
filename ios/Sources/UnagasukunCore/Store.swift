@@ -105,7 +105,7 @@ public struct NoteEntry: Codable, Equatable, Sendable {
 
 /// 「実際は…」の選択肢。拡張機能と同じ4つ。**責める言葉は使わない**（成績表でなく、予定の側を直す材料）
 public enum ActualNote {
-    public static let choices = ["別の作業", "休憩", "ブラウジング", "気分が乗らず"]
+    public static let choices = [String(localized: "別の作業"), String(localized: "休憩"), String(localized: "ブラウジング"), String(localized: "気分が乗らず")]
     public static let maxLength = 30
 }
 

@@ -148,7 +148,7 @@ struct MonthPickerGrid: View {
     /// 表示している月（選んだ日とは別に動かせる）
     @State private var month = Date()
 
-    private let weekdayNames = ["日", "月", "火", "水", "木", "金", "土"]
+    private var weekdayNames: [String] { Describe.weekdayNames }
     private let cell: CGFloat = 34
 
     var body: some View {
@@ -230,20 +230,16 @@ struct MonthPickerGrid: View {
     private var selectedText: String {
         let dates = keys.sorted().compactMap { Logic.parseDateKey($0) }
         if multi {
-            if dates.isEmpty { return "日を押して選びます（いくつでも）" }
-            if dates.count == 1 { return Describe.short(dates[0]) + "（ほかの日も押せます）" }
-            let head = dates.prefix(4).map(Describe.short).joined(separator: "・")
-            return head + (dates.count > 4 ? " ほか" : "") + "（\(dates.count)日）"
+            if dates.isEmpty { return String(localized: "日を押して選びます（いくつでも）") }
+            if dates.count == 1 { return Describe.short(dates[0]) + String(localized: "（ほかの日も押せます）") }
+            let head = dates.prefix(4).map(Describe.short).joined(separator: Describe.sep)
+            return head + (dates.count > 4 ? String(localized: " ほか") : "") + String(localized: "（\(dates.count)日）")
         }
         guard let date = dates.first else { return "" }
-        let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
-        return "\(c.year ?? 0)/\(c.month ?? 0)/\(c.day ?? 0)(\(weekdayNames[Logic.jsWeekday(date)]))"
+        return Describe.long(date)
     }
 
-    private var monthTitle: String {
-        let c = Calendar.current.dateComponents([.year, .month], from: month)
-        return "\(c.year ?? 0)年\(c.month ?? 0)月"
-    }
+    private var monthTitle: String { Describe.monthTitle(month) }
 
     private func shift(_ n: Int) {
         if let d = Calendar.current.date(byAdding: .month, value: n, to: month) { month = d }

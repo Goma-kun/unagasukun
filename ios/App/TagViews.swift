@@ -52,7 +52,7 @@ struct TagFilterBar: View {
         return Button { withAnimation(.easeInOut(duration: 0.15)) { selected = on && tag != nil ? "" : id } } label: {
             HStack(spacing: 5) {
                 if let tag { Circle().fill(on ? Color.white : Theme.tagColor(tag.color)).frame(width: 7, height: 7) }
-                Text(tag?.name ?? "すべて").font(.system(size: 13, weight: .medium))
+                Text(tag?.name ?? String(localized: "すべて")).font(.system(size: 13, weight: .medium))
             }
             .foregroundStyle(on ? .white : Theme.text)
             .padding(.horizontal, 11).padding(.vertical, 6)
@@ -81,7 +81,7 @@ struct TagPickerRow: View {
         return Button { selected = tag?.id } label: {
             HStack(spacing: 5) {
                 if let tag { Circle().fill(on ? Color.white : Theme.tagColor(tag.color)).frame(width: 7, height: 7) }
-                Text(tag?.name ?? "なし").font(.system(size: 13, weight: .medium))
+                Text(tag?.name ?? String(localized: "なし")).font(.system(size: 13, weight: .medium))
             }
             .foregroundStyle(on ? .white : Theme.text)
             .padding(.horizontal, 11).padding(.vertical, 6)

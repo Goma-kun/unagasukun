@@ -57,11 +57,11 @@ struct Notifier {
             let content = UNMutableNotificationContent()
             switch p.kind {
             case .main:
-                content.title = "いまは「\(p.title)」の時間です"
+                content.title = String(localized: "いまは「\(p.title)」の時間です")
             case .pre:
-                content.title = "まもなく「\(p.title)」の時間です"
+                content.title = String(localized: "まもなく「\(p.title)」の時間です")
             case .end:
-                content.title = "「\(p.title)」の時間が終わりました。できましたか？"
+                content.title = String(localized: "「\(p.title)」の時間が終わりました。できましたか？")
             }
             // 詳細メモは本文に（拡張機能の contextMessage と同じく 120 字まで）
             if let d = p.detail, !d.isEmpty { content.body = String(d.prefix(120)) }

@@ -1,0 +1,2082 @@
+{
+  "sourceLanguage": "ja",
+  "version": "1.0",
+  "strings": {
+    " ほか": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " and more"
+          }
+        }
+      }
+    },
+    "%@ にお知らせします。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminds you at %@. "
+          }
+        }
+      }
+    },
+    "%@ にできたと記録しました": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked as done on %@"
+          }
+        }
+      }
+    },
+    "%@ にできたと記録しました。次の目安日は %@ です": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked as done on %1$@. Next due date: %2$@"
+          }
+        }
+      }
+    },
+    "%@ にできたと記録しました。次の目安日は %@ なので、今日の予定に残ります": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked as done on %1$@. Next due date is %2$@, so it stays in today’s list"
+          }
+        }
+      }
+    },
+    "%@ にできたと記録しました。目安日（%@）が来ているので、今日の予定に残ります": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked as done on %1$@. The due date (%2$@) has come, so it stays in today’s list"
+          }
+        }
+      }
+    },
+    "%@ の予定": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plans for %@"
+          }
+        }
+      }
+    },
+    "%@ の記録": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records for %@"
+          }
+        }
+      }
+    },
+    "%@〜%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@–%@"
+          }
+        }
+      }
+    },
+    "%@〜%@ の時間帯。始まりと終わりにお知らせします。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time slot %1$@–%2$@. Reminds you at the start and the end. "
+          }
+        }
+      }
+    },
+    "%@にもお知らせします。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also reminds you %@."
+          }
+        }
+      }
+    },
+    "%@にもお知らせします（設定どおり）。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also reminds you %@ (default setting)."
+          }
+        }
+      }
+    },
+    "%@を畳む": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse %@"
+          }
+        }
+      }
+    },
+    "%@を開く": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand %@"
+          }
+        }
+      }
+    },
+    "%@・あと%lld日": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%@ · %lld day left"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%@ · %lld days left"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%@・できた": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · Done"
+          }
+        }
+      }
+    },
+    "%@・休んだ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · Skipped"
+          }
+        }
+      }
+    },
+    "%@・記録なし": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · No record"
+          }
+        }
+      }
+    },
+    "%lld分前": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min before"
+          }
+        }
+      }
+    },
+    "%lld回": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld time"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld times"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld日": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld日すぎています": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day overdue"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days overdue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld日つづいています。おめでとう！": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day in a row. Congratulations!"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days in a row. Congratulations!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld日に1回（間は%lld日空きます）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every %1$lld days (%2$lld-day gap)"
+          }
+        }
+      }
+    },
+    "%lld時間前": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hour before"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hours before"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "15分前": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 min before"
+          }
+        }
+      }
+    },
+    "1回だけ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once"
+          }
+        }
+      }
+    },
+    "1回だけ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once on %@"
+          }
+        }
+      }
+    },
+    "1日に1回（毎日）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once a day (daily)"
+          }
+        }
+      }
+    },
+    "1時間前": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hour before"
+          }
+        }
+      }
+    },
+    "2時間前": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 hours before"
+          }
+        }
+      }
+    },
+    "30分前": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min before"
+          }
+        }
+      }
+    },
+    "3時間前": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 hours before"
+          }
+        }
+      }
+    },
+    "Chrome 拡張版から": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From the Chrome Extension"
+          }
+        }
+      }
+    },
+    "iCloud で揃える": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync with iCloud"
+          }
+        }
+      }
+    },
+    "iCloud にサインインすると、ほかの端末と揃います": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to iCloud to sync with your other devices"
+          }
+        }
+      }
+    },
+    "iCloud に接続できませんでした": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t connect to iCloud"
+          }
+        }
+      }
+    },
+    "iCloud の状態が分かりませんでした": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t check iCloud status"
+          }
+        }
+      }
+    },
+    "→ %@ に1回だけ。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ Once on %@. "
+          }
+        }
+      }
+    },
+    "→ %@ に繰り返します。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ Repeats: %@. "
+          }
+        }
+      }
+    },
+    "→ %@ の%lld日に、1回ずつ。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ Once on each of these %2$lld days: %1$@. "
+          }
+        }
+      }
+    },
+    "→ %@。%@ と続きます。「できた」を押した日から数え直します。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ %1$@. Next: %2$@, and so on. Counting restarts from the day you tap Done. "
+          }
+        }
+      }
+    },
+    "→ 日付を選んでください。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ Choose a date."
+          }
+        }
+      }
+    },
+    "→ 曜日を選んでください。毎日なら全部押します。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ Choose weekdays. Tap all of them for every day."
+          }
+        }
+      }
+    },
+    "◯日ごと": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every N days"
+          }
+        }
+      }
+    },
+    "「%@」の時間が終わりました。できましたか？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” has ended. Did you get it done?"
+          }
+        }
+      }
+    },
+    "「＋」の位置を左下に戻す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move “+” back to the bottom left"
+          }
+        }
+      }
+    },
+    "いいペースです。この調子！": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good pace. Keep it up!"
+          }
+        }
+      }
+    },
+    "いちばん新しい控えに戻しますか？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the latest backup?"
+          }
+        }
+      }
+    },
+    "いちばん新しい控えに戻す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the latest backup"
+          }
+        }
+      }
+    },
+    "いつでも": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anytime"
+          }
+        }
+      }
+    },
+    "いつでも大丈夫。済ませるまで今日の予定に残ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anytime is fine. Stays in today’s list until done. "
+          }
+        }
+      }
+    },
+    "いつでも大丈夫（時刻は決めない）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anytime (no set time)"
+          }
+        }
+      }
+    },
+    "いまの中身も控えに残すので、やり直せます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current data is also backed up, so you can undo this."
+          }
+        }
+      }
+    },
+    "いまは「%@」の時間です": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time for “%@”"
+          }
+        }
+      }
+    },
+    "うながすくん": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unagasukun"
+          }
+        }
+      }
+    },
+    "お知らせ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminders"
+          }
+        }
+      }
+    },
+    "きのう %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday (%@)"
+          }
+        }
+      }
+    },
+    "ここには、できた日が色で並びます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Days you got things done will show up here in color."
+          }
+        }
+      }
+    },
+    "このラベルを消しますか？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this label?"
+          }
+        }
+      }
+    },
+    "このラベルを消す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this label"
+          }
+        }
+      }
+    },
+    "この予定を削除しますか？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this plan?"
+          }
+        }
+      }
+    },
+    "この予定を削除する": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this plan"
+          }
+        }
+      }
+    },
+    "この予定を編集": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit this plan"
+          }
+        }
+      }
+    },
+    "この日だけ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This day only"
+          }
+        }
+      }
+    },
+    "この日の予定に無いもの": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not planned for this day"
+          }
+        }
+      }
+    },
+    "この日の予定はありません": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing planned for this day"
+          }
+        }
+      }
+    },
+    "この端末では iCloud の利用が制限されています": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud is restricted on this device"
+          }
+        }
+      }
+    },
+    "この端末の中だけで使っています": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stored on this device only"
+          }
+        }
+      }
+    },
+    "これから": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upcoming"
+          }
+        }
+      }
+    },
+    "これまでの記録は残ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Past records will be kept."
+          }
+        }
+      }
+    },
+    "これまで（今週までの13週）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History (13 weeks through this week)"
+          }
+        }
+      }
+    },
+    "しばらく休む": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause for a while"
+          }
+        }
+      }
+    },
+    "すべて": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        }
+      }
+    },
+    "その他…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other…"
+          }
+        }
+      }
+    },
+    "ちゃんと続いています。すばらしい！": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re keeping it up. Wonderful!"
+          }
+        }
+      }
+    },
+    "できた": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "なし": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        }
+      }
+    },
+    "なにをしていたか（短くでOK）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What were you doing? (keep it short)"
+          }
+        }
+      }
+    },
+    "ほかの端末と": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other Devices"
+          }
+        }
+      }
+    },
+    "ほかの端末と揃えるとき、この端末の中身を書き換える直前の控えを%lld件 残しています。記録が思っていたものと違うときは、ここから戻せます。戻す前の中身も控えに残すので、やり直せます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before syncing overwrites this device’s data, a backup is kept (%lld so far). If your records look wrong, you can restore from here. The current data is backed up before restoring, so you can undo it."
+          }
+        }
+      }
+    },
+    "またひとつ前に進みました": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One more step forward"
+          }
+        }
+      }
+    },
+    "まもなく「%@」の時間です": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” is coming up"
+          }
+        }
+      }
+    },
+    "もしものとき": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Just in Case"
+          }
+        }
+      }
+    },
+    "やめる": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "やること": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What to do"
+          }
+        }
+      }
+    },
+    "カレンダー": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar"
+          }
+        }
+      }
+    },
+    "ブラウジング": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browsing"
+          }
+        }
+      }
+    },
+    "マス1つが1日。縦が日〜土、横が週で、右端の列が今週です。色が付いた日が「できた」日。マスを押すと、その日の記録をすぐ下で付けられます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each square is a day. Rows are Sun–Sat, columns are weeks, and the rightmost column is this week. Colored squares are days you got it done. Tap a square to record that day right below."
+          }
+        }
+      }
+    },
+    "ラベル": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        }
+      }
+    },
+    "ラベルの名前": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Label name"
+          }
+        }
+      }
+    },
+    "ラベルを整える…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit labels…"
+          }
+        }
+      }
+    },
+    "ラベルを消しても、予定と記録は残ります。その予定は「ラベルなし」に戻ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting a label keeps its plans and records. Those plans go back to “No label”."
+          }
+        }
+      }
+    },
+    "ラベルを足す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add label"
+          }
+        }
+      }
+    },
+    "・": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · "
+          }
+        }
+      }
+    },
+    "一覧と通知から外れます。記録はそのまま残ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden from the list and reminders. Records are kept."
+          }
+        }
+      }
+    },
+    "予定の時刻にだけお知らせします。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminds you only at the scheduled time."
+          }
+        }
+      }
+    },
+    "予定の時刻より前に、一度お知らせします。済ませたものには出しません。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminds you once before the scheduled time. Not for plans already done."
+          }
+        }
+      }
+    },
+    "予定を%lld件、記録を%lld日ぶん取り込みました。ほかの端末にも数秒で揃います。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported %1$lld plans and %2$lld days of records. Your other devices will sync in a few seconds."
+          }
+        }
+      }
+    },
+    "予定を編集": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Plan"
+          }
+        }
+      }
+    },
+    "予定を追加": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Plan"
+          }
+        }
+      }
+    },
+    "今日": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        }
+      }
+    },
+    "今日が目安": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due today"
+          }
+        }
+      }
+    },
+    "今日のよてい、ぜんぶできました！おめでとう🎉": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything for today is done! Congratulations 🎉"
+          }
+        }
+      }
+    },
+    "今日の予定": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s Plans"
+          }
+        }
+      }
+    },
+    "今日の予定に出ているものは、ここには出しません。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plans already shown in today’s list are not repeated here."
+          }
+        }
+      }
+    },
+    "今日の予定はありません": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing planned for today"
+          }
+        }
+      }
+    },
+    "今日の分、きちんと積み上がりました": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s share, neatly stacked up"
+          }
+        }
+      }
+    },
+    "今日は休む": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip today"
+          }
+        }
+      }
+    },
+    "今日対応済み": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done Today"
+          }
+        }
+      }
+    },
+    "今月に戻る": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to this month"
+          }
+        }
+      }
+    },
+    "仕事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work"
+          }
+        }
+      }
+    },
+    "付いていた予定は「ラベルなし」に戻ります。記録はそのまま残ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plans with this label go back to “No label”. Records are kept."
+          }
+        }
+      }
+    },
+    "休み中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused"
+          }
+        }
+      }
+    },
+    "休んだ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skipped"
+          }
+        }
+      }
+    },
+    "休憩": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taking a break"
+          }
+        }
+      }
+    },
+    "保存": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "分": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minute"
+          }
+        }
+      }
+    },
+    "別の作業": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other work"
+          }
+        }
+      }
+    },
+    "削除する": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "前にできていた": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Did it earlier"
+          }
+        }
+      }
+    },
+    "取り消す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        }
+      }
+    },
+    "右上の「追加」から登録できます": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap “Add” at the top right to create one"
+          }
+        }
+      }
+    },
+    "同じ Apple アカウントの iPhone や Mac と、予定と記録が揃います。データはあなたの iCloud に入ります。こちらからは見えません。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plans and records sync with iPhones and Macs on the same Apple Account. Data lives in your iCloud; we can’t see it."
+          }
+        }
+      }
+    },
+    "同期できませんでした。次に開いたときにやり直します": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t sync. Will retry next time you open the app"
+          }
+        }
+      }
+    },
+    "学び": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning"
+          }
+        }
+      }
+    },
+    "実際は %@。押すと直せます": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actually: %@. Tap to change"
+          }
+        }
+      }
+    },
+    "実際は…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actually…"
+          }
+        }
+      }
+    },
+    "実際は：%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actually: %@"
+          }
+        }
+      }
+    },
+    "家事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chores"
+          }
+        }
+      }
+    },
+    "平日": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekdays"
+          }
+        }
+      }
+    },
+    "戻す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        }
+      }
+    },
+    "戻る": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    },
+    "押したまま動かすと位置を変えられます": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press and drag to move"
+          }
+        }
+      }
+    },
+    "押すと編集できます。◯日ごとの予定は、いまの目安日から数えた見込みです。済ませた日で変わります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to edit. “Every N days” plans are estimates from the current due date and shift with the day you finish."
+          }
+        }
+      }
+    },
+    "押すと記録が付き、もう一度押すと取り消せます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to record; tap again to undo."
+          }
+        }
+      }
+    },
+    "拡張機能の 設定 →「データを書き出す」で作ったファイルを選びます。同じ予定はこちらを残し、記録は足し合わせます。取り込む前の中身は控えに残ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the file created with Settings → “Export data” in the extension. Duplicate plans keep this app’s version; records are merged. The data before importing is kept as a backup."
+          }
+        }
+      }
+    },
+    "拡張機能のデータを取り込む": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import extension data"
+          }
+        }
+      }
+    },
+    "揃えています…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing…"
+          }
+        }
+      }
+    },
+    "日をいくつか選ぶと、選んだ日の数だけ同じ予定を作ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick several days to create the same plan for each of them."
+          }
+        }
+      }
+    },
+    "日を押して選びます（いくつでも）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap days to select (as many as you like)"
+          }
+        }
+      }
+    },
+    "日付": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        }
+      }
+    },
+    "日付が過ぎた1回だけの予定（2週間ぶん）。できたかどうかをここで付けられます。それより前はカレンダーのタブで見られます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One-time plans whose date has passed (last 2 weeks). Record here whether you did them. Older ones are in the Calendar tab."
+          }
+        }
+      }
+    },
+    "早めにお知らせする": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remind me early"
+          }
+        }
+      }
+    },
+    "早めのお知らせ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Early reminder"
+          }
+        }
+      }
+    },
+    "早めのお知らせは出しません。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No early reminder."
+          }
+        }
+      }
+    },
+    "時": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hour"
+          }
+        }
+      }
+    },
+    "時刻": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        }
+      }
+    },
+    "時間帯のあいだは「進行中」と出ます。終わりに「できましたか？」とお知らせします。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows “In progress” during the time slot, and asks “Did you get it done?” at the end."
+          }
+        }
+      }
+    },
+    "最後に揃えたのは %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last synced at %@"
+          }
+        }
+      }
+    },
+    "未対応": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not done yet"
+          }
+        }
+      }
+    },
+    "次は %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next: %@"
+          }
+        }
+      }
+    },
+    "毎日": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily"
+          }
+        }
+      }
+    },
+    "毎週": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly"
+          }
+        }
+      }
+    },
+    "毎週 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly on %@"
+          }
+        }
+      }
+    },
+    "気分が乗らず": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in the mood"
+          }
+        }
+      }
+    },
+    "消す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "済ませていた日を押すと、その日に「できた」が付き、次の目安日が数え直されます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the day you did it to mark it done; the next due date is recalculated."
+          }
+        }
+      }
+    },
+    "済みにしました。おつかれさま！": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked as done. Nice work!"
+          }
+        }
+      }
+    },
+    "猫": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cat"
+          }
+        }
+      }
+    },
+    "画面に浮かぶ「＋」は、指で好きな場所へ動かせます。置いた場所はこの端末で覚えます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The floating “+” can be dragged anywhere. Its position is remembered on this device."
+          }
+        }
+      }
+    },
+    "登録済み": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registered"
+          }
+        }
+      }
+    },
+    "目安 %lld分": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %lld min"
+          }
+        }
+      }
+    },
+    "目安日が先の「◯日ごと」です。この日に済ませていたら、ここで付けられます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Every N days” plans due later. If you did them on this day, record it here."
+          }
+        }
+      }
+    },
+    "終了": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End"
+          }
+        }
+      }
+    },
+    "終了は開始より後の時刻にしてください。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The end time must be after the start time."
+          }
+        }
+      }
+    },
+    "終了時刻も決める": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set an end time"
+          }
+        }
+      }
+    },
+    "繰り返し": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeat"
+          }
+        }
+      }
+    },
+    "色の目印です。今日の画面で絞り込めます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A color marker. You can filter by it on the Today screen."
+          }
+        }
+      }
+    },
+    "薬・健康": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health"
+          }
+        }
+      }
+    },
+    "記録": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "記録なし": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No record"
+          }
+        }
+      }
+    },
+    "設定": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "設定どおり": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        }
+      }
+    },
+    "設定どおり（%@）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default (%@)"
+          }
+        }
+      }
+    },
+    "設定どおり（なし）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default (none)"
+          }
+        }
+      }
+    },
+    "詳細": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details"
+          }
+        }
+      }
+    },
+    "詳細（任意）メモや手順など。今日の予定と通知に出ます": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details (optional): notes or steps. Shown in today’s list and in reminders"
+          }
+        }
+      }
+    },
+    "読み込めませんでした。うながすくん（拡張機能）の「データを書き出す」で作ったファイルを選んでください。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read the file. Choose a file created with “Export data” in the Unagasukun Chrome extension."
+          }
+        }
+      }
+    },
+    "買い物": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shopping"
+          }
+        }
+      }
+    },
+    "買い物のように「習慣」でないものは、数えないほうが気が楽です。忘れても続けた日数は切れません。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For things that aren’t habits, like shopping, it’s easier not to count them. Forgetting won’t break your streak."
+          }
+        }
+      }
+    },
+    "追加": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        }
+      }
+    },
+    "追加ボタン": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Button"
+          }
+        }
+      }
+    },
+    "通知がオフのため、時間が来てもお知らせできません": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications are off, so reminders can’t be delivered"
+          }
+        }
+      }
+    },
+    "通知がオフのため、時間が来てもお知らせできません。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications are off, so reminders can’t be delivered."
+          }
+        }
+      }
+    },
+    "通知をオンにする": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on notifications"
+          }
+        }
+      }
+    },
+    "週末": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekends"
+          }
+        }
+      }
+    },
+    "進行中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In progress"
+          }
+        }
+      }
+    },
+    "過ぎた予定": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Past Plans"
+          }
+        }
+      }
+    },
+    "閉じる": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "開始": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        }
+      }
+    },
+    "（%lld日）": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": " (%lld day)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": " (%lld days)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "（ほかの日も押せます）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " (tap more days to add)"
+          }
+        }
+      }
+    },
+    "（今日）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " (today)"
+          }
+        }
+      }
+    },
+    "🔥 %lld日": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "🔥 %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "🔥 %lld days"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "🔥 とタイルに数える": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Count toward 🔥 and tiles"
+          }
+        }
+      }
+    },
+    "猫の点滴": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cat’s IV fluids"
+          }
+        }
+      }
+    },
+    "首の後ろに 100ml。終わったらおやつ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 ml under the skin at the neck. Treat afterwards"
+          }
+        }
+      }
+    }
+  }
+}

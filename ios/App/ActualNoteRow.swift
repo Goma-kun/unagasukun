@@ -90,7 +90,7 @@ struct ActualNoteRow: View {
                         ForEach(ActualNote.choices, id: \.self) { c in
                             chip(c, selected: c == note) { save(c) }
                         }
-                        chip("その他…", selected: false) {
+                        chip(String(localized: "その他…"), selected: false) {
                             freeText = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focused = true }
                         }

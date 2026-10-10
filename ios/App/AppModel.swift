@@ -98,7 +98,7 @@ final class AppModel: ObservableObject {
             syncState = .ok(Date())
         } catch {
             // 圏外などで失敗しても、手元は普通に使える
-            syncState = .failed("同期できませんでした。次に開いたときにやり直します")
+            syncState = .failed(String(localized: "同期できませんでした。次に開いたときにやり直します"))
         }
     }
 
@@ -129,9 +129,9 @@ final class AppModel: ObservableObject {
             commit()
             let added = snapshot.schedule.count - before.0
             let days = snapshot.records.count - before.1
-            return "予定を\(added)件、記録を\(days)日ぶん取り込みました。ほかの端末にも数秒で揃います。"
+            return String(localized: "予定を\(added)件、記録を\(days)日ぶん取り込みました。ほかの端末にも数秒で揃います。")
         } catch {
-            return "読み込めませんでした。うながすくん（拡張機能）の「データを書き出す」で作ったファイルを選んでください。"
+            return String(localized: "読み込めませんでした。うながすくん（拡張機能）の「データを書き出す」で作ったファイルを選んでください。")
         }
     }
 
@@ -233,10 +233,10 @@ final class AppModel: ObservableObject {
         else { return nil }
         // 「あと2日」だけでは次がいつか分からないので、日付を先に出す（拡張と同じ並び）
         if info.daysUntil > 0 {
-            return "\(Describe.short(Logic.day(now, plus: info.daysUntil)))・あと\(info.daysUntil)日"
+            return String(localized: "\(Describe.short(Logic.day(now, plus: info.daysUntil)))・あと\(info.daysUntil)日")
         }
-        if info.daysUntil == 0 { return "今日が目安" }
-        return "\(-info.daysUntil)日すぎています"
+        if info.daysUntil == 0 { return String(localized: "今日が目安") }
+        return String(localized: "\(-info.daysUntil)日すぎています")
     }
 
     // MARK: - 書くほう
@@ -348,15 +348,15 @@ final class AppModel: ObservableObject {
 
         let dayText = Logic.parseDateKey(key).map(Describe.short) ?? key
         guard let info = Logic.intervalDueInfo(item, snapshot.records, now) else {
-            return "\(dayText) にできたと記録しました"
+            return String(localized: "\(dayText) にできたと記録しました")
         }
         let due = Describe.short(Logic.day(now, plus: info.daysUntil))
         if info.daysUntil > Logic.intervalNoticeDays(item) {
-            return "\(dayText) にできたと記録しました。次の目安日は \(due) です"
+            return String(localized: "\(dayText) にできたと記録しました。次の目安日は \(due) です")
         } else if info.daysUntil > 0 {
-            return "\(dayText) にできたと記録しました。次の目安日は \(due) なので、今日の予定に残ります"
+            return String(localized: "\(dayText) にできたと記録しました。次の目安日は \(due) なので、今日の予定に残ります")
         }
-        return "\(dayText) にできたと記録しました。目安日（\(due)）が来ているので、今日の予定に残ります"
+        return String(localized: "\(dayText) にできたと記録しました。目安日（\(due)）が来ているので、今日の予定に残ります")
     }
 
     /// 押し間違いを戻す。**記録を消すのは取り消しのときだけ**

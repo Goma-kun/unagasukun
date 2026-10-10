@@ -104,12 +104,12 @@ public struct Tag: Codable, Equatable, Identifiable, Sendable {
 
     /// 最初から用意しておくラベル。id を固定にしてあるので、2台で別々に初期化しても同じものになる
     public static let defaults: [Tag] = [
-        Tag(id: "tag-shopping", name: "買い物", color: "orange", countsStreak: false),
-        Tag(id: "tag-health",   name: "薬・健康", color: "red"),
-        Tag(id: "tag-cat",      name: "猫", color: "teal"),
-        Tag(id: "tag-home",     name: "家事", color: "green"),
-        Tag(id: "tag-work",     name: "仕事", color: "blue"),
-        Tag(id: "tag-learn",    name: "学び", color: "purple"),
+        Tag(id: "tag-shopping", name: String(localized: "買い物"), color: "orange", countsStreak: false),
+        Tag(id: "tag-health",   name: String(localized: "薬・健康"), color: "red"),
+        Tag(id: "tag-cat",      name: String(localized: "猫"), color: "teal"),
+        Tag(id: "tag-home",     name: String(localized: "家事"), color: "green"),
+        Tag(id: "tag-work",     name: String(localized: "仕事"), color: "blue"),
+        Tag(id: "tag-learn",    name: String(localized: "学び"), color: "purple"),
     ]
 }
 

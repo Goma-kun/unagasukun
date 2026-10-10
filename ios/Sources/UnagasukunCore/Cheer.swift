@@ -21,11 +21,11 @@ public enum CheerLogic {
 
     /// ふだんの応援ことば（拡張機能の praise1〜5 と同じ）
     public static let praises = [
-        "済みにしました。おつかれさま！",
-        "いいペースです。この調子！",
-        "またひとつ前に進みました",
-        "ちゃんと続いています。すばらしい！",
-        "今日の分、きちんと積み上がりました",
+        String(localized: "済みにしました。おつかれさま！"),
+        String(localized: "いいペースです。この調子！"),
+        String(localized: "またひとつ前に進みました"),
+        String(localized: "ちゃんと続いています。すばらしい！"),
+        String(localized: "今日の分、きちんと積み上がりました"),
     ]
 
     /// 優先順位は ぜんぶ済み > 節目 > ふだん。**記録を付けたあと**に呼ぶ（今日の分を数えるため）。
@@ -34,13 +34,13 @@ public enum CheerLogic {
         _ item: Item, schedule: [Item], records: Records, now: Date, using g: inout G
     ) -> Cheer {
         if Logic.allDoneToday(schedule, records, now) {
-            return Cheer(text: "今日のよてい、ぜんぶできました！おめでとう🎉",
+            return Cheer(text: String(localized: "今日のよてい、ぜんぶできました！おめでとう🎉"),
                          emoji: animals.randomElement(using: &g), party: true)
         }
         if !Logic.isOneOff(item) && !Logic.isInterval(item) {
             let streak = Logic.streakFor(records, item.origId ?? item.id, now, item.days)
             if Logic.isStreakMilestone(streak) {
-                return Cheer(text: "\(streak)日つづいています。おめでとう！",
+                return Cheer(text: String(localized: "\(streak)日つづいています。おめでとう！"),
                              emoji: animals.randomElement(using: &g))
             }
         }
