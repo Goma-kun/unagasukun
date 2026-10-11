@@ -22,3 +22,11 @@ unagasukun-*.json
 
 # ASC の API キー（絶対に入れない）
 AuthKey_*.p8
+
+# Android（Gradle の成果物・端末ごとの設定）
+android/.gradle/
+android/build/
+android/*/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
