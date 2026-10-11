@@ -29,6 +29,13 @@ struct PlanFormView: View {
     @State private var mode: Repeat = .once
     @State private var time = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
     @State private var noTime = false
+    /// 新しく作るときの「いつでも大丈夫」の初期値は、前回の選択に合わせる（いつでもの予定が多い人は毎回オンから始まる）
+    @AppStorage("lastNoTime") private var lastNoTime = false
+    /// Mac でシートがウィンドウより大きいと「やめる」「保存」が外に隠れて閉じられなくなる（2026-10-11 本人報告）。
+    /// 呼び出し元のウィンドウの大きさを受け取り、それに収める
+    var maxSize: CGSize? = nil
+    /// 開いた瞬間の、親ウィンドウの実際の大きさ（Mac）。中身がはみ出していても正しく測れる
+    @State private var hostSize: CGSize? = nil
     /// 終了時刻も決める（「14〜16時の集荷」のような時間帯。2026-09-24 本人要望）
     @State private var hasEnd = false
     /// この予定だけの早めのお知らせ（分）。nil は設定どおり、0 は出さない
@@ -50,54 +57,11 @@ struct PlanFormView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // 並びは「やること → 時刻 → 繰り返し → プレビュー → ラベル → 詳細」。
+                // 「いつでも大丈夫」と日付を上のほうで決めて、さっと作れるように（2026-10-11 本人要望）
                 Section {
                     TextField("やること", text: $label)
                         .font(.system(size: 16))
-                    // Mac の Form はタイトルを左のラベル列に出す。長い説明はプレースホルダ（prompt）側に
-                    TextField("詳細", text: $detail,
-                              prompt: Text("詳細（任意）メモや手順など。今日の予定と通知に出ます"),
-                              axis: .vertical)
-                        .font(.system(size: 14))
-                        .lineLimit(2...5)
-                        .onChange(of: detail) { _, v in
-                            // 拡張機能と同じ上限（300字）。通知の本文に載せるので長すぎないように
-                            if v.count > 300 { detail = String(v.prefix(300)) }
-                        }
-                }
-
-                Section {
-                    TagPickerRow(tags: model.tags, selected: $tagId)
-                    Button("ラベルを整える…") { editingTags = true }
-                        .font(.system(size: 13))
-                } header: {
-                    Text("ラベル")
-                } footer: {
-                    Text("色の目印です。今日の画面で絞り込めます。")
-                }
-
-                Section("繰り返し") {
-                    Picker("", selection: $mode) {
-                        ForEach(Repeat.allCases, id: \.self) { Text($0.title).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-
-                    switch mode {
-                    case .once:
-                        if editing == nil {
-                            // 新しく作るときは複数の日を選べる（今日と明日だけ、など）
-                            MultiDateField(title: String(localized: "日付"), keys: $dateKeys)
-                            Text("日をいくつか選ぶと、選んだ日の数だけ同じ予定を作ります。")
-                                .font(.system(size: 12))
-                                .foregroundStyle(Theme.muted)
-                        } else {
-                            DateField(title: String(localized: "日付"), date: $date)
-                        }
-                    case .weekly:
-                        weekdayChips
-                    case .interval:
-                        intervalChips
-                    }
                 }
 
                 Section {
@@ -127,10 +91,59 @@ struct PlanFormView: View {
                     }
                 }
 
+                Section("繰り返し") {
+                    Picker("", selection: $mode) {
+                        ForEach(Repeat.allCases, id: \.self) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+
+                    switch mode {
+                    case .once:
+                        if editing == nil {
+                            // 新しく作るときは複数の日を選べる（今日と明日だけ、など）
+                            MultiDateField(title: String(localized: "日付"), keys: $dateKeys)
+                            Text("日をいくつか選ぶと、選んだ日の数だけ同じ予定を作ります。")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.muted)
+                        } else {
+                            DateField(title: String(localized: "日付"), date: $date)
+                        }
+                    case .weekly:
+                        weekdayChips
+                    case .interval:
+                        intervalChips
+                    }
+                }
+
                 Section {
                     Text(preview)
                         .font(.system(size: 14))
                         .foregroundStyle(Theme.tint)
+                }
+
+                Section {
+                    TagPickerRow(tags: model.tags, selected: $tagId)
+                    Button("ラベルを整える…") { editingTags = true }
+                        .font(.system(size: 13))
+                } header: {
+                    Text("ラベル")
+                } footer: {
+                    Text("色の目印です。今日の画面で絞り込めます。")
+                }
+
+                Section {
+                    TextField("詳細", text: $detail,
+                              prompt: Text("詳細（任意）メモや手順など。今日の予定と通知に出ます"),
+                              axis: .vertical)
+                        .font(.system(size: 14))
+                        .lineLimit(2...5)
+                        .onChange(of: detail) { _, v in
+                            // 拡張機能と同じ上限（300字）。通知の本文に載せるので長すぎないように
+                            if v.count > 300 { detail = String(v.prefix(300)) }
+                        }
+                } header: {
+                    Text("詳細")
                 }
 
                 if editing != nil {
@@ -157,12 +170,21 @@ struct PlanFormView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("やめる") { dismiss() }
+                        .keyboardShortcut(.cancelAction)   // Esc で閉じられる（ボタンが見えなくても逃げられる）
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(editing == nil ? String(localized: "追加") : String(localized: "保存")) { save() }.disabled(!canSave)
+                    Button(editing == nil ? String(localized: "追加") : String(localized: "保存")) { save() }
+                        .disabled(!canSave)
+                        .keyboardShortcut(.return, modifiers: .command)   // ⌘↩ で保存
                 }
             }
-            .onAppear { load(); if Shot.tagEditor { editingTags = true } }
+            .onAppear {
+                load(); if Shot.tagEditor { editingTags = true }
+                #if os(macOS)
+                // シート自身は sheetParent を持つので除く。残った見えているウィンドウが親
+                hostSize = NSApp.windows.first { $0.isVisible && $0.sheetParent == nil && !($0 is NSPanel) }?.frame.size
+                #endif
+            }
             .sheet(isPresented: $editingTags) { TagEditorView() }
             .confirmationDialog("この予定を削除しますか？", isPresented: $confirmingDelete,
                                 titleVisibility: .visible) {
@@ -175,10 +197,13 @@ struct PlanFormView: View {
                 Text("これまでの記録は残ります。")
             }
         }
+        .planFormMaxSize(hostSize ?? maxSize)
     }
 
     /// 編集のとき、いまの内容をフォームに写す
     private func load() {
+        // 新しく作るときは、前回「いつでも大丈夫」にしたかどうかを引き継ぐ
+        if editing == nil && preset == nil { noTime = lastNoTime }
         guard let item = editing ?? preset else { return }
         label = item.label
         detail = item.detail ?? ""
@@ -419,6 +444,7 @@ struct PlanFormView: View {
             item.noticeDays = 0
         }
         if editing == nil {
+            lastNoTime = noTime
             model.add(item)
             // 「1回だけ」で複数の日を選んだら、残りの日にも同じ予定を作る（予定ごとに別の ID）
             if mode == .once {
@@ -433,5 +459,20 @@ struct PlanFormView: View {
             model.update(item)
         }
         dismiss()
+    }
+}
+
+private extension View {
+    /// Mac だけ: シートを呼び出し元のウィンドウに収める（はみ出すと「やめる」「保存」が隠れて閉じられない）。
+    /// 中の Form はスクロールするので、小さくても操作できる
+    @ViewBuilder
+    func planFormMaxSize(_ size: CGSize?) -> some View {
+        #if os(macOS)
+        // 高さだけウィンドウに収める（はみ出すと下の「やめる」「保存」が隠れて閉じられない）。ツールバーのぶんを引く。
+        // 幅は 540 のまま。狭くすると中身が左右に切れる。横は窓からはみ出しても見えるので困らない
+        self.frame(width: 540, height: min(720, max(320, (size?.height ?? 780) - 90)))
+        #else
+        self
+        #endif
     }
 }

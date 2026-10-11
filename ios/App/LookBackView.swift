@@ -15,6 +15,8 @@ struct LookBackView: View {
         var id: String { if case .edit(let i) = self { return "edit-" + i.id } else { return "add" } }
     }
     @State private var form: FormTarget? = nil
+    /// いまのウィンドウの大きさ（編集シートをこれに収める）
+    @State private var winSize = CGSize(width: 540, height: 780)
     /// 日別リストの「予定に無いもの」を開いているか
     @State private var othersOpen = false
     /// タイルで押した日（予定ID → 日付キー）。その場で記録を付けられる行を出す
@@ -61,6 +63,12 @@ struct LookBackView: View {
             }
         }
         .background(Theme.bg)
+        // ウィンドウの大きさを覚えておき、編集シートをその中に収める（Mac）
+        .background(GeometryReader { g in
+            Color.clear
+                .onAppear { winSize = g.size }
+                .onChange(of: g.size) { _, s in winSize = s }
+        })
         .onAppear {
             if selected == nil { selected = Shot.day ?? Logic.dateKey(Date()) }
             model.calendarSelectedDay = selected
@@ -69,8 +77,8 @@ struct LookBackView: View {
         .onDisappear { model.calendarSelectedDay = nil }
         .sheet(item: $form) { target in
             switch target {
-            case .add(let day): PlanFormView(preset: day.map { Item(id: "preset", date: $0) })
-            case .edit(let item): PlanFormView(editing: item)
+            case .add(let day): PlanFormView(preset: day.map { Item(id: "preset", date: $0) }, maxSize: winSize)
+            case .edit(let item): PlanFormView(editing: item, maxSize: winSize)
             }
         }
     }

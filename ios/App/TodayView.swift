@@ -10,6 +10,8 @@ struct TodayView: View {
         var item: Item? { if case .edit(let i) = self { return i } else { return nil } }
     }
     @State private var form: FormTarget? = nil
+    /// いまのウィンドウの大きさ（編集シートをこれに収める）
+    @State private var winSize = CGSize(width: 540, height: 780)
     @State private var now = Date()
     /// 操作の結果を短く知らせる帯（「前にできていた」で次の目安日を言い切るのに使う）
     @State private var notice: String? = nil
@@ -120,6 +122,12 @@ struct TodayView: View {
             }
         }
         .background(Theme.bg)
+        // ウィンドウの大きさを覚えておき、編集シートをその中に収める（Mac）
+        .background(GeometryReader { g in
+            Color.clear
+                .onAppear { winSize = g.size }
+                .onChange(of: g.size) { _, s in winSize = s }
+        })
         .overlay {
             if let party, !reduceMotion {
                 PetPartyView().id(party).allowsHitTesting(false)
@@ -148,7 +156,7 @@ struct TodayView: View {
             await model.refreshNotificationState()
             if Shot.formPreset != nil, form == nil { form = .add }
         }
-        .sheet(item: $form) { PlanFormView(editing: $0.item, preset: Shot.formPreset) }
+        .sheet(item: $form) { PlanFormView(editing: $0.item, preset: Shot.formPreset, maxSize: winSize) }
     }
 
     private func show(_ text: String, emoji: String? = nil) {
