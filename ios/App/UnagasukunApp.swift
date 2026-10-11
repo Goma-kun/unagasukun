@@ -28,6 +28,14 @@ struct UnagasukunApp: App {
         // リマインダーやメモと同じくらいの幅を既定にする
         .defaultSize(width: 420, height: 760)
         .windowResizability(.contentMinSize)
+        // ウィンドウを細くすると上のタブが「»」に畳まれるので、キーでも切り替えられるように
+        .commands {
+            CommandMenu("表示") {
+                Button("今日") { tab = 0 }.keyboardShortcut("1", modifiers: .command)
+                Button("カレンダー") { tab = 1 }.keyboardShortcut("2", modifiers: .command)
+                Button("設定") { tab = 2 }.keyboardShortcut("3", modifiers: .command)
+            }
+        }
         #else
         WindowGroup {
             root
@@ -49,7 +57,8 @@ struct UnagasukunApp: App {
             .environmentObject(model)
             .tint(Theme.tint)
             #if os(macOS)
-            .frame(minWidth: 380, minHeight: 560)
+            // 画面の端に小さく置いて使う人がいる（2026-10-11 本人要望）ので、下限を小さめに
+            .frame(minWidth: 320, minHeight: 420)
             #else
             // 右上の「追加」は左手だと遠い（2026-09-26 本人指摘）。浮かぶ「＋」を出す。
             // 今日とカレンダーの両方に出し、設定では出さない。指で好きな場所へ動かせる（Things 3 と同じ）
