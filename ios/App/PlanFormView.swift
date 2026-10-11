@@ -57,11 +57,25 @@ struct PlanFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // 並びは「やること → 時刻 → 繰り返し → プレビュー → ラベル → 詳細」。
+                // 並びは「やること → 詳細 → 時刻 → 繰り返し → プレビュー → ラベル」（詳細は名前のすぐ下が便利・2026-10-11 本人）。
                 // 「いつでも大丈夫」と日付を上のほうで決めて、さっと作れるように（2026-10-11 本人要望）
                 Section {
                     TextField("やること", text: $label)
                         .font(.system(size: 16))
+                }
+
+                Section {
+                    TextField("詳細", text: $detail,
+                              prompt: Text("詳細（任意）メモや手順など。今日の予定と通知に出ます"),
+                              axis: .vertical)
+                        .font(.system(size: 14))
+                        .lineLimit(2...5)
+                        .onChange(of: detail) { _, v in
+                            // 拡張機能と同じ上限（300字）。通知の本文に載せるので長すぎないように
+                            if v.count > 300 { detail = String(v.prefix(300)) }
+                        }
+                } header: {
+                    Text("詳細")
                 }
 
                 Section {
@@ -130,20 +144,6 @@ struct PlanFormView: View {
                     Text("ラベル")
                 } footer: {
                     Text("色の目印です。今日の画面で絞り込めます。")
-                }
-
-                Section {
-                    TextField("詳細", text: $detail,
-                              prompt: Text("詳細（任意）メモや手順など。今日の予定と通知に出ます"),
-                              axis: .vertical)
-                        .font(.system(size: 14))
-                        .lineLimit(2...5)
-                        .onChange(of: detail) { _, v in
-                            // 拡張機能と同じ上限（300字）。通知の本文に載せるので長すぎないように
-                            if v.count > 300 { detail = String(v.prefix(300)) }
-                        }
-                } header: {
-                    Text("詳細")
                 }
 
                 if editing != nil {
