@@ -24,6 +24,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -321,7 +324,10 @@ fun ChipGrid(names: List<String>, selectedIndex: Int, columns: Int, height: andr
                     val on = idx == selectedIndex
                     Box(Modifier.weight(1f).height(height).clip(RoundedCornerShape(8.dp)).background(if (on) Uk.navy else Uk.bg)
                         .clickable { onSelect(idx) }.padding(horizontal = 4.dp), contentAlignment = Alignment.Center) {
-                        Text(name, color = if (on) Color.White else Uk.muted, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, softWrap = false, textAlign = TextAlign.Center)
+                        // 「設定どおり（10分前）」「15 min before」が切れないよう、収まらなければ字を小さくする（iOS の minimumScaleFactor と同じ）
+                        BasicText(name, maxLines = 2,
+                            style = TextStyle(color = if (on) Color.White else Uk.muted, fontSize = 13.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, lineHeight = 14.sp),
+                            autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 13.sp, stepSize = 0.5.sp))
                     }
                 }
                 repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }

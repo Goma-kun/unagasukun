@@ -89,7 +89,7 @@
     </plurals>
     <string name="no_record">No record</string>
     <string name="upcoming">Upcoming</string>
-    <string name="today_suffix"> (today)</string>
+    <string name="today_suffix">" (today)"</string>
 
     <string name="add_plan">Add Plan</string>
     <string name="edit_plan">Edit Plan</string>
@@ -106,10 +106,10 @@
     <string name="date">Date</string>
     <string name="multi_date_hint">Pick several days to create the same plan for each of them.</string>
     <string name="pick_days_hint">Tap days to select (as many as you like)</string>
-    <string name="pick_more_days"> (tap more days to add)</string>
+    <string name="pick_more_days">" (tap more days to add)"</string>
     <plurals name="n_days_paren">
-        <item quantity="one"> (%d day)</item>
-        <item quantity="other"> (%d days)</item>
+        <item quantity="one">" (%d day)"</item>
+        <item quantity="other">" (%d days)"</item>
     </plurals>
     <string name="today_btn">Today</string>
     <string name="daily">Daily</string>
@@ -140,17 +140,17 @@
     <string name="delete_plan">Delete this plan</string>
     <string name="delete_plan_q">Delete this plan?</string>
     <string name="records_kept">Past records will be kept.</string>
-    <string name="pv_once">→ Once on %s. </string>
+    <string name="pv_once">"→ Once on %s. "</string>
     <string name="pv_choose_date">→ Choose a date.</string>
-    <string name="pv_multi">→ Once on each of these %2$d days: %1$s. </string>
-    <string name="and_more"> and more</string>
+    <string name="pv_multi">"→ Once on each of these %2$d days: %1$s. "</string>
+    <string name="and_more">" and more"</string>
     <string name="pv_choose_weekday">→ Choose weekdays. Tap all of them for every day.</string>
     <string name="weekly_on">Weekly on %s</string>
-    <string name="pv_repeats">→ Repeats: %s. </string>
-    <string name="pv_interval">→ %1$s. Next: %2$s, and so on. Counting restarts from the day you tap Done. </string>
-    <string name="pv_anytime">Anytime is fine. Stays in today’s list until done. </string>
-    <string name="pv_block">Time slot %1$s–%2$s. Reminds you at the start and the end. </string>
-    <string name="pv_at">Reminds you at %s. </string>
+    <string name="pv_repeats">"→ Repeats: %s. "</string>
+    <string name="pv_interval">"→ %1$s. Next: %2$s, and so on. Counting restarts from the day you tap Done. "</string>
+    <string name="pv_anytime">"Anytime is fine. Stays in today’s list until done. "</string>
+    <string name="pv_block">"Time slot %1$s–%2$s. Reminds you at the start and the end. "</string>
+    <string name="pv_at">"Reminds you at %s. "</string>
     <string name="pv_also_default">Also reminds you %s (default setting).</string>
     <string name="pv_no_early">No early reminder.</string>
     <string name="pv_also">Also reminds you %s.</string>

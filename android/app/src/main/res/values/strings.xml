@@ -141,7 +141,7 @@
     <string name="pv_once">→ %s に1回だけ。</string>
     <string name="pv_choose_date">→ 日付を選んでください。</string>
     <string name="pv_multi">→ %1$s の%2$d日に、1回ずつ。</string>
-    <string name="and_more"> ほか</string>
+    <string name="and_more">" ほか"</string>
     <string name="pv_choose_weekday">→ 曜日を選んでください。毎日なら全部押します。</string>
     <string name="weekly_on">毎週 %s</string>
     <string name="pv_repeats">→ %s に繰り返します。</string>
