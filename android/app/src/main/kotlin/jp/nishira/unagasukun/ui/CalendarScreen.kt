@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +45,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -296,12 +299,17 @@ private fun TileGrid(model: AppModel, item: Item, weeks: List<List<LocalDate>>, 
     val initials = Describe.weekdayInitials
     Column(verticalArrangement = Arrangement.spacedBy(tileGap)) {
         // 月名の行。月が変わった最初の週の上に出す
-        Row(horizontalArrangement = Arrangement.spacedBy(tileGap)) {
-            Spacer(Modifier.size(16.dp, 12.dp))
+        // 行の高さ（14dp）に 9sp の文字を収める。フォントの上下の余白を外さないと下の行に食い込んで欠ける
+        Row(horizontalArrangement = Arrangement.spacedBy(tileGap), verticalAlignment = Alignment.Bottom) {
+            Spacer(Modifier.size(16.dp, 14.dp))
             for (w in weeks.indices) {
-                Box(Modifier.size(tileSize, 12.dp)) {
+                Box(Modifier.size(tileSize, 14.dp), contentAlignment = Alignment.BottomStart) {
                     labels.firstOrNull { it.column == w }?.let {
-                        Text(Describe.monthShort(it.sunday.atStartOfDay(Logic.zone).toInstant().toEpochMilli()), color = Uk.muted, fontSize = 9.sp, maxLines = 1, softWrap = false)
+                        Text(Describe.monthShort(it.sunday.atStartOfDay(Logic.zone).toInstant().toEpochMilli()), color = Uk.muted,
+                            style = TextStyle(fontSize = 9.sp, lineHeight = 11.sp, platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                            maxLines = 1, softWrap = false,
+                            // マスの幅（12dp）より長い月名は右にはみ出して描く（iOS の fixedSize と同じ）
+                            modifier = Modifier.wrapContentWidth(Alignment.Start, unbounded = true))
                     }
                 }
             }
