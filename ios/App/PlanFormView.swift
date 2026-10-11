@@ -34,8 +34,23 @@ struct PlanFormView: View {
     /// Mac でシートがウィンドウより大きいと「やめる」「保存」が外に隠れて閉じられなくなる（2026-10-11 本人報告）。
     /// 呼び出し元のウィンドウの大きさを受け取り、それに収める
     var maxSize: CGSize? = nil
-    /// 開いた瞬間の、親ウィンドウの実際の大きさ（Mac）。中身がはみ出していても正しく測れる
+    /// 親ウィンドウの実際の大きさ（Mac）。**作られる時点（シートが開く前）に取る。**
+    /// 開いたあとに縮めると、最初に大きく開いた分だけ中身が上にスクロールして題名が隠れる（2026-10-11 本人報告）
     @State private var hostSize: CGSize? = nil
+
+    init(editing: Item? = nil, preset: Item? = nil, maxSize: CGSize? = nil) {
+        self.editing = editing
+        self.preset = preset
+        self.maxSize = maxSize
+        #if os(macOS)
+        let host = NSApp.keyWindow ?? NSApp.mainWindow
+            ?? NSApp.windows.first { $0.isVisible && $0.sheetParent == nil && !($0 is NSPanel) }
+        _hostSize = State(initialValue: host?.frame.size)
+        #endif
+    }
+    /// Mac: 開いた瞬間に「やること」へ自動で焦点が当たると、題名の下まで中身がスクロールして上が隠れる
+    /// （2026-10-11 本人報告）。描画が落ち着いてから焦点を当てる
+    @FocusState private var labelFocused: Bool
     /// 終了時刻も決める（「14〜16時の集荷」のような時間帯。2026-09-24 本人要望）
     @State private var hasEnd = false
     /// この予定だけの早めのお知らせ（分）。nil は設定どおり、0 は出さない
@@ -55,14 +70,125 @@ struct PlanFormView: View {
     private let intervalChoices = [1, 2, 3, 4, 6, 7, 14, 30]
 
     var body: some View {
+        #if os(macOS)
+        // Mac はシートの中に自前の題名と下のボタン列を置く。NavigationStack の題名バーを使うと、
+        // 高さを絞ったときに中身が題名バーの下に潜って上が隠れた（2026-10-11 本人報告）
+        VStack(spacing: 0) {
+            HStack {
+                Text(editing == nil ? String(localized: "予定を追加") : String(localized: "予定を編集"))
+                    .font(.system(size: 15, weight: .semibold))
+                Spacer()
+            }
+            .padding(.horizontal, 20).padding(.vertical, 12)
+            ScrollViewReader { proxy in
+                formBody
+                    .formStyle(.grouped)
+                    .onAppear {
+                        // 開いた直後に中身が少し上へスクロールして「やること」が隠れることがあるので、先頭へ戻す
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            proxy.scrollTo("form-top", anchor: .top)
+                        }
+                    }
+            }
+            Divider()
+            HStack {
+                Spacer()
+                Button("やめる") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button(editing == nil ? String(localized: "追加") : String(localized: "保存")) { save() }
+                    .disabled(!canSave)
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding(.horizontal, 16).padding(.vertical, 10)
+        }
+        .planFormMaxSize(hostSize ?? maxSize)
+            .onAppear {
+                load(); if Shot.tagEditor { editingTags = true }
+                #if os(macOS)
+                // init で取れていなければここで（シート自身は sheetParent を持つので除く）
+                if hostSize == nil {
+                    hostSize = NSApp.windows.first { $0.isVisible && $0.sheetParent == nil && !($0 is NSPanel) }?.frame.size
+                }
+                // 焦点は描画が落ち着いてから（新しく作るときだけ。編集は名前を打ち直すことが少ない）
+                if editing == nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { labelFocused = true }
+                }
+                #endif
+            }
+            .sheet(isPresented: $editingTags) { TagEditorView() }
+            .confirmationDialog("この予定を削除しますか？", isPresented: $confirmingDelete,
+                                titleVisibility: .visible) {
+                Button("削除する", role: .destructive) {
+                    if let editing { model.remove(editing) }
+                    dismiss()
+                }
+                Button("やめる", role: .cancel) {}
+            } message: {
+                Text("これまでの記録は残ります。")
+            }
+        #else
         NavigationStack {
+            formBody
+
+            // macOS のシートは中身の幅で決まり、既定の「列」スタイルだと左右のラベルが枠からはみ出す。
+            // 設定画面と同じ grouped にして幅を決める（2026-09-26 Mac App Store 用の撮影で発覚）
+            #if os(macOS)
+            .formStyle(.grouped)
+            .frame(minWidth: 540, idealWidth: 540, minHeight: 620)
+            #endif
+            .navigationTitle(editing == nil ? String(localized: "予定を追加") : String(localized: "予定を編集"))
+            .compactNavigationTitle()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("やめる") { dismiss() }
+                        .keyboardShortcut(.cancelAction)   // Esc で閉じられる（ボタンが見えなくても逃げられる）
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(editing == nil ? String(localized: "追加") : String(localized: "保存")) { save() }
+                        .disabled(!canSave)
+                        .keyboardShortcut(.return, modifiers: .command)   // ⌘↩ で保存
+                }
+            }
+            .onAppear {
+                load(); if Shot.tagEditor { editingTags = true }
+                #if os(macOS)
+                // init で取れていなければここで（シート自身は sheetParent を持つので除く）
+                if hostSize == nil {
+                    hostSize = NSApp.windows.first { $0.isVisible && $0.sheetParent == nil && !($0 is NSPanel) }?.frame.size
+                }
+                // 焦点は描画が落ち着いてから（新しく作るときだけ。編集は名前を打ち直すことが少ない）
+                if editing == nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { labelFocused = true }
+                }
+                #endif
+            }
+            .sheet(isPresented: $editingTags) { TagEditorView() }
+            .confirmationDialog("この予定を削除しますか？", isPresented: $confirmingDelete,
+                                titleVisibility: .visible) {
+                Button("削除する", role: .destructive) {
+                    if let editing { model.remove(editing) }
+                    dismiss()
+                }
+                Button("やめる", role: .cancel) {}
+            } message: {
+                Text("これまでの記録は残ります。")
+            }
+        }
+        #endif
+    }
+
+    /// 入力欄の本体（Mac と iPhone で共通）
+    private var formBody: some View {
             Form {
                 // 並びは「やること → 詳細 → 時刻 → 繰り返し → プレビュー → ラベル」（詳細は名前のすぐ下が便利・2026-10-11 本人）。
                 // 「いつでも大丈夫」と日付を上のほうで決めて、さっと作れるように（2026-10-11 本人要望）
                 Section {
                     TextField("やること", text: $label)
                         .font(.system(size: 16))
+                        .focused($labelFocused)
                 }
+                .id("form-top")
 
                 Section {
                     TextField("詳細", text: $detail,
@@ -159,45 +285,6 @@ struct PlanFormView: View {
                     }
                 }
             }
-            // macOS のシートは中身の幅で決まり、既定の「列」スタイルだと左右のラベルが枠からはみ出す。
-            // 設定画面と同じ grouped にして幅を決める（2026-09-26 Mac App Store 用の撮影で発覚）
-            #if os(macOS)
-            .formStyle(.grouped)
-            .frame(minWidth: 540, idealWidth: 540, minHeight: 620)
-            #endif
-            .navigationTitle(editing == nil ? String(localized: "予定を追加") : String(localized: "予定を編集"))
-            .compactNavigationTitle()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("やめる") { dismiss() }
-                        .keyboardShortcut(.cancelAction)   // Esc で閉じられる（ボタンが見えなくても逃げられる）
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(editing == nil ? String(localized: "追加") : String(localized: "保存")) { save() }
-                        .disabled(!canSave)
-                        .keyboardShortcut(.return, modifiers: .command)   // ⌘↩ で保存
-                }
-            }
-            .onAppear {
-                load(); if Shot.tagEditor { editingTags = true }
-                #if os(macOS)
-                // シート自身は sheetParent を持つので除く。残った見えているウィンドウが親
-                hostSize = NSApp.windows.first { $0.isVisible && $0.sheetParent == nil && !($0 is NSPanel) }?.frame.size
-                #endif
-            }
-            .sheet(isPresented: $editingTags) { TagEditorView() }
-            .confirmationDialog("この予定を削除しますか？", isPresented: $confirmingDelete,
-                                titleVisibility: .visible) {
-                Button("削除する", role: .destructive) {
-                    if let editing { model.remove(editing) }
-                    dismiss()
-                }
-                Button("やめる", role: .cancel) {}
-            } message: {
-                Text("これまでの記録は残ります。")
-            }
-        }
-        .planFormMaxSize(hostSize ?? maxSize)
     }
 
     /// 編集のとき、いまの内容をフォームに写す
@@ -470,7 +557,7 @@ private extension View {
         #if os(macOS)
         // 高さだけウィンドウに収める（はみ出すと下の「やめる」「保存」が隠れて閉じられない）。ツールバーのぶんを引く。
         // 幅は 540 のまま。狭くすると中身が左右に切れる。横は窓からはみ出しても見えるので困らない
-        self.frame(width: 540, height: min(720, max(320, (size?.height ?? 780) - 90)))
+        self.frame(width: 540, height: min(760, max(360, (size?.height ?? 780) - 100)))
         #else
         self
         #endif
