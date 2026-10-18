@@ -55,6 +55,12 @@ $ANDROID_HOME/platform-tools/adb exec-out screencap -p > shot.png
 - 見本データを入れる（デバッグ版だけ）: `adb push seed.json /data/local/tmp/seed.json` →
   `adb shell "run-as jp.nishira.unagasukun sh -c 'mkdir -p files/Unagasukun && cp /data/local/tmp/seed.json files/Unagasukun/snapshot.json'"` → アプリを起動し直す
 - 通知の許可: `adb shell pm grant jp.nishira.unagasukun android.permission.POST_NOTIFICATIONS`
+- 正確なアラームの許可: `adb shell appops set jp.nishira.unagasukun SCHEDULE_EXACT_ALARM allow`
+- アラームの予約を見る: `adb shell dumpsys alarm | grep -A3 jp.nishira.unagasukun`／鳴った通知を見る: `adb shell dumpsys notification --noredact | grep android.title`
+- release ビルドを入れる（R8 縮小後の確認用。`run-as` は使えないので UI で操作する）:
+  `bundletool build-apks --bundle=app/build/outputs/bundle/release/app-release.aab --output=<scratch>/uk.apks --mode=universal` → unzip → `adb install -r universal.apk`（bundletool は `brew install bundletool`）
+- Play ストア入りの AVD（内部テストの配布経路を試す用。Google アカウントのログインは本人が行う）:
+  `avdmanager create avd -n uk_play -k "system-images;android-36;google_apis_playstore;arm64-v8a" -d pixel_8` → `emulator -avd uk_play`
 
 ## AAB（Google Play 用）
 
