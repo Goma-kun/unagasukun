@@ -1,9 +1,9 @@
 # うながすくん プライバシーポリシー / Unagasukun Privacy Policy
 
-最終更新日 / Last updated: 2026-09-26
+最終更新日 / Last updated: 2026-10-18
 
-このポリシーは、**Chrome 拡張機能版**と **iPhone / Mac アプリ版**の両方に適用されます。
-This policy covers both the **Chrome extension** and the **iPhone / Mac app**.
+このポリシーは、**Chrome 拡張機能版**・**iPhone / Mac アプリ版**・**Android アプリ版**に適用されます。
+This policy covers the **Chrome extension**, the **iPhone / Mac app**, and the **Android app**.
 
 ## 日本語
 
@@ -25,6 +25,16 @@ This policy covers both the **Chrome extension** and the **iPhone / Mac app**.
 - **データの書き出し／取り込み**：Chrome 拡張機能版から書き出した JSON ファイルを取り込む機能があります。ファイルはあなたが選んだものだけを読み、アプリの外には送りません
 - アプリ版と Chrome 拡張機能版の間で、データが自動的に共有されることはありません
 
+### Android アプリ版について
+
+- **インターネットを使いません**：インターネット接続の権限を持っておらず、データを外部に送ることはできません
+- **通知**：登録した時刻に「いまは○○の時間です」とお知らせするために、通知の許可をお願いします。許可しなくてもアプリは使えます
+- **アラームとリマインダー（任意）**：決めた時刻ちょうどにお知らせするために使います。許可しない場合は、近い時刻にお知らせします
+- **端末の再起動の検知**：再起動のあとも通知の予約を続けるためだけに使います
+- **データの書き出し／取り込み**：予定と記録を JSON ファイルに書き出せます。取り込みは、あなたが選んだファイルだけを読みます
+- **Android のバックアップ**：Android 標準のバックアップを有効にしている場合、アプリのデータがあなた自身の Google アカウントのバックアップに含まれることがあります。これは Android の機能で、開発者はその内容を読むことも受け取ることもできません
+- Android アプリ版と、iPhone / Mac アプリ版・Chrome 拡張機能版の間で、データが自動的に共有されることはありません
+
 ### Chrome 拡張機能版について
 
 - データは `chrome.storage.local`（ブラウザ内）にのみ保存されます
@@ -40,6 +50,7 @@ This policy covers both the **Chrome extension** and the **iPhone / Mac app**.
 ### データの削除
 
 - アプリ版：アプリを削除すると、端末内のデータはすべて消えます。iCloud 上のデータは、iPhone / Mac の「設定 → Apple アカウント → iCloud → アプリのデータを管理」から削除できます
+- Android アプリ版：アプリをアンインストールすると、端末内のデータはすべて消えます。Google アカウントのバックアップは、Android の「設定 → Google → バックアップ」から削除できます
 - 拡張機能版：アンインストールすると、保存されたデータはすべて削除されます
 
 ### お問い合わせ
@@ -70,6 +81,16 @@ This software does **not collect or transmit any data to the developer or any th
 - **Export / import**: you can import a JSON file exported from the Chrome extension. Only the file you choose is read, and it never leaves the app
 - Data is not shared automatically between the app and the Chrome extension
 
+### Android App
+
+- **No internet access**: the app has no internet permission and cannot send your data anywhere
+- **Notifications**: the app asks for permission to show "It's time for ..." at the times you set. The app works without it
+- **Alarms & reminders (optional)**: used to notify you at the exact minute. Without it, the notice comes close to the time
+- **Boot completed**: used only to keep your reminders scheduled after the device restarts
+- **Export / import**: you can export your plans and records as a JSON file. Import reads only the file you choose
+- **Android backup**: if Android's built-in backup is on, the app's data may be included in the backup in your own Google Account. This is an Android feature; the developer cannot read or receive it
+- Data is not shared automatically between the Android app, the iPhone / Mac app, and the Chrome extension
+
 ### Chrome Extension
 
 - Data is stored only inside your browser (`chrome.storage.local`)
@@ -85,6 +106,7 @@ This software does **not collect or transmit any data to the developer or any th
 ### Data Deletion
 
 - App: deleting the app removes all data on the device. Data in iCloud can be removed from Settings → Apple Account → iCloud → Manage app data on your iPhone / Mac
+- Android app: uninstalling the app removes all data on the device. Backups in your Google Account can be removed from Android Settings → Google → Backup
 - Extension: uninstalling deletes all stored data
 
 ### Contact

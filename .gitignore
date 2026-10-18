@@ -30,3 +30,9 @@ android/*/build/
 android/local.properties
 android/.idea/
 android/.kotlin/
+
+# Android の署名鍵（~/Keys/android に置く。万一リポジトリ内に置いても入らないように）
+*.jks
+*.keystore
+keystore.properties
+STORE_LISTING_ANDROID.md

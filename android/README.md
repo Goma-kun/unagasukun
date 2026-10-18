@@ -62,8 +62,15 @@ $ANDROID_HOME/platform-tools/adb exec-out screencap -p > shot.png
 ./gradlew :app:bundleRelease          # → app/build/outputs/bundle/release/app-release.aab
 ```
 
-いまは **debug 署名**で作っている（`app/build.gradle.kts` の `release.signingConfig`）。
-Play に出すときは upload key を作って `signingConfigs` に差し替える（キーはリポジトリに入れない）。版は 1.0.0 (1)。
+署名は **upload key**（Play App Signing 用。アプリ署名鍵は Google が持つ）。鍵とパスワードはリポジトリに入れない。
+
+- 鍵: `~/Keys/android/unagasukun-upload.jks`（alias `upload`）
+- パスワード: キーチェーンの「unagasukun-android-upload-key」（`security find-generic-password -s unagasukun-android-upload-key -w`）
+- Gradle は `~/.gradle/gradle.properties` の `UNAGASUKUN_UPLOAD_STORE_FILE` / `_STORE_PASSWORD` / `_KEY_ALIAS` / `_KEY_PASSWORD` を読む。
+  無い Mac では debug 署名に落ちる（その AAB は Play に出せない）
+- 確かめ方: `keytool -printcert -jarfile app/build/outputs/bundle/release/app-release.aab` の所有者が `CN=NISHIRA`
+
+版は 1.0.0 (1)。上げるときは `app/build.gradle.kts` の `versionCode` を必ず増やす（Play は同じ番号を受け付けない）。
 
 ## 通知のしくみ
 

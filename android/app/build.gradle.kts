@@ -19,13 +19,26 @@ android {
         resourceConfigurations += listOf("ja", "en")
     }
 
+    // upload key は ~/.gradle/gradle.properties の UNAGASUKUN_UPLOAD_* から読む（鍵もパスワードもリポジトリに置かない）。
+    // 無い環境では debug 署名に落ちる（Play には出せない AAB になる）
+    val uploadStoreFile = providers.gradleProperty("UNAGASUKUN_UPLOAD_STORE_FILE").orNull
+    signingConfigs {
+        if (uploadStoreFile != null) {
+            create("upload") {
+                storeFile = file(uploadStoreFile)
+                storePassword = providers.gradleProperty("UNAGASUKUN_UPLOAD_STORE_PASSWORD").get()
+                keyAlias = providers.gradleProperty("UNAGASUKUN_UPLOAD_KEY_ALIAS").get()
+                keyPassword = providers.gradleProperty("UNAGASUKUN_UPLOAD_KEY_PASSWORD").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // 署名は後で。いまは AAB を作れることを確かめるために debug 署名で通す
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("upload") ?: signingConfigs.getByName("debug")
         }
     }
 
