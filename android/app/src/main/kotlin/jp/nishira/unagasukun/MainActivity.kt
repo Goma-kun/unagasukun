@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -60,7 +61,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // ヘッダーが紺なので、ステータスバーの文字は常に白（SystemBarStyle.dark）。
+        // 色はテーマの statusBarColor でなく、ここで透明にしてヘッダー側に描かせる（Android 15 で非推奨になったため）
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         pendingItemId = intent?.getStringExtra(Notifier.extraItemId)
         setContent { UkTheme { Root() } }
     }
