@@ -36,3 +36,4 @@ android/.kotlin/
 *.keystore
 keystore.properties
 STORE_LISTING_ANDROID.md
+store-assets-android/

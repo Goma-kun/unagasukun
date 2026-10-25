@@ -240,7 +240,7 @@ private fun TodoCard(model: AppModel, entry: TodayEntry, now: Long, onEdit: (Ite
 
     val subtitles = ArrayList<String>()
     when (entry.group) {
-        TodayGroup.ACTIVE -> subtitles.add(stringResource(R.string.in_progress))
+        TodayGroup.ACTIVE -> subtitles.add(stringResource(R.string.status_in_progress))
         TodayGroup.OVERDUE -> subtitles.add(stringResource(R.string.not_done_yet))
         else -> {}
     }

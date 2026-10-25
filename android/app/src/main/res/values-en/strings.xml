@@ -34,7 +34,7 @@
     <string name="skip_today">Skip today</string>
     <string name="skipped">Skipped</string>
     <string name="undo">Undo</string>
-    <string name="in_progress">In progress</string>
+    <string name="status_in_progress">In progress</string>
     <string name="not_done_yet">Not done yet</string>
     <string name="due_today">Due today</string>
     <plurals name="days_left">

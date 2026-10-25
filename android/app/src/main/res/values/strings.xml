@@ -37,7 +37,7 @@
     <string name="skip_today">今日は休む</string>
     <string name="skipped">休んだ</string>
     <string name="undo">取り消す</string>
-    <string name="in_progress">進行中</string>
+    <string name="status_in_progress">進行中</string>
     <string name="not_done_yet">未対応</string>
     <string name="due_today">今日が目安</string>
     <plurals name="days_left">

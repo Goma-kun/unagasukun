@@ -13,8 +13,8 @@ android {
         applicationId = "jp.nishira.unagasukun"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
         // 日本語が既定・英語あり。ほかの言語の androidx リソースは落とす
         resourceConfigurations += listOf("ja", "en")
     }
