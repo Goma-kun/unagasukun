@@ -8,6 +8,16 @@ final class ForegroundNotificationPresenter: NSObject, UNUserNotificationCenterD
     /// 通知を押して開いたときに、どの予定だったかを画面へ伝える合図
     static let tapped = Notification.Name("UKNotificationTapped")
 
+    /// 押された通知の中身。**合図だけだと、アプリが閉じていたときに取りこぼす。**
+    /// 冷えた状態から開くと、今日の画面が合図を待ち受ける前に届くことがあり、
+    /// 「通知を押してもホームが出るだけで、何の通知か分からない」になっていた（2026-10-25 本人指摘）。
+    /// 画面が出たときにここを見に来て、受け取ったら空にする
+    struct Tapped: Equatable {
+        let itemId: String
+        let title: String
+    }
+    @MainActor static var pending: Tapped? = nil
+
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
@@ -22,8 +32,10 @@ final class ForegroundNotificationPresenter: NSObject, UNUserNotificationCenterD
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        guard let id = response.notification.request.content.userInfo["itemId"] as? String else { return }
+        let content = response.notification.request.content
+        guard let id = content.userInfo["itemId"] as? String else { return }
         await MainActor.run {
+            Self.pending = Tapped(itemId: id, title: content.title)
             NotificationCenter.default.post(name: Self.tapped, object: nil, userInfo: ["itemId": id])
         }
     }

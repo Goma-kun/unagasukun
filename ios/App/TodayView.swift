@@ -71,6 +71,7 @@ struct TodayView: View {
                             if !collapseDone {
                                 ForEach(done, id: \.item.id) { entry in
                                     DoneCard(entry: entry)
+                                        .id(entry.item.id)   // 「終わりました」の通知を押したとき、済んでいればここへ
                                 }
                             }
                         }
@@ -109,16 +110,12 @@ struct TodayView: View {
                 .padding(16)
                 .padding(.bottom, Platform.fabClearance)
             }
-            // 通知を押して開いたら、その予定まで送って光らせる。4 秒で印は消える
-            .onReceive(NotificationCenter.default.publisher(for: ForegroundNotificationPresenter.tapped)) { note in
-                guard let id = note.userInfo?["itemId"] as? String else { return }
-                model.highlightedId = id
-                withAnimation(.easeInOut(duration: 0.4)) { proxy.scrollTo(id, anchor: .center) }
-                Task {
-                    try? await Task.sleep(nanoseconds: 4_000_000_000)
-                    if model.highlightedId == id { withAnimation { model.highlightedId = nil } }
-                }
+            // 通知を押して開いたら、その予定まで送って光らせる。4 秒で印は消える。
+            // 合図で受けるのは開いていたとき、onAppear で受けるのは閉じていたところから開いたとき
+            .onReceive(NotificationCenter.default.publisher(for: ForegroundNotificationPresenter.tapped)) { _ in
+                openTapped(proxy)
             }
+            .onAppear { openTapped(proxy) }
             }
         }
         .background(Theme.bg)
@@ -157,6 +154,29 @@ struct TodayView: View {
             if Shot.formPreset != nil, form == nil { form = .add }
         }
         .sheet(item: $form) { PlanFormView(editing: $0.item, preset: Shot.formPreset, maxSize: winSize) }
+    }
+
+    /// 押された通知を受け取って、何の通知だったかを下の帯で言い、その予定まで送って光らせる。
+    /// **カードが今日の一覧に無くても（絞り込み中・登録済みの側など）、帯で題は必ず見せる**
+    private func openTapped(_ proxy: ScrollViewProxy) {
+        guard let t = ForegroundNotificationPresenter.pending else { return }
+        ForegroundNotificationPresenter.pending = nil
+        show("🔔 " + t.title)
+        // 済んだ側にあって畳んでいたら開く。絞り込みで隠れていたら「すべて」に戻す
+        let (todoAll, doneAll) = model.today(now: Date())
+        if doneAll.contains(where: { $0.item.id == t.itemId }) { collapseDone = false }
+        if let item = (todoAll + doneAll).first(where: { $0.item.id == t.itemId })?.item,
+           !tagFilter.isEmpty, item.tagId != tagFilter {
+            tagFilter = ""
+        }
+        model.highlightedId = t.itemId
+        Task {
+            // 開いた直後は一覧の配置が済んでいないので、ひと呼吸おいて送る
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            withAnimation(.easeInOut(duration: 0.4)) { proxy.scrollTo(t.itemId, anchor: .center) }
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            if model.highlightedId == t.itemId { withAnimation { model.highlightedId = nil } }
+        }
     }
 
     private func show(_ text: String, emoji: String? = nil) {

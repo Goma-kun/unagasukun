@@ -78,6 +78,10 @@ struct UnagasukunApp: App {
             // 最初の予定を登録したとき（＝通知が意味を持った瞬間）に聞く
             model.reschedule()
             }
+            // 通知を押したら、カレンダーや設定を開いていても今日のタブへ戻す
+            .onReceive(NotificationCenter.default.publisher(for: ForegroundNotificationPresenter.tapped)) { _ in
+            tab = 0
+            }
             .onChange(of: scenePhase) { _, phase in
             // 設定アプリで通知を切られていることがあるので、戻るたびに見に行く
             guard phase == .active else { return }
