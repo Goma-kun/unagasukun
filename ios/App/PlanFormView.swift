@@ -181,8 +181,10 @@ struct PlanFormView: View {
     /// 入力欄の本体（Mac と iPhone で共通）
     private var formBody: some View {
             Form {
-                // 並びは「やること → 詳細 → 時刻 → 繰り返し → プレビュー → ラベル」（詳細は名前のすぐ下が便利・2026-10-11 本人）。
-                // 「いつでも大丈夫」と日付を上のほうで決めて、さっと作れるように（2026-10-11 本人要望）
+                // 並びは「やること → 詳細 → ラベル → 時刻 → 繰り返し → プレビュー」（詳細は名前のすぐ下が便利・2026-10-11 本人）。
+                // ラベルは開いた最初の画面で選べるよう上に置く。下にあるとスクロールしないと見えず、
+                // 買い物などをさっと付けられない（2026-10-31 本人要望）。
+                // 「いつでも大丈夫」と日付も上のほうで決めて、さっと作れるように（2026-10-11 本人要望）
                 Section {
                     TextField("やること", text: $label)
                         .font(.system(size: 16))
@@ -202,6 +204,16 @@ struct PlanFormView: View {
                         }
                 } header: {
                     Text("詳細")
+                }
+
+                Section {
+                    TagPickerRow(tags: model.tags, selected: $tagId)
+                    Button("ラベルを整える…") { editingTags = true }
+                        .font(.system(size: 13))
+                } header: {
+                    Text("ラベル")
+                } footer: {
+                    Text("色の目印です。今日の画面で絞り込めます。")
                 }
 
                 Section {
@@ -260,16 +272,6 @@ struct PlanFormView: View {
                     Text(preview)
                         .font(.system(size: 14))
                         .foregroundStyle(Theme.tint)
-                }
-
-                Section {
-                    TagPickerRow(tags: model.tags, selected: $tagId)
-                    Button("ラベルを整える…") { editingTags = true }
-                        .font(.system(size: 13))
-                } header: {
-                    Text("ラベル")
-                } footer: {
-                    Text("色の目印です。今日の画面で絞り込めます。")
                 }
 
                 if editing != nil {
