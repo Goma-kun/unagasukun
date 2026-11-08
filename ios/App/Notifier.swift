@@ -18,11 +18,17 @@ final class ForegroundNotificationPresenter: NSObject, UNUserNotificationCenterD
     }
     @MainActor static var pending: Tapped? = nil
 
+    ///
+    /// **async 版の delegate は使わない（2026-11-09）。** async 版だと iOS へ返す完了の合図が
+    /// 裏のスレッド（cooperative pool）から呼ばれ、UIKit の「メインスレッドで呼べ」の検査で
+    /// アプリが落ちる。通知を押すたびに落ちて「ホーム画面に戻るだけ」になっていた（クラッシュログで確認）。
+    /// 完了ハンドラ版にして、合図はメインスレッドで返す
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification
-    ) async -> UNNotificationPresentationOptions {
-        [.banner, .sound, .list]
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        DispatchQueue.main.async { completionHandler([.banner, .sound, .list]) }
     }
 
     /// **通知を押したら、その予定のカードまで連れていく。**
@@ -30,13 +36,20 @@ final class ForegroundNotificationPresenter: NSObject, UNUserNotificationCenterD
     /// 開くだけだと、8 件並んだ中から自分で探すことになっていた
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse
-    ) async {
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
         let content = response.notification.request.content
-        guard let id = content.userInfo["itemId"] as? String else { return }
-        await MainActor.run {
-            Self.pending = Tapped(itemId: id, title: content.title)
-            NotificationCenter.default.post(name: Self.tapped, object: nil, userInfo: ["itemId": id])
+        let id = content.userInfo["itemId"] as? String
+        let title = content.title
+        DispatchQueue.main.async {
+            if let id {
+                MainActor.assumeIsolated {
+                    Self.pending = Tapped(itemId: id, title: title)
+                }
+                NotificationCenter.default.post(name: Self.tapped, object: nil, userInfo: ["itemId": id])
+            }
+            completionHandler()
         }
     }
 }
