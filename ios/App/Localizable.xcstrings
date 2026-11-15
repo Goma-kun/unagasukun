@@ -2077,6 +2077,76 @@
           }
         }
       }
+    },
+    "%@ に聞く": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask %@"
+          }
+        }
+      }
+    },
+    "%@ を開きました。うまく入らないときは貼り付けてください": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opened %@. If the text is missing, paste it."
+          }
+        }
+      }
+    },
+    "AI に聞く": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask AI"
+          }
+        }
+      }
+    },
+    "コピーしました。%@ に貼り付けてください": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied. Paste it into %@."
+          }
+        }
+      }
+    },
+    "出さない": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        }
+      }
+    },
+    "聞き先": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask"
+          }
+        }
+      }
+    },
+    "選ぶと、今日の予定のカードにボタンが出ます。押すと予定の名前と詳細をコピーして、その AI を開きます。送信はしないので、言葉を足してから送れます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick one to show a button on each card in Today. It copies the plan's name and notes and opens that AI. Nothing is sent until you send it, so you can add to it first."
+          }
+        }
+      }
     }
   }
 }

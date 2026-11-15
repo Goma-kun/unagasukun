@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct SettingsView: View {
     /// 浮かぶ「＋」の位置（iPhone だけ）。FloatingAddButton と同じキー
+    @AppStorage(AskAI.storageKey) private var askTarget = AskAI.off.rawValue
     @AppStorage("fabX") private var fabX = 0.0
     @AppStorage("fabY") private var fabY = 1.0
     @EnvironmentObject private var model: AppModel
@@ -61,6 +62,16 @@ struct SettingsView: View {
                     Text(model.preNoticeOn
                          ? String(localized: "予定の時刻より前に、一度お知らせします。済ませたものには出しません。")
                          : String(localized: "予定の時刻にだけお知らせします。"))
+                }
+
+                Section {
+                    Picker("聞き先", selection: $askTarget) {
+                        ForEach(AskAI.allCases) { Text($0.name).tag($0.rawValue) }
+                    }
+                } header: {
+                    Text("AI に聞く")
+                } footer: {
+                    Text("選ぶと、今日の予定のカードにボタンが出ます。押すと予定の名前と詳細をコピーして、その AI を開きます。送信はしないので、言葉を足してから送れます。")
                 }
 
                 #if os(iOS)

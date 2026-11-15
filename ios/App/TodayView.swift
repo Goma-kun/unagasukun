@@ -295,6 +295,7 @@ private struct TodoCard: View {
     var onDone: (Item) -> Void = { _ in }
     /// 「前にできていた」の候補日を開いているか
     @State private var pastOpen = false
+    @AppStorage(AskAI.storageKey) private var askRaw = AskAI.off.rawValue
 
     var body: some View {
         let pastCandidates = Logic.isInterval(entry.item) ? model.pastDoneCandidates(for: entry.item, now: now) : []
@@ -321,7 +322,16 @@ private struct TodoCard: View {
                 header(withChips: false)
             }
 
-            detailText
+            // 詳細メモの右に「AI に聞く」。設定で聞き先を選んだときだけ出る（行を増やさない）
+            if askRaw == AskAI.off.rawValue {
+                detailText
+            } else {
+                HStack(alignment: .bottom, spacing: 8) {
+                    detailText
+                    Spacer(minLength: 0)
+                    AskAIButton(item: entry.item, onNotice: onNotice)
+                }
+            }
 
             if !chipsInHeader && (!subtitles.isEmpty || !pastCandidates.isEmpty || tag != nil) {
                 HStack(spacing: 8) {
