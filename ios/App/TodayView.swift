@@ -13,6 +13,7 @@ struct TodayView: View {
     /// いまのウィンドウの大きさ（編集シートをこれに収める）
     @State private var winSize = CGSize(width: 540, height: 780)
     @State private var now = Date()
+    @Environment(\.scenePhase) private var scenePhase
     /// 操作の結果を短く知らせる帯（「前にできていた」で次の目安日を言い切るのに使う）
     @State private var notice: String? = nil
     /// 帯の左に顔を出す動物（こっそりお祝い）
@@ -149,6 +150,11 @@ struct TodayView: View {
             }
         }
         .onReceive(tick) { now = $0 }
+        // 裏にいる間は 30 秒おきの時計が止まる。戻った瞬間に合わせないと、通知を押して開いても
+        // 「時間が過ぎた」の橙の枠が数秒遅れて出る（2026-11-17 本人指摘）
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { now = Date() }
+        }
         .task {
             await model.refreshNotificationState()
             if Shot.formPreset != nil, form == nil { form = .add }
@@ -162,6 +168,7 @@ struct TodayView: View {
         guard let t = ForegroundNotificationPresenter.pending else { return }
         ForegroundNotificationPresenter.pending = nil
         show("🔔 " + t.title)
+        now = Date()   // 並びと枠の色を、押した時点の時刻で出す
         // 済んだ側にあって畳んでいたら開く。絞り込みで隠れていたら「すべて」に戻す
         let (todoAll, doneAll) = model.today(now: Date())
         if doneAll.contains(where: { $0.item.id == t.itemId }) { collapseDone = false }
@@ -169,12 +176,16 @@ struct TodayView: View {
            !tagFilter.isEmpty, item.tagId != tagFilter {
             tagFilter = ""
         }
-        model.highlightedId = t.itemId
+        // 印はすぐ付ける（アニメーションで待たせない）
+        var tx = Transaction(); tx.disablesAnimations = true
+        withTransaction(tx) { model.highlightedId = t.itemId }
         Task {
-            // 開いた直後は一覧の配置が済んでいないので、ひと呼吸おいて送る
+            // すぐ送る。開いた直後は一覧の配置が済んでいないことがあるので、少し後にもう一度送る
+            try? await Task.sleep(nanoseconds: 50_000_000)
+            withAnimation(.easeInOut(duration: 0.25)) { proxy.scrollTo(t.itemId, anchor: .center) }
             try? await Task.sleep(nanoseconds: 300_000_000)
-            withAnimation(.easeInOut(duration: 0.4)) { proxy.scrollTo(t.itemId, anchor: .center) }
-            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            withAnimation(.easeInOut(duration: 0.25)) { proxy.scrollTo(t.itemId, anchor: .center) }
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
             if model.highlightedId == t.itemId { withAnimation { model.highlightedId = nil } }
         }
     }
@@ -381,13 +392,15 @@ private struct TodoCard: View {
         .background(Theme.cardBg(tag?.color), in: RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(highlighted ? Theme.tint : borderColor,
-                        lineWidth: highlighted ? 3 : borderWidth)
+                .stroke(highlighted ? Theme.accent : borderColor,
+                        lineWidth: highlighted ? 4 : borderWidth)
         )
+        .shadow(color: highlighted ? Theme.accent.opacity(0.55) : .clear, radius: highlighted ? 8 : 0)
         .animation(.easeInOut(duration: 0.3), value: highlighted)
     }
 
-    /// 通知を押して飛んできた相手かどうか。枠を太くして「これですよ」と示す
+    /// 通知を押して飛んできた相手かどうか。橙の太い枠＋にじみで「これですよ」と示す。
+    /// **紺の 3pt は白いカードの上でほとんど見えなかった**（2026-11-17）。本人は橙の枠を目印にしている
     private var highlighted: Bool { model.highlightedId == entry.item.id }
 
     /// 時間が過ぎたものは枠の色でも分かるようにする。
@@ -570,8 +583,14 @@ private struct DoneCard: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .background(Theme.card.opacity(0.7), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.plainStroke, lineWidth: 1.5))
+        .overlay(RoundedRectangle(cornerRadius: 10)
+            .stroke(highlighted ? Theme.accent : Theme.plainStroke, lineWidth: highlighted ? 4 : 1.5))
+        .shadow(color: highlighted ? Theme.accent.opacity(0.55) : .clear, radius: highlighted ? 8 : 0)
+        .animation(.easeInOut(duration: 0.3), value: highlighted)
     }
+
+    /// 通知を押して飛んできた相手（済んだ側にあるとき）
+    private var highlighted: Bool { model.highlightedId == entry.item.id }
 }
 
 // MARK: - ボタンの見た目
