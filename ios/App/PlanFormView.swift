@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 予定の登録と編集。拡張機能 v1.6.0 と同じく、繰り返しは**先頭の3択タブ**にしてある。
+/// 予定の登録と編集。繰り返しは**4択のタブ**（1回だけ／毎日／曜日で／◯日ごと）。
+/// 「毎日」は「毎週」の中に入れない。毎日にしたい人が「毎週」を押すとは思いつかないため（2026-11-24 本人指摘）。
 /// 選んだ結果は**必ずプレビュー帯に日本語で言い切る**（「3日ごとって何日空くの？」を日付で潰す）。
 struct PlanFormView: View {
     /// 編集するとき。新規なら nil
@@ -13,11 +14,12 @@ struct PlanFormView: View {
     @State private var confirmingDelete = false
 
     enum Repeat: CaseIterable {
-        case once, weekly, interval
+        case once, daily, weekly, interval
         var title: String {
             switch self {
             case .once: return String(localized: "1回だけ")
-            case .weekly: return String(localized: "毎週")
+            case .daily: return String(localized: "毎日")
+            case .weekly: return String(localized: "曜日で")
             case .interval: return String(localized: "◯日ごと")
             }
         }
@@ -129,7 +131,17 @@ struct PlanFormView: View {
             }
         #else
         NavigationStack {
-            formBody
+            ScrollViewReader { proxy in
+                formBody
+                    .onAppear {
+                        // 撮影用（DEBUG のみ）: 繰り返しの欄まで下げた状態で始める
+                        if Shot.formPreset != nil {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                proxy.scrollTo("form-repeat", anchor: .center)
+                            }
+                        }
+                    }
+            }
 
             // macOS のシートは中身の幅で決まり、既定の「列」スタイルだと左右のラベルが枠からはみ出す。
             // 設定画面と同じ grouped にして幅を決める（2026-09-26 Mac App Store 用の撮影で発覚）
@@ -261,12 +273,15 @@ struct PlanFormView: View {
                         } else {
                             DateField(title: String(localized: "日付"), date: $date)
                         }
+                    case .daily:
+                        EmptyView()
                     case .weekly:
                         weekdayChips
                     case .interval:
                         intervalChips
                     }
                 }
+                .id("form-repeat")
 
                 Section {
                     Text(preview)
@@ -313,25 +328,25 @@ struct PlanFormView: View {
         if Logic.isInterval(item) {
             mode = .interval
             intervalDays = item.intervalDays ?? 3
-        } else if let days = item.days, !days.isEmpty {
+        } else if let days = item.days, !days.isEmpty, Set(days).count < 7 {
             mode = .weekly
             self.days = Set(days)
         } else if Logic.isOneOff(item) {
             mode = .once
             if let d = Logic.parseDateKey(item.date) { date = d }
         } else {
-            // 旧来の「毎日」は曜日を全部選んだ状態として見せる
-            mode = .weekly
-            self.days = Set(0...6)
+            // 曜日が 7 つ全部、または旧来の「曜日なし＝毎日」は、どちらも「毎日」のタブで見せる
+            mode = .daily
         }
     }
 
     // MARK: - 部品
 
-    /// よくある型を名前で先に見せる（Apple のリマインダーの「毎日／平日／週末」と同じ）。
-    /// 曜日の丸だけだと「土日だけ繰り返せる」ことに気づけない（2026-10-03 本人指摘）
+    /// よくある型を名前で先に見せる（Apple のリマインダーの「平日／週末」と同じ）。
+    /// 曜日の丸だけだと「土日だけ繰り返せる」ことに気づけない（2026-10-03 本人指摘）。
+    /// 「毎日」はここでなく上のタブにある（2026-11-24）
     private let weekdayPresets: [(name: String, days: Set<Int>)] = [
-        (String(localized: "毎日"), Set(0...6)), (String(localized: "平日"), Set(1...5)), (String(localized: "週末"), [0, 6]),
+        (String(localized: "平日"), Set(1...5)), (String(localized: "週末"), [0, 6]),
     ]
 
     private var weekdayChips: some View {
@@ -441,8 +456,10 @@ struct PlanFormView: View {
             if ds.count == 1 { return String(localized: "→ \(dateText(ds[0])) に1回だけ。") + timeSentence }
             let list = ds.prefix(4).map(dateText).joined(separator: Describe.sep) + (ds.count > 4 ? String(localized: " ほか") : "")
             return String(localized: "→ \(list) の\(ds.count)日に、1回ずつ。") + timeSentence
+        case .daily:
+            return String(localized: "→ \(String(localized: "毎日")) に繰り返します。") + timeSentence
         case .weekly:
-            guard !days.isEmpty else { return String(localized: "→ 曜日を選んでください。毎日なら全部押します。") }
+            guard !days.isEmpty else { return String(localized: "→ 曜日を選んでください。") }
             let names = days.sorted().map { weekdayNames[$0] }.joined(separator: Describe.sep)
             let how = days.count == 7 ? String(localized: "毎日") : String(localized: "毎週 \(names)")
             return String(localized: "→ \(how) に繰り返します。") + timeSentence
@@ -521,6 +538,9 @@ struct PlanFormView: View {
         switch mode {
         case .once:
             item.date = editing == nil ? (dateKeys.sorted().first ?? Logic.dateKey(Date())) : Logic.dateKey(date)
+        case .daily:
+            // 「毎日」は曜日を 7 つ全部持たせる（これまで「毎週」で全部押したときと同じ形。拡張・Android とも読める）
+            item.days = Array(0...6)
         case .weekly:
             item.days = days.sorted()
         case .interval:

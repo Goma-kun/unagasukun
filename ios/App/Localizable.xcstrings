@@ -334,6 +334,36 @@
         }
       }
     },
+    "曜日で": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly"
+          }
+        }
+      }
+    },
+    "→ 曜日を選んでください。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ Choose weekdays."
+          }
+        }
+      }
+    },
+    "朝の薬": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning medicine"
+          }
+        }
+      }
+    },
     "1回だけ": {
       "localizations": {
         "en": {

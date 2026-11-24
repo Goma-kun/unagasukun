@@ -118,7 +118,13 @@ enum Shot {
     }
     static var formPreset: Item? {
         #if DEBUG
-        guard UserDefaults.standard.string(forKey: "UKShotForm") == "interval" else { return nil }
+        // `-UKShotForm daily` `-UKShotForm weekly` は、繰り返しのタブの見え方を確かめる用
+        switch UserDefaults.standard.string(forKey: "UKShotForm") {
+        case "daily": return Item(id: "shot", label: String(localized: "朝の薬"), time: "08:00", days: Array(0...6))
+        case "weekly": return Item(id: "shot", label: String(localized: "朝の薬"), time: "08:00", days: [1, 2, 3, 4, 5])
+        case "interval": break
+        default: return nil
+        }
         return Item(id: "shot", label: String(localized: "猫の点滴"), time: "09:00", intervalDays: 4,
                     detail: String(localized: "首の後ろに 100ml。終わったらおやつ"))
         #else
