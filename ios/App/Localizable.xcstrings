@@ -2056,6 +2056,66 @@
         }
       }
     },
+    "〜%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "–%@"
+          }
+        }
+      }
+    },
+    "いま": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now"
+          }
+        }
+      }
+    },
+    "つぎ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        }
+      }
+    },
+    "ほかの予定": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other Plans"
+          }
+        }
+      }
+    },
+    "編集": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        }
+      }
+    },
+    "その他の操作": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More actions"
+          }
+        }
+      }
+    },
     "🔥 %lld日": {
       "localizations": {
         "en": {
@@ -2078,12 +2138,12 @@
         }
       }
     },
-    "🔥 とタイルに数える": {
+    "続けた日数とタイルに数える": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Count toward 🔥 and tiles"
+            "value": "Count toward day streak and tiles"
           }
         }
       }

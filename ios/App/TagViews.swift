@@ -92,7 +92,7 @@ struct TagPickerRow: View {
     }
 }
 
-/// ラベルを整える画面。名前・色・「🔥 とタイルに数える」・削除・追加。
+/// ラベルを整える画面。名前・色・「続けた日数とタイルに数える」・削除・追加。
 /// 「保存」を押すまで本体には触らない（途中でやめても元のまま）
 struct TagEditorView: View {
     @EnvironmentObject private var model: AppModel
@@ -123,7 +123,7 @@ struct TagEditorView: View {
                             Spacer(minLength: 0)
                         }
                         .padding(.vertical, 2)
-                        Toggle("🔥 とタイルに数える", isOn: $tag.countsStreak)
+                        Toggle("続けた日数とタイルに数える", isOn: $tag.countsStreak)
                         Button("このラベルを消す", role: .destructive) { confirmingDelete = tag }
                     } footer: {
                         if !tag.countsStreak {

@@ -60,11 +60,30 @@ struct TodayView: View {
                         emptyState
                     } else {
                         if !todo.isEmpty {
-                            sectionTitle(String(localized: "今日の予定"), count: todo.count)
-                            ForEach(todo, id: \.item.id) { entry in
-                                TodoCard(entry: entry, now: now, onEdit: { form = .edit($0) },
+                            // いまやる 1 件だけ大きく出し、ほかは 1 行に畳む（2026-11-25）。
+                            // 全部のカードに大きい「できた」が並ぶと、いまの 1 件が埋もれる。
+                            // 進行中があればそれ（重なっていれば全部）、無ければ並びの先頭の 1 件
+                            let active = todo.filter { $0.group == .active }
+                            let focus = active.isEmpty ? Array(todo.prefix(1)) : active
+                            let focusIds = Set(focus.map(\.item.id))
+                            let rest = todo.filter { !focusIds.contains($0.item.id) }
+                            // まだ時間が来ていないものを「いま」とは呼ばない
+                            sectionTitle(focus.first?.group == .upcoming ? String(localized: "つぎ") : String(localized: "いま"),
+                                         count: focus.count)
+                            ForEach(focus, id: \.item.id) { entry in
+                                TodoCard(entry: entry, now: now, focus: true, onEdit: { form = .edit($0) },
                                          onNotice: { show($0) }, onDone: { cheer($0) })
                                     .id(entry.item.id)   // 通知から飛んでくる先
+                            }
+                            if !rest.isEmpty {
+                                sectionTitle(String(localized: "ほかの予定"), count: rest.count)
+                                VStack(spacing: 8) {
+                                    ForEach(rest, id: \.item.id) { entry in
+                                        TodoCard(entry: entry, now: now, onEdit: { form = .edit($0) },
+                                                 onNotice: { show($0) }, onDone: { cheer($0) })
+                                            .id(entry.item.id)
+                                    }
+                                }
                             }
                         }
                         if !done.isEmpty {
@@ -265,13 +284,13 @@ struct TodayView: View {
 
     private func sectionTitle(_ title: String, count: Int) -> some View {
         HStack(spacing: 6) {
-            Text(title).font(.system(size: 13, weight: .semibold))
+            Text(title).font(.uk(15, weight: .semibold))
             Text("\(count)")
-                .font(.system(size: 12, weight: .semibold))
-                .padding(.horizontal, 7).padding(.vertical, 2)
+                .font(.uk(14, weight: .semibold))
+                .padding(.horizontal, 8).padding(.vertical, 2)
                 .background(Theme.skip.opacity(0.35), in: Capsule())
         }
-        .foregroundStyle(Theme.muted)
+        .foregroundStyle(Theme.sub)
         .padding(.top, 4)
     }
 
@@ -299,6 +318,8 @@ private struct TodoCard: View {
     @EnvironmentObject private var model: AppModel
     let entry: TodayEntry
     let now: Date
+    /// 大きく出すか（いまやる 1 件）。false は 1 行に畳んだ形
+    var focus = false
     /// 毎日の予定は登録済み一覧に出ないので、**今日のカードが編集の唯一の入口**になる
     var onEdit: (Item) -> Void
     var onNotice: (String) -> Void = { _ in }
@@ -307,65 +328,89 @@ private struct TodoCard: View {
     /// 「前にできていた」の候補日を開いているか
     @State private var pastOpen = false
     @AppStorage(AskAI.storageKey) private var askRaw = AskAI.off.rawValue
+    /// 文字サイズの設定が変わったら描き直す（Font.uk はその時点の設定で大きさを決める）
+    @Environment(\.dynamicTypeSize) private var typeSize
+    /// 畳んだ行の時刻の列。文字と一緒に広がる
+    @ScaledMetric private var timeColumn: CGFloat = 64
 
     var body: some View {
         let pastCandidates = Logic.isInterval(entry.item) ? model.pastDoneCandidates(for: entry.item, now: now) : []
         let tag = model.tag(for: entry.item)
+        let radius: CGFloat = focus ? 16 : 12
 
-        // 印（🔥 3日 など）は名前の右の空きに入れ、その行のぶんカードを低くする（2026-09-24 本人要望）。
-        // 名前が長くて1行に収まらないカードだけ、今までどおり下の行に出す
-        let chipsInHeader = pastCandidates.isEmpty && (!subtitles.isEmpty || tag != nil)
+        Group {
+            if focus { focusBody(pastCandidates, tag) } else { compactBody(pastCandidates, tag) }
+        }
+        .background(Theme.cardBg(tag?.color), in: RoundedRectangle(cornerRadius: radius))
+        .overlay(
+            RoundedRectangle(cornerRadius: radius)
+                .stroke(highlighted ? Theme.accent : borderColor,
+                        lineWidth: highlighted ? 4 : borderWidth)
+        )
+        .shadow(color: highlighted ? Theme.accent.opacity(0.55) : .clear, radius: highlighted ? 8 : 0)
+        .animation(.easeInOut(duration: 0.3), value: highlighted)
+    }
 
+    // MARK: 大きいカード（いまやる 1 件）
+
+    private func focusBody(_ pastCandidates: [String], _ tag: Tag?) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            if chipsInHeader {
-                // 1行に収まるなら見出しに印を入れる。収まらなければ見出しの下に印の行
-                ViewThatFits(in: .horizontal) {
-                    header(withChips: true)
-                    VStack(alignment: .leading, spacing: 10) {
-                        header(withChips: false)
-                        HStack(spacing: 8) {
-                            if let tag { TagChip(tag: tag) }
-                            ForEach(subtitles, id: \.self) { chip($0) }
-                        }
-                    }
-                }
-            } else {
-                header(withChips: false)
+            HStack(spacing: 8) {
+                if let tag { TagChip(tag: tag) }
+                ForEach(states, id: \.self) { stateChip($0) }
+                Spacer(minLength: 0)
+                menu(pastCandidates)
             }
+
+            // 時刻と名前。押しても編集に入れる。⋯ だけだと当たりが小さく、
+            // 押したつもりで押せていないことがあった（本人報告・2026-09-23）
+            Button { onEdit(entry.item) } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(timeText)
+                        .font(.uk(26, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.timeColor(tag?.color))
+                        .monospacedDigit()
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                    Text(entry.item.label)
+                        .font(.uk(22, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("この予定を編集")
+
+            if streak > 0 { streakMark }
 
             // 詳細メモの右に「AI に聞く」。設定で聞き先を選んだときだけ出る（行を増やさない）
             if askRaw == AskAI.off.rawValue {
-                detailText
+                detailText(lines: nil)
             } else {
                 HStack(alignment: .bottom, spacing: 8) {
-                    detailText
+                    detailText(lines: nil)
                     Spacer(minLength: 0)
                     AskAIButton(item: entry.item, onNotice: onNotice)
                 }
             }
 
-            if !chipsInHeader && (!subtitles.isEmpty || !pastCandidates.isEmpty || tag != nil) {
-                HStack(spacing: 8) {
-                    if let tag { TagChip(tag: tag) }
-                    ForEach(subtitles, id: \.self) { chip($0) }
+            // 済ませたのに付け忘れた日を、あとから「できた」にする入口。
+            // ふりかえりまで行かなくても今日のカードから直せる（2026-09-22 本人指摘）
+            if !pastCandidates.isEmpty {
+                HStack {
                     Spacer(minLength: 0)
-                    // 済ませたのに付け忘れた日を、あとから「できた」にする入口。
-                    // ふりかえりまで行かなくても今日のカードから直せる（2026-09-22 本人指摘）
-                    if !pastCandidates.isEmpty {
-                        Button { withAnimation { pastOpen.toggle() } } label: {
-                            Text("前にできていた")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(pastOpen ? Theme.navy : Theme.muted)
-                                .padding(.horizontal, 10).padding(.vertical, 5)
-                                .overlay(Capsule().stroke(pastOpen ? Theme.navy : Theme.skip, lineWidth: 1))
-                        }
-                        .buttonStyle(.plain)
+                    Button { withAnimation { pastOpen.toggle() } } label: {
+                        Text("前にできていた")
+                            .font(.uk(14, weight: .medium))
+                            .foregroundStyle(pastOpen ? Theme.tint : Theme.sub)
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .overlay(Capsule().stroke(pastOpen ? Theme.tint : Theme.skip, lineWidth: 1))
                     }
+                    .buttonStyle(.plain)
                 }
-            }
-
-            if pastOpen && !pastCandidates.isEmpty {
-                pastDoneRow(pastCandidates)
+                if pastOpen { pastDoneRow(pastCandidates) }
             }
 
             // 時間が過ぎて記録が無い予定には「実際は…」（拡張機能と同じ）。畳んだ状態で置く
@@ -374,29 +419,138 @@ private struct TodoCard: View {
             }
 
             HStack(spacing: 10) {
-                Button {
-                    model.record(entry.item, .done, now: now)
-                    onDone(entry.item)
-                } label: {
+                Button { markDone() } label: {
                     Text("できた").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(FilledButton(color: Theme.done))
+                .buttonStyle(FilledButton(color: Theme.done, large: true))
 
-                Button { model.record(entry.item, .skip, now: now) } label: {
+                Button { markSkip() } label: {
                     Text("今日は休む").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(OutlineButton())
+                .buttonStyle(OutlineButton(large: true))
+            }
+            .padding(.top, 2)
+        }
+        .padding(16)
+    }
+
+    // MARK: 畳んだ行（ほかの予定）
+
+    /// 時刻／名前と印とメモ／⋯／丸いチェック。丸いチェックが「できた」、
+    /// 「今日は休む」「前にできていた」「編集」は ⋯ の中。名前を押しても編集に入れる
+    private func compactBody(_ pastCandidates: [String], _ tag: Tag?) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 4) {
+                Button { onEdit(entry.item) } label: {
+                    HStack(alignment: .center, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(startText)
+                                .font(Logic.isAnytime(entry.item) ? .uk(15, weight: .bold)
+                                                                  : .uk(19, weight: .bold, design: .rounded))
+                                .foregroundStyle(Theme.timeColor(tag?.color))
+                                .monospacedDigit()
+                                .lineLimit(1).minimumScaleFactor(0.7)
+                            if let end = endText {
+                                Text("〜\(end)")
+                                    .font(.uk(14, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(Theme.sub)
+                                    .monospacedDigit()
+                                    .lineLimit(1).minimumScaleFactor(0.7)
+                            }
+                        }
+                        .frame(width: timeColumn, alignment: .leading)
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(entry.item.label)
+                                .font(.uk(18, weight: .semibold))
+                                .foregroundStyle(Theme.text)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if tag != nil || !states.isEmpty || streak > 0 {
+                                FlowLayout(spacing: 6) {
+                                    if let tag { TagChip(tag: tag) }
+                                    ForEach(states, id: \.self) { stateChip($0) }
+                                    if streak > 0 { streakMark }
+                                }
+                            }
+                            detailText(lines: 2)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("この予定を編集")
+
+                menu(pastCandidates)
+
+                Button { markDone() } label: {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Theme.done)
+                        .frame(width: 44, height: 44)
+                        .overlay(Circle().stroke(Theme.done, lineWidth: 2))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("できた")
+            }
+
+            if askRaw != AskAI.off.rawValue {
+                HStack {
+                    Spacer(minLength: 0)
+                    AskAIButton(item: entry.item, onNotice: onNotice)
+                }
+            }
+
+            if entry.group == .overdue {
+                ActualNoteRow(item: entry.item, key: Logic.dateKey(now), openByDefault: false)
             }
         }
-        .padding(14)
-        .background(Theme.cardBg(tag?.color), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(highlighted ? Theme.accent : borderColor,
-                        lineWidth: highlighted ? 4 : borderWidth)
-        )
-        .shadow(color: highlighted ? Theme.accent.opacity(0.55) : .clear, radius: highlighted ? 8 : 0)
-        .animation(.easeInOut(duration: 0.3), value: highlighted)
+        .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 10)
+    }
+
+    // MARK: 部品
+
+    private func markDone() {
+        Haptic.success()
+        model.record(entry.item, .done, now: now)
+        onDone(entry.item)
+    }
+
+    private func markSkip() {
+        Haptic.light()
+        model.record(entry.item, .skip, now: now)
+    }
+
+    /// ⋯ のメニュー。畳んだ行では、大きいカードにあるボタンの代わりをここに入れる
+    private func menu(_ pastCandidates: [String]) -> some View {
+        let yesterday = Logic.dateKey(Logic.day(now, plus: -1))
+        return Menu {
+            if !focus {
+                Button { markSkip() } label: { Label("今日は休む", systemImage: "moon.zzz") }
+                if !pastCandidates.isEmpty {
+                    Menu("前にできていた") {
+                        ForEach(pastCandidates, id: \.self) { key in
+                            Button(dateChipText(key, yesterday: yesterday)) {
+                                onNotice(model.recordPastDone(entry.item, on: key, now: now))
+                            }
+                        }
+                    }
+                }
+            }
+            Button { onEdit(entry.item) } label: { Label("編集", systemImage: "pencil") }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Theme.sub)
+                .frame(width: 40, height: 44)   // Apple の推奨の当たり（高さ）
+                .contentShape(Rectangle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .accessibilityLabel("その他の操作")
     }
 
     /// 通知を押して飛んできた相手かどうか。橙の太い枠＋にじみで「これですよ」と示す。
@@ -406,10 +560,10 @@ private struct TodoCard: View {
     /// 時間が過ぎたものは枠の色でも分かるようにする。
     /// **赤は使わない。**責めるためではなく、気づくための表示なので。
     /// ふだんの枠はラベルの色（暗い画面で地の色だけだと見分けにくいため・2026-10-03）
-    /// 状態の枠（進行中・未対応）は 1.5、ラベル付きは 2、何も無い「これから」は 1
+    /// 状態の枠（進行中・未対応）は 1.5（大きいカードは 2）、ラベル付きは 2、何も無い「これから」は 1
     private var borderWidth: CGFloat {
         switch entry.group {
-        case .active, .overdue: return 1.5
+        case .active, .overdue: return focus ? 2 : 1.5
         default:
             let key = model.tag(for: entry.item)?.color
             return key == nil ? (entry.group == .upcoming ? 1 : 1.5) : Theme.cardStrokeWidth(key)
@@ -424,41 +578,15 @@ private struct TodoCard: View {
         }
     }
 
-    /// 見出し（時刻＋名前）。押しても編集に入れる。⋯ だけだと当たりが小さく、
-    /// 押したつもりで押せていないことがあった（本人報告・2026-09-23）
-    private func header(withChips: Bool) -> some View {
-        Button { onEdit(entry.item) } label: {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(timeText)
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Theme.timeColor(model.tag(for: entry.item)?.color))
-                    .monospacedDigit()
-                Text(entry.item.label)
-                    .font(.system(size: 16))
-                    .foregroundStyle(Theme.text)
-                Spacer(minLength: 0)
-                if withChips {
-                    if let tag = model.tag(for: entry.item) { TagChip(tag: tag) }
-                    ForEach(subtitles, id: \.self) { chip($0) }
-                }
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 15))
-                    .foregroundStyle(Theme.muted)
-                    .frame(width: 44, height: 44)   // Apple の最小の当たり
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("この予定を編集")
-    }
-
-    /// 詳細メモ（メモや手順）。名前の下に控えめに
+    /// 詳細メモ（メモや手順）。名前の下に控えめに。畳んだ行は 2 行まで
     @ViewBuilder
-    private var detailText: some View {
+    private func detailText(lines: Int?) -> some View {
         if let d = entry.item.detail, !d.isEmpty {
             Text(d)
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.muted)
+                .font(.uk(15))
+                .foregroundStyle(Theme.sub)
+                .multilineTextAlignment(.leading)
+                .lineLimit(lines)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -471,7 +599,20 @@ private struct TodoCard: View {
         return t
     }
 
-    private var subtitles: [String] {
+    /// 畳んだ行の時刻の列：始まりの時刻だけ。終わりは下に小さく出す（列を狭く保つ）
+    private var startText: String {
+        if Logic.isAnytime(entry.item) { return String(localized: "いつでも") }
+        return entry.item.time ?? "—"
+    }
+
+    private var endText: String? {
+        guard !Logic.isAnytime(entry.item), let t = entry.item.time,
+              let e = entry.item.endTime, Logic.isValidEndTime(t, e) else { return nil }
+        return e
+    }
+
+    /// 状態の印に出す言葉（進行中・未対応・今日が目安 など）
+    private var states: [String] {
         var out: [String] = []
         switch entry.group {
         case .active: out.append(String(localized: "進行中"))
@@ -479,17 +620,31 @@ private struct TodoCard: View {
         default: break
         }
         if let due = model.nextDueText(for: entry.item, now: now) { out.append(due) }
-        let s = model.streak(for: entry.item, now: now)
-        if s > 0 { out.append(String(localized: "🔥 \(s)日")) }
         return out
     }
 
-    private func chip(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 12))
-            .foregroundStyle(Theme.muted)
-            .padding(.horizontal, 8).padding(.vertical, 3)
-            .background(Theme.bg, in: Capsule())
+    private var streak: Int { model.streak(for: entry.item, now: now) }
+
+    /// 「進行中」は緑、それ以外（未対応・目安日）は橙の地。字はどちらも本文の色で、色だけに頼らない
+    private func stateChip(_ text: String) -> some View {
+        let isActive = entry.group == .active && text == String(localized: "進行中")
+        return Text(text)
+            .font(.uk(14, weight: .semibold))
+            .foregroundStyle(Theme.text)
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background((isActive ? Theme.done : Theme.accent).opacity(0.2), in: Capsule())
+    }
+
+    /// 続けた日数。絵文字の 🔥 をやめ、橙の六角形と数字にした（2026-11-25）
+    private var streakMark: some View {
+        HStack(spacing: 5) {
+            HexMark().fill(Theme.accent).frame(width: 12, height: 13)
+            Text("\(streak)日")
+                .font(.uk(15, weight: .semibold))
+                .foregroundStyle(Theme.sub)
+        }
+        .padding(.vertical, 3)
+        .accessibilityElement(children: .combine)
     }
 
     /// 「前にできていた」の候補日。昨日から新しい順に、最後にやった日の翌日まで（最大7日）
@@ -497,8 +652,8 @@ private struct TodoCard: View {
         let yesterday = Logic.dateKey(Logic.day(now, plus: -1))
         return VStack(alignment: .leading, spacing: 8) {
             Text("済ませていた日を押すと、その日に「できた」が付き、次の目安日が数え直されます。")
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.muted)
+                .font(.uk(14))
+                .foregroundStyle(Theme.sub)
             FlowLayout(spacing: 8) {
                 ForEach(keys, id: \.self) { key in
                     Button {
@@ -507,7 +662,7 @@ private struct TodoCard: View {
                         onNotice(message)
                     } label: {
                         Text(dateChipText(key, yesterday: yesterday))
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.uk(15, weight: .medium))
                             .foregroundStyle(Theme.text)
                             .padding(.horizontal, 12).padding(.vertical, 7)
                             .background(Theme.bg, in: Capsule())
@@ -597,25 +752,30 @@ private struct DoneCard: View {
 
 struct FilledButton: ButtonStyle {
     var color: Color
+    /// 今日の画面の大きいカード用（字と高さを大きく）
+    var large = false
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 15, weight: .medium))
+            .font(large ? .uk(19, weight: .bold) : .system(size: 15, weight: .medium))
             .foregroundStyle(.white)
-            .padding(.vertical, 10)
+            .padding(.vertical, large ? 14 : 10)
+            .frame(minHeight: large ? 54 : nil)
             .background(color.opacity(configuration.isPressed ? 0.7 : 1),
-                        in: RoundedRectangle(cornerRadius: 9))
+                        in: RoundedRectangle(cornerRadius: large ? 12 : 9))
     }
 }
 
 struct OutlineButton: ButtonStyle {
+    var large = false
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 15, weight: .medium))
-            .foregroundStyle(Theme.muted)
-            .padding(.vertical, 10)
+            .font(large ? .uk(17, weight: .semibold) : .system(size: 15, weight: .medium))
+            .foregroundStyle(large ? Theme.sub : Theme.muted)
+            .padding(.vertical, large ? 14 : 10)
+            .frame(minHeight: large ? 54 : nil)
             .background(configuration.isPressed ? Theme.bg : Theme.card,
-                        in: RoundedRectangle(cornerRadius: 9))
-            .overlay(RoundedRectangle(cornerRadius: 9).stroke(Theme.skip, lineWidth: 1))
+                        in: RoundedRectangle(cornerRadius: large ? 12 : 9))
+            .overlay(RoundedRectangle(cornerRadius: large ? 12 : 9).stroke(Theme.skip, lineWidth: large ? 1.5 : 1))
     }
 }
 

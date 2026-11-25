@@ -20,6 +20,10 @@ enum Theme {
     static let card       = dynamic(light: 0xFFFFFF, dark: 0x1E2638)
     static let text       = dynamic(light: 0x23293A, dark: 0xE6E9F0)
     static let muted      = dynamic(light: 0x7A8299, dark: 0x9AA3B8)
+    /// 今日の画面の補足の字（メモ・印・見出し）。muted はライトの地に対して約 3.6:1 で、
+    /// 小さい字には薄い（Apple の目安は 4.5:1）。こちらは約 5.7:1（2026-11-25 見やすさの直し）。
+    /// 拡張機能と色を揃えている muted は動かさず、読む字にだけこちらを使う
+    static let sub        = dynamic(light: 0x5A6278, dark: 0xA9B2C6)
     static let done       = dynamic(light: 0x3A9E57, dark: 0x3FA862)
     static let skip       = dynamic(light: 0xB0B6C6, dark: 0x4A5468)
     static let danger     = dynamic(light: 0xC0392B, dark: 0xE05A4C)
@@ -130,3 +134,47 @@ private extension NSColor {
     }
 }
 #endif
+
+extension Font {
+    /// 端末の「文字サイズ」設定に合わせて伸び縮みする大きさ（iPhone）。
+    /// 固定の `.system(size:)` は設定を大きくしても変わらず、小さい字が読めないままになる。
+    /// 伸びすぎて行が崩れないよう、もとの 1.5 倍までにする。Mac は設定が無いのでそのまま
+    static func uk(_ size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) -> Font {
+        #if os(iOS)
+        let scaled = min(UIFontMetrics.default.scaledValue(for: size), size * 1.5)
+        return .system(size: scaled, weight: weight, design: design)
+        #else
+        return .system(size: size, weight: weight, design: design)
+        #endif
+    }
+}
+
+/// 続けた日数の印。上がとがった六角形（🔥 の絵文字の代わり・2026-11-25）
+struct HexMark: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width, h = rect.height
+        var p = Path()
+        p.move(to: CGPoint(x: rect.minX + w * 0.5, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.933, y: rect.minY + h * 0.25))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.933, y: rect.minY + h * 0.75))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.5, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.067, y: rect.minY + h * 0.75))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.067, y: rect.minY + h * 0.25))
+        p.closeSubpath()
+        return p
+    }
+}
+
+/// 押したときの手応え（iPhone だけ。Mac は何もしない）
+enum Haptic {
+    static func success() {
+        #if os(iOS)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        #endif
+    }
+    static func light() {
+        #if os(iOS)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        #endif
+    }
+}
