@@ -131,6 +131,14 @@ enum Shot {
         return nil
         #endif
     }
+    /// `-UKShotEdit 朝の薬` その名前の予定の編集を、いちばん下（休む・終わりにする・削除）まで下げて開く
+    static var editLabel: String? {
+        #if DEBUG
+        return UserDefaults.standard.string(forKey: "UKShotEdit")
+        #else
+        return nil
+        #endif
+    }
     /// `-UKShotScroll tiles` カレンダーのタブをタイルまで下げた状態で開く
     static var scrollTarget: String? {
         #if DEBUG

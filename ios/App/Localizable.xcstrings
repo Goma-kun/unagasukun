@@ -2237,6 +2237,66 @@
           }
         }
       }
+    },
+    "終わりにする": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as finished"
+          }
+        }
+      }
+    },
+    "予定に戻す": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring back"
+          }
+        }
+      }
+    },
+    "終わった予定": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished Plans"
+          }
+        }
+      }
+    },
+    "もうやらない予定を片づけます。記録は残り、「終わった予定」からいつでも戻せます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puts away a plan you no longer do. Records are kept, and you can bring it back from Finished Plans anytime."
+          }
+        }
+      }
+    },
+    "終わりにした予定です。戻すと、また今日の予定と通知に出ます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This plan is finished. Bring it back to show it in Today and reminders again."
+          }
+        }
+      }
+    },
+    "終わりにした予定です。押すと、予定に戻すか削除できます。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plans you marked as finished. Tap one to bring it back or delete it."
+          }
+        }
+      }
     }
   }
 }

@@ -140,6 +140,11 @@ struct PlanFormView: View {
                                 proxy.scrollTo("form-repeat", anchor: .center)
                             }
                         }
+                        if Shot.editLabel != nil {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                proxy.scrollTo("form-end", anchor: .bottom)
+                            }
+                        }
                     }
             }
 
@@ -289,17 +294,40 @@ struct PlanFormView: View {
                         .foregroundStyle(Theme.tint)
                 }
 
-                if editing != nil {
-                    Section {
-                        Toggle("しばらく休む", isOn: Binding(get: { !enabled },
-                                                       set: { enabled = !$0 }))
-                    } footer: {
-                        Text("一覧と通知から外れます。記録はそのまま残ります。")
+                if let editing {
+                    if editing.archived {
+                        // 終わった予定を開いたとき。戻すとまた今日の予定と通知に出る
+                        Section {
+                            Button("予定に戻す") {
+                                model.setEnded(editing, false)
+                                dismiss()
+                            }
+                        } footer: {
+                            Text("終わりにした予定です。戻すと、また今日の予定と通知に出ます。")
+                        }
+                    } else {
+                        Section {
+                            Toggle("しばらく休む", isOn: Binding(get: { !enabled },
+                                                           set: { enabled = !$0 }))
+                        } footer: {
+                            Text("一覧と通知から外れます。記録はそのまま残ります。")
+                        }
+
+                        // 削除の手前に置く。戻せるので確認は挟まない（消さずに片づける道・2026-11-26）
+                        Section {
+                            Button("終わりにする") {
+                                model.setEnded(editing, true)
+                                dismiss()
+                            }
+                        } footer: {
+                            Text("もうやらない予定を片づけます。記録は残り、「終わった予定」からいつでも戻せます。")
+                        }
                     }
 
                     Section {
                         Button("この予定を削除する", role: .destructive) { confirmingDelete = true }
                     }
+                    .id("form-end")
                 }
             }
     }

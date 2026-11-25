@@ -26,6 +26,8 @@ struct TodayView: View {
     /// 過ぎた予定は見返すことが少ないので、はじめは畳んでおく
     @AppStorage("collapseRegistered") private var collapseRegistered = false
     @AppStorage("collapsePast") private var collapsePast = true
+    /// 「終わった予定」も見返すことが少ないので、はじめは畳んでおく
+    @AppStorage("collapseEnded") private var collapseEnded = true
     /// ラベルの絞り込み（空＝すべて）。端末ごとに覚える
     @AppStorage("todayTagFilter") private var tagFilter = ""
     /// 「今日対応済み」も畳める。済んだ数が多い日に長くなる（2026-09-26 本人要望）。はじめは開いておく
@@ -126,6 +128,22 @@ struct TodayView: View {
                             }
                         }
                     }
+
+                    // 「終わりにする」で片づけた予定。押すと編集が開き、そこで戻すか削除できる
+                    let ended = model.ended(now: now).filter { filter.isEmpty || $0.tagId == filter }
+                    if !ended.isEmpty {
+                        collapsibleTitle(String(localized: "終わった予定"), count: ended.count, collapsed: $collapseEnded)
+                        if !collapseEnded {
+                            Text("終わりにした予定です。押すと、予定に戻すか削除できます。")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.skip)
+                            ForEach(ended, id: \.id) { item in
+                                RegisteredRow(item: item, detail: model.describe(item, now: now), ended: true) {
+                                    form = .edit(item)
+                                }
+                            }
+                        }
+                    }
                 }
                 .padding(16)
                 .padding(.bottom, Platform.fabClearance)
@@ -177,6 +195,8 @@ struct TodayView: View {
         .task {
             await model.refreshNotificationState()
             if Shot.formPreset != nil, form == nil { form = .add }
+            if let l = Shot.editLabel, form == nil,
+               let it = model.snapshot.schedule.first(where: { $0.label == l }) { form = .edit(it) }
         }
         .sheet(item: $form) { PlanFormView(editing: $0.item, preset: Shot.formPreset, maxSize: winSize) }
     }
@@ -840,8 +860,9 @@ private struct RegisteredRow: View {
     @EnvironmentObject private var model: AppModel
     let item: Item
     let detail: String
+    /// 「終わった予定」の欄で使うとき。字を薄くして、動いている予定と見分ける
+    var ended = false
     var onEdit: () -> Void
-    @State private var confirmingDelete = false
 
     var body: some View {
         Button(action: onEdit) { row }.buttonStyle(.plain)
@@ -853,13 +874,13 @@ private struct RegisteredRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.label)
                     .font(.system(size: 15))
-                    .foregroundStyle(item.enabled ? Theme.text : Theme.muted)
+                    .foregroundStyle(item.enabled && !ended ? Theme.text : Theme.muted)
                 Text(detail)
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.muted)
             }
             Spacer(minLength: 0)
-            if !item.enabled {
+            if !item.enabled && !ended {
                 Text("休み中")
                     .font(.system(size: 11))
                     .foregroundStyle(Theme.muted)

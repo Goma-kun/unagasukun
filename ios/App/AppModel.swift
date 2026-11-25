@@ -290,6 +290,23 @@ final class AppModel: ObservableObject {
         commit()
     }
 
+    /// 「終わりにする」／「予定に戻す」。もうやらない予定を、消さずに一覧と通知から外す。
+    /// 削除と違って名前と記録がカレンダーに残り、いつでも戻せる（2026-11-26 本人要望：
+    /// 登録済みが 18 件に増え、減らす手段が削除しか無かった）
+    func setEnded(_ item: Item, _ ended: Bool) {
+        guard let i = snapshot.schedule.firstIndex(where: { $0.id == item.id }) else { return }
+        snapshot.schedule[i].archived = ended
+        commit()
+    }
+
+    /// 「終わった予定」の欄に出すもの。日付が過ぎた 1 回だけの予定は「過ぎた予定」とカレンダーの側なので除く
+    /// （拡張機能から取り込んだデータは、過ぎた 1 回だけの予定がすべて archived になっている）
+    func ended(now: Date = Date()) -> [Item] {
+        snapshot.schedule
+            .filter { Logic.isArchived($0) && $0.origId == nil && !isPastOneOff($0, now: now) }
+            .sorted { $0.label.localizedStandardCompare($1.label) == .orderedAscending }
+    }
+
     func record(_ item: Item, _ mark: Mark, now: Date = Date()) {
         snapshot.setMark(mark, item: item.id, on: Logic.dateKey(now))
         commit()
