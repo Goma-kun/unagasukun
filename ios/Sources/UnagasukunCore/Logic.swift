@@ -286,7 +286,8 @@ public enum Logic {
         guard let day = parseDateKey(key) else { return [] }
         let today = startOfDay(now)
         return schedule.filter { item in
-            if item.origId != nil || isArchived(item) || !item.enabled { return false }
+            // 休み中でも、再開日以降の日には出す
+            if item.origId != nil || isArchived(item) || !Resume.isOn(item, key: key) { return false }
             if isOneOff(item) { return item.date == key }
             if isInterval(item) {
                 guard let n = item.intervalDays, n > 0,

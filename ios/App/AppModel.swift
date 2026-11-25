@@ -57,6 +57,14 @@ final class AppModel: ObservableObject {
         // 預かる側の都合で止める理由がない
         self.syncEnabled = d.object(forKey: "syncEnabled") as? Bool ?? true
         startPolling()
+        wakeResumed()
+    }
+
+    /// 再開日が来た休み中の予定を戻す。起動・前面に戻ったとき・時計が進んだとき・同期のあとに呼ぶ
+    func wakeResumed(now: Date = Date()) {
+        guard let woke = Resume.wake(snapshot.schedule, now: now) else { return }
+        snapshot.schedule = woke
+        commit()
     }
 
     // MARK: - iCloud 同期
@@ -96,6 +104,8 @@ final class AppModel: ObservableObject {
                 try await cloud.push(plan.merged)
             }
             syncState = .ok(Date())
+            // ほかの端末で休みにした予定の再開日が、もう来ているかもしれない
+            wakeResumed()
         } catch {
             // 圏外などで失敗しても、手元は普通に使える
             syncState = .failed(String(localized: "同期できませんでした。次に開いたときにやり直します"))

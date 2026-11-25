@@ -186,11 +186,11 @@ struct TodayView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .onReceive(tick) { now = $0 }
+        .onReceive(tick) { now = $0; model.wakeResumed(now: $0) }
         // 裏にいる間は 30 秒おきの時計が止まる。戻った瞬間に合わせないと、通知を押して開いても
         // 「時間が過ぎた」の橙の枠が数秒遅れて出る（2026-11-17 本人指摘）
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { now = Date() }
+            if phase == .active { now = Date(); model.wakeResumed(now: now) }
         }
         .task {
             await model.refreshNotificationState()
@@ -868,6 +868,14 @@ private struct RegisteredRow: View {
         Button(action: onEdit) { row }.buttonStyle(.plain)
     }
 
+    /// 再開日が決まっていれば「12/3(木) に再開」、無ければ「休み中」
+    private var restText: String {
+        if let key = Resume.pending(item, now: Date()), let d = Logic.parseDateKey(key) {
+            return String(localized: "\(Describe.short(d)) に再開")
+        }
+        return String(localized: "休み中")
+    }
+
     private var row: some View {
         HStack(spacing: 10) {
             TagDot(tag: model.tag(for: item))
@@ -881,7 +889,7 @@ private struct RegisteredRow: View {
             }
             Spacer(minLength: 0)
             if !item.enabled && !ended {
-                Text("休み中")
+                Text(restText)
                     .font(.system(size: 11))
                     .foregroundStyle(Theme.muted)
                     .padding(.horizontal, 7).padding(.vertical, 2)

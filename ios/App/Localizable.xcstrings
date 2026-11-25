@@ -2297,6 +2297,56 @@
           }
         }
       }
+    },
+    "再開する日を決める": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a date to resume"
+          }
+        }
+      }
+    },
+    "再開する日": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume on"
+          }
+        }
+      }
+    },
+    "再開する日は明日より先の日にしてください。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick tomorrow or a later date."
+          }
+        }
+      }
+    },
+    "%@ になると自動で戻り、今日の予定と通知に出ます。記録はそのまま残ります。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumes automatically on %@ and shows in Today and reminders again. Records are kept."
+          }
+        }
+      }
+    },
+    "%@ に再開": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumes %@"
+          }
+        }
+      }
     }
   }
 }

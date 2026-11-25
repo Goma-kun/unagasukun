@@ -64,6 +64,9 @@ struct PlanFormView: View {
     @State private var days: Set<Int> = []
     @State private var intervalDays = 3
     @State private var enabled = true
+    /// 「しばらく休む」の再開日を決めるか・その日。決めなければ自分で戻すまで休み
+    @State private var hasResume = false
+    @State private var resumeDay = Logic.day(Date(), plus: 7)
     /// ラベル（`Tag.id`）。無ければ nil
     @State private var tagId: String? = nil
     @State private var editingTags = false
@@ -309,8 +312,21 @@ struct PlanFormView: View {
                         Section {
                             Toggle("しばらく休む", isOn: Binding(get: { !enabled },
                                                            set: { enabled = !$0 }))
+                            if !enabled {
+                                Toggle("再開する日を決める", isOn: $hasResume)
+                                if hasResume {
+                                    DateField(title: String(localized: "再開する日"), date: $resumeDay)
+                                    if !resumeValid {
+                                        Text("再開する日は明日より先の日にしてください。")
+                                            .font(.system(size: 13))
+                                            .foregroundStyle(Theme.danger)
+                                    }
+                                }
+                            }
                         } footer: {
-                            Text("一覧と通知から外れます。記録はそのまま残ります。")
+                            Text(!enabled && hasResume && resumeValid
+                                 ? String(localized: "\(Describe.short(resumeDay)) になると自動で戻り、今日の予定と通知に出ます。記録はそのまま残ります。")
+                                 : String(localized: "一覧と通知から外れます。記録はそのまま残ります。"))
                         }
 
                         // 削除の手前に置く。戻せるので確認は挟まない（消さずに片づける道・2026-11-26）
@@ -341,6 +357,12 @@ struct PlanFormView: View {
         detail = item.detail ?? ""
         tagId = item.tagId
         enabled = item.enabled
+        hasResume = false
+        resumeDay = Logic.day(Date(), plus: 7)
+        if !item.enabled, let d = Logic.parseDateKey(item.resumeDate) {
+            hasResume = true
+            resumeDay = d
+        }
         noTime = Logic.isAnytime(item)
         // 前に開いた予定の状態を引きずらないよう、毎回すべて入れ直す
         hasEnd = false
@@ -543,13 +565,18 @@ struct PlanFormView: View {
         if mode == .weekly && days.isEmpty { return false }
         if mode == .once && editing == nil && dateKeys.isEmpty { return false }
         if !noTime && !endValid { return false }
+        if !enabled && hasResume && !resumeValid { return false }
         return true
     }
+
+    /// 再開日は明日より先。今日以前だと、保存したとたんに戻ってしまう
+    private var resumeValid: Bool { Logic.dateKey(resumeDay) > Logic.dateKey(Date()) }
 
     private func save() {
         var item = Item(id: editing?.id ?? UUID().uuidString,
                         label: label.trimmingCharacters(in: .whitespaces))
         item.enabled = enabled
+        item.resumeDate = (!enabled && hasResume) ? Logic.dateKey(resumeDay) : nil
         item.origId = editing?.origId
         item.archived = editing?.archived ?? false
         item.targetMin = editing?.targetMin

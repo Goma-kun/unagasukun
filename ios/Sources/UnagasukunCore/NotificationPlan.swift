@@ -51,13 +51,22 @@ public enum NotificationPlan {
         var out: [PlannedNotification] = []
         let horizon = Logic.day(now, plus: horizonDays)
 
-        for item in schedule {
-            if item.origId != nil || Logic.isArchived(item) || !item.enabled { continue }
+        for original in schedule {
+            if original.origId != nil || Logic.isArchived(original) { continue }
+            var item = original
+            // 休み中でも、再開日が決まっていればその日からのぶんを予約する
+            // （再開日にアプリを開かなくても通知が届くように）。日が決まっていなければ出さない
+            var resumeFrom: Date? = nil
+            if !item.enabled {
+                guard let key = item.resumeDate, let day = Logic.parseDateKey(key) else { continue }
+                item.enabled = true
+                resumeFrom = Logic.startOfDay(day)
+            }
 
             // その予定の次の回から順に、期限まで拾う。
             // 「◯日ごと」は済ませた日で目安日が動くので、先の回を今から決め打てない。
             // その1回だけを予約して、記録が付いたときに張り直す
-            var cursor = now
+            var cursor = resumeFrom.map { max($0, now) } ?? now
             var guardCount = 0
             while guardCount < horizonDays + 8 {
                 guardCount += 1
